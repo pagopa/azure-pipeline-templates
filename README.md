@@ -6,7 +6,7 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 
 ### Best practices
 * Always include templates in your pipeline specifying the reference tag, so a new template version can never break your deploy workflow.
-* When writing templates, make little-to-no use of default values. Istead, pretend the hist pipeline to provide them.
+* When writing templates, make little-to-no use of default values. Instead, pretend the hist pipeline to provide them.
 
 ## Available templates
 
