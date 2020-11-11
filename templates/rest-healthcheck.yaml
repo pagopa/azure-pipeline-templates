@@ -1,6 +1,6 @@
 # Azure DevOps template used to perform an healthcheck on an http endpoint
 #
-# An HTTP request to a given path. Such path is provided by the application with the purpose of checking the app has been configurated correctly.
+# An HTTP request to a given endpoint. Such endpoint is provided by the application with the purpose of checking the app has been configurated correctly.
 
 parameters:
   - name: 'azureSubscription'
@@ -9,14 +9,9 @@ parameters:
   - name: 'appName'
     type: string
 
-  # path of the url to perform the healthcheck against, without leading /
-  - name: 'path'
+  # full endpoint healthcheck against, 
+  - name: 'endpoint'
     type: string
-
-  # path of the url to perform the healthcheck against, without leading /
-  - name: 'protocol'
-    type: string
-    default: 'https'
 
   # min container instance cpu
   - name: 'containerInstanceCpu'
@@ -80,7 +75,7 @@ steps:
                          --restart-policy Never \
                          --vnet '${{ parameters.containerInstanceVNet }}' \
                          --subnet '${{ parameters.containerInstanceSubnet }}' \
-                         --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.protocol }}://${{ parameters.appName }}-staging.azurewebsites.net/${{ parameters.path }}'" \
+                         --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}'" \
                          --output tsv \
                          --query containers[].instanceView.currentState.exitCode)
         
