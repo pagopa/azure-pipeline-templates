@@ -80,7 +80,7 @@ steps:
                          --restart-policy Never \
                          --vnet '${{ parameters.containerInstanceVNet }}' \
                          --subnet '${{ parameters.containerInstanceSubnet }}' \
-                         --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.protocol }}://${{ parameters.appName }}-staging.azurewebsites.net/${{ parameters.containerInstanceSubnet }}'" \
+                         --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.protocol }}://${{ parameters.appName }}-staging.azurewebsites.net/${{ parameters.path }}'" \
                          --output tsv \
                          --query containers[].instanceView.currentState.exitCode)
         
