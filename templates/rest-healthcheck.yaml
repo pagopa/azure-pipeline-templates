@@ -1,0 +1,92 @@
+# Azure DevOps template used to perform an healthcheck on an http endpoint
+#
+# An HTTP request to a given path. Such path is provided by the application with the purpose of checking the app has been configurated correctly.
+
+parameters:
+  - name: 'azureSubscription'
+    type: string
+
+  - name: 'appName'
+    type: string
+
+  # path of the url to perform the healthcheck against, without leading /
+  - name: 'path'
+    type: string
+
+  # path of the url to perform the healthcheck against, without leading /
+  - name: 'protocol'
+    type: string
+    default: 'https'
+
+  # min container instance cpu
+  - name: 'containerInstanceCpu'
+    type: string
+    default: '0.5'
+
+  # min container instance memory
+  - name: 'containerInstanceMemory'
+    type: string
+    default: '0.5'
+
+  # the resource group must be the same where vnet is created
+  - name: 'containerInstanceResourceGroup'
+    type: string
+
+  # attached vnet to the container instance
+  - name: 'containerInstanceVNet'
+    type: string
+
+  # container instance subnet
+  - name: 'containerInstanceSubnet'
+    type: string
+  
+steps:
+  - task: AzureCLI@2 
+    displayName: Healthcheck
+    inputs:
+      azureSubscription: '${{ parameters.azureSubscription }}'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: false
+      inlineScript: |     
+        # define a temporary container instance name     
+        CONTAINER_INSTANCE_NAME="${{ parameters.appName }}-deploy"
+        
+        # check if vnet exists in target resource group (containerInstanceResourceGroup)
+        OUTPUT_VNET=$(az network vnet list --resource-group '${{ parameters.containerInstanceResourceGroup }}' --query "[?contains(name, '${{ parameters.containerInstanceVNet }}')].name" --output tsv)
+        if [ "$OUTPUT_VNET" = '${{ parameters.containerInstanceVNet }}' ]; then
+          echo "VNET '${{ parameters.containerInstanceVNet }}' found, continue"
+        else
+          echo "VNET '${{ parameters.containerInstanceVNet }}' not found, fail"
+          exit 1
+        fi
+
+        # check if subnet exists in target resource group and vnet (containerInstanceResourceGroup, containerInstanceVNet)
+        OUTPUT_SUBNET=$(az network vnet subnet list --resource-group '${{ parameters.containerInstanceResourceGroup }}' --vnet-name '${{ parameters.containerInstanceVNet }}' --query "[?contains(name, '${{ parameters.containerInstanceSubnet }}')].name" --output tsv)
+        if [ "$OUTPUT_SUBNET" = '${{ parameters.containerInstanceSubnet }}' ]; then
+          echo "SUBNET '${{ parameters.containerInstanceSubnet }}' found, continue"
+        else
+          echo "SUBNET '${{ parameters.containerInstanceSubnet }}' not found, fail"
+          exit 1
+        fi
+
+        # create, run container instance in subnet, and get exit code
+        OUTPUT_CREATE=$(az container create \
+                         --resource-group '${{ parameters.containerInstanceResourceGroup }}' \
+                         --name ${CONTAINER_INSTANCE_NAME} \
+                         --image microsoft/azure-cli:latest \
+                         --cpu '${{ parameters.containerInstanceCpu }}' \
+                         --memory '${{ parameters.containerInstanceMemory }}' \
+                         --restart-policy Never \
+                         --vnet '${{ parameters.containerInstanceVNet }}' \
+                         --subnet '${{ parameters.containerInstanceSubnet }}' \
+                         --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.protocol }}://${{ parameters.appName }}-staging.azurewebsites.net/${{ parameters.containerInstanceSubnet }}'" \
+                         --output tsv \
+                         --query containers[].instanceView.currentState.exitCode)
+        
+        # print container instance logs
+        az container logs --resource-group '${{ parameters.containerInstanceResourceGroup }}' --name ${CONTAINER_INSTANCE_NAME}
+        # delete container instance
+        OUTPUT_DELETE=$(az container delete --resource-group ${{ parameters.containerInstanceResourceGroup }} --name ${CONTAINER_INSTANCE_NAME} --yes)
+        # reuse OUTPUT_CREATE as task exit code to interrupt pipeline if result is not 0.
+        exit $OUTPUT_CREATE

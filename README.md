@@ -10,6 +10,23 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 
 ## Available templates
 
+### Rest Healtcheck
+Perform HTTP requests to a given endpoint of the app being processed. It is intended to be used as a check before promoting a slot into production.
+Requests are made inside a container which needs to be mounted using specific networking configurations and grants.
+
+|param|description|default|
+|-|-|-|
+|azureSubscription|Azure Subscription we run the script with||
+|appName|The name of the app in the Azure account||
+|path|The path of the endpoint to call, **without leading `/`**||
+|protocol|Protocol to be used to call the endpoint|https|
+|containerInstanceCpu|Max container CPU allocation|0.5 (minimum allocable)|
+|containerInstanceMemory|Max container memory allocation|0.5 (minimum allocable)|
+|containerInstanceResourceGroup|The resource group the container is mounted with||
+|containerInstanceVNet|The VNet the container is mounted onto||
+|containerInstanceSubnet|The subnet the container is mounted onto||
+
+
 ## Contributing
 
 ### Create a new template
