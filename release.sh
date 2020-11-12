@@ -20,4 +20,5 @@ echo "$newversion" > .version
 git add .version
 git commit -m "Bump to version $newversion"
 git tag "v$newversion"
-git push --follow-tags
+git push origin master
+git push --tags
