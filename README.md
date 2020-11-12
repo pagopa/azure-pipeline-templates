@@ -10,28 +10,19 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 
 ## Available templates
 
-### Rest Healtcheck
-Perform HTTP requests to a given endpoint of the app being processed. It is intended to be used as a check before promoting a slot into production.
-Requests are made inside a container which needs to be mounted using specific networking configurations and grants.
-
-|param|description|default|
-|-|-|-|
-|azureSubscription|Azure Subscription we run the script with||
-|appName|The name of the app in the Azure account||
-|endpoint|The endpoint to call||
-|containerInstanceCpu|Max container CPU allocation|0.5 (minimum allocable)|
-|containerInstanceMemory|Max container memory allocation|0.5 (minimum allocable)|
-|containerInstanceResourceGroup|The resource group the container is mounted with||
-|containerInstanceVNet|The VNet the container is mounted onto||
-|containerInstanceSubnet|The subnet the container is mounted onto||
-
+* [Rest Healthcheck](templates/rest-healthcheck/README.md)
 
 ## Contributing
 
 ### Create a new template
-* Create a dedicate `yaml` file in `/templates`, with an appropiate name.
-* Please remember that templates are not inheritedly bound to any specific project or tech: if the template works only on a specific context, make it explicit (example: prefer `npm-publish.yaml` to `publish.yaml` when writing a template to publish a module on npm).
-* Create a section on this README with a brief description of the template and the full list of parameters.
+* Create a dedicate folder in `/templates`, with the name of the template.
+* Please remember that templates are not inheritedly bound to any specific project or tech: if the template works only on a specific context, make it explicit (example: prefer `npm-publish` to `publish` when writing a template to publish a module on npm).
+* In the folder create a `yaml` file (naming isn't really important, you can call it `index.yaml` or `template.yaml`).
+* In the same folder add a specific README file with:
+  * a brief description of the template
+  * an example snippet to describe usage
+  * a full parameters table
+* Add an entry in the `Available templates` section of the repo main README (this file), with a link to the README of the template you just created.
 
 ### Release a new version
 To mark a new version, use the `release.sh` script.
