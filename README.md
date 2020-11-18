@@ -10,7 +10,7 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 
 ## Available templates
 
-* [Rest Healthcheck](templates/rest-healthcheck/README.md)
+* [Rest Healthcheck](templates/rest-healthcheck)
 
 ## Contributing
 
