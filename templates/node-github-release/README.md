@@ -8,7 +8,7 @@ Opinionate sequence of steps to mark a new release of a Nodejs project hosted on
 1. push changes and tags to the repository
 1. creates a Github release from the release tag
 
-Dependencies are installed using `yarn`. They are needed because the appliation may define some custom `preversion`, `version` and/or `postversion` scripts that may require some external package.
+Dependencies are installed using `yarn`. They are needed because the application may define some custom `preversion`, `version` and/or `postversion` scripts that may require some external package.
 
 ## Usage
 
