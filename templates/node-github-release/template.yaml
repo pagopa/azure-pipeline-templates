@@ -47,7 +47,7 @@ steps:
     git config --global user.email "${{ parameters.gitEmail }}" && git config --global user.name "${{ parameters.gitUsername }}"
   displayName: 'Git setup' 
 
-# Without this step, changes would be applied to a detatched head
+# Without this step, changes would be applied to a detached head
 - script: |
     git checkout ${{ parameters.release_branch }}
   displayName: 'Checkout release branch'
