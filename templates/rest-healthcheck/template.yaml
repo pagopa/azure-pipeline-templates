@@ -9,7 +9,7 @@ parameters:
   - name: 'appName'
     type: string
 
-  # full endpoint healthcheck against,
+  # full endpoint healthcheck against
   - name: 'endpoint'
     type: string
 
