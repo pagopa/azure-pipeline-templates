@@ -1,6 +1,6 @@
 # Node Github Release template
 
-Opinionate sequence of steps to mark a new release of a Nodejs project hosted on a Github repository. It does the following:
+Opinionated sequence of steps to mark a new release of a Nodejs project hosted on a Github repository. It does the following:
 
 1. checkout a given release branch (usually `master`)
 1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor` or `patch`)
