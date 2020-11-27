@@ -58,7 +58,7 @@ steps:
       inlineScript: |
         if [ '${{ parameters.endpointType }}' = "public" ]; then
           echo public
-          az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}'
+          az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' --headers ${{ parameters.headers }}
           exit $?
         fi
 
@@ -95,7 +95,7 @@ steps:
                           --restart-policy Never \
                           --vnet '${{ parameters.containerInstanceVNet }}' \
                           --subnet '${{ parameters.containerInstanceSubnet }}' \
-                          --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}'" \
+                          --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' --headers ${{ parameters.headers }}" \
                           --output tsv \
                           --query containers[].instanceView.currentState.exitCode)
           
