@@ -28,15 +28,15 @@ jobs:
 
 ## Parameters
 
-| param                          | description                                                                  | default                 |
-| ------------------------------ | ---------------------------------------------------------------------------- | ----------------------- |
-| azureSubscription              | Azure Subscription we run the script with                                    |                         |
-| appName                        | The name of the app in the Azure account                                     |                         |
-| endpoint                       | The endpoint to call                                                         |                         |
-| endpointType                   | Set if endpoint is public or private                                         |                         |
-| headers                        | If needed add custom headers to HTTP request in KEY=VALUE format             |                         |
-| containerInstanceCpu           | Max container CPU allocation (only for private endpoint)                     | 0.5 (minimum allocable) |
-| containerInstanceMemory        | Max container memory allocation (only for private endpoint)                  | 0.5 (minimum allocable) |
-| containerInstanceResourceGroup | The resource group the container is mounted with (only for private endpoint) |                         |
-| containerInstanceVNet          | The VNet the container is mounted onto (only for private endpoint)           |                         |
-| containerInstanceSubnet        | The subnet the container is mounted onto (only for private endpoint)         |                         |
+| param                          | description                                                                     | default                 | required                        |
+| ------------------------------ | ------------------------------------------------------------------------------- | ----------------------- | ------------------------------- |
+| azureSubscription              | Azure Subscription we run the script with                                       |                         | true                            |
+| appName                        | The name of the app in the Azure account                                        |                         | true                            |
+| endpoint                       | The endpoint to call                                                            |                         | true                            |
+| endpointType                   | Weather the endpoint is exposed on public network. Value: `public` or `private` |                         | true                            |
+| headers                        | If needed add custom headers to HTTP request in KEY=VALUE format                |                         | false                           |
+| containerInstanceCpu           | Max container CPU allocation                                                    | 0.5 (minimum allocable) | only if `endpointType: private` |
+| containerInstanceMemory        | Max container memory allocation                                                 | 0.5 (minimum allocable) | only if `endpointType: private` |
+| containerInstanceResourceGroup | The resource group the container is mounted with                                |                         | only if `endpointType: private` |
+| containerInstanceVNet          | The VNet the container is mounted onto                                          |                         | only if `endpointType: private` |
+| containerInstanceSubnet        | The subnet the container is mounted onto                                        |                         | only if `endpointType: private` |
