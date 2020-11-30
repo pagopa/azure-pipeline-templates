@@ -56,32 +56,31 @@ steps:
       scriptLocation: 'inlineScript'
       failOnStandardError: false
       inlineScript: |
+        echo "endpointType: ${{ parameters.endpointType }}"
         if [ '${{ parameters.endpointType }}' = "public" ]; then
-          echo public
           az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' --headers ${{ parameters.headers }}
           exit $?
         fi
 
         if [ '${{ parameters.endpointType }}' = "private" ]; then
-          echo private
           # define a temporary container instance name
           CONTAINER_INSTANCE_NAME="${{ parameters.appName }}-deploy"
           
           # check if vnet exists in target resource group (containerInstanceResourceGroup)
           OUTPUT_VNET=$(az network vnet list --resource-group '${{ parameters.containerInstanceResourceGroup }}' --query "[?contains(name, '${{ parameters.containerInstanceVNet }}')].name" --output tsv)
           if [ "$OUTPUT_VNET" = '${{ parameters.containerInstanceVNet }}' ]; then
-            echo "VNET '${{ parameters.containerInstanceVNet }}' found, continue"
+            echo "containerInstanceVNet: '${{ parameters.containerInstanceVNet }}' found, continue"
           else
-            echo "VNET '${{ parameters.containerInstanceVNet }}' not found, fail"
+            echo "containerInstanceVNet: '${{ parameters.containerInstanceVNet }}' not found, fail"
             exit 1
           fi
 
           # check if subnet exists in target resource group and vnet (containerInstanceResourceGroup, containerInstanceVNet)
           OUTPUT_SUBNET=$(az network vnet subnet list --resource-group '${{ parameters.containerInstanceResourceGroup }}' --vnet-name '${{ parameters.containerInstanceVNet }}' --query "[?contains(name, '${{ parameters.containerInstanceSubnet }}')].name" --output tsv)
           if [ "$OUTPUT_SUBNET" = '${{ parameters.containerInstanceSubnet }}' ]; then
-            echo "SUBNET '${{ parameters.containerInstanceSubnet }}' found, continue"
+            echo "containerInstanceSubnet: '${{ parameters.containerInstanceSubnet }}' found, continue"
           else
-            echo "SUBNET '${{ parameters.containerInstanceSubnet }}' not found, fail"
+            echo "containerInstanceSubnet: '${{ parameters.containerInstanceSubnet }}' not found, fail"
             exit 1
           fi
 
