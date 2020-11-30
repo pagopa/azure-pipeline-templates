@@ -67,6 +67,7 @@ steps:
 - script: |
     yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
   displayName: 'Install node modules'
+  condition: ne(variables.CACHE_RESTORED, 'true')
   
 # bump version
 - script: |
