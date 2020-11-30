@@ -11,6 +11,7 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 ## Available templates
 
 * [Rest Healthcheck](templates/rest-healthcheck)
+* [Node Github Release](templates/node-github-release)
 
 ## Contributing
 
