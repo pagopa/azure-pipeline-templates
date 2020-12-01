@@ -16,7 +16,7 @@ parameters:
   # custom headers
   - name: 'headers'
     type: string
-    default: ''
+    default: 'no-headers'
 
   # select if endpoint is public or private
   - name: 'endpointType'
@@ -56,10 +56,24 @@ steps:
       scriptLocation: 'inlineScript'
       failOnStandardError: false
       inlineScript: |
+        if [ '${{ parameters.headers }}' = "no-headers" ]; then
+          HEADERS=""
+        else
+          HEADERS="--headers ${{ parameters.headers }}"
+        fi
+
         echo "endpointType: ${{ parameters.endpointType }}"
         if [ '${{ parameters.endpointType }}' = "public" ]; then
-          az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' --headers ${{ parameters.headers }}
-          exit $?
+          OUTPUT_REST=$(az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' ${HEADERS})
+          echo ${OUTPUT_REST}
+          # check if rest response contains app-name
+          if [[ ${OUTPUT_REST} == *${{ parameters.appName }}* ]]; then
+            echo "appName: '${{ parameters.appName }}' found, continue"
+            exit 0
+          else
+            echo "appName: '${{ parameters.appName }}' not found, fail"
+            exit 1
+          fi
         fi
 
         if [ '${{ parameters.endpointType }}' = "private" ]; then
@@ -94,14 +108,21 @@ steps:
                           --restart-policy Never \
                           --vnet '${{ parameters.containerInstanceVNet }}' \
                           --subnet '${{ parameters.containerInstanceSubnet }}' \
-                          --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' --headers ${{ parameters.headers }}" \
+                          --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' ${HEADERS}" \
                           --output tsv \
                           --query containers[].instanceView.currentState.exitCode)
           
           # print container instance logs
-          az container logs --resource-group '${{ parameters.containerInstanceResourceGroup }}' --name ${CONTAINER_INSTANCE_NAME}
+          OUTPUT_REST=$(az container logs --resource-group '${{ parameters.containerInstanceResourceGroup }}' --name ${CONTAINER_INSTANCE_NAME})
           # delete container instance
           OUTPUT_DELETE=$(az container delete --resource-group ${{ parameters.containerInstanceResourceGroup }} --name ${CONTAINER_INSTANCE_NAME} --yes)
-          # reuse OUTPUT_CREATE as task exit code to interrupt pipeline if result is not 0.
-          exit $OUTPUT_CREATE
+          echo ${OUTPUT_REST}
+          # check if rest response contains app-name
+          if [[ ${OUTPUT_REST} == *${{ parameters.appName }}* ]]; then
+            echo "appName: '${{ parameters.appName }}' found, continue"
+            exit 0
+          else
+            echo "appName: '${{ parameters.appName }}' not found, fail"
+            exit 1
+          fi
         fi
