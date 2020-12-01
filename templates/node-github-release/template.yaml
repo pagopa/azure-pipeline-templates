@@ -55,7 +55,7 @@ steps:
 # setup Node runtime
 - task: UseNode@1
   inputs:
-    version: '${{ parameters.node_version }}'
+    version: '${{ parameters.nodeVersion }}'
   displayName: 'Set up Node.js'
 - task: Cache@2
   inputs:
