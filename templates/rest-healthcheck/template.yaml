@@ -9,6 +9,10 @@ parameters:
   - name: 'appName'
     type: string
 
+  - name: 'responseCheckString'
+    type: string
+    default: 'version'
+
   # full endpoint healthcheck against
   - name: 'endpoint'
     type: string
@@ -67,11 +71,11 @@ steps:
           OUTPUT_REST=$(az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' ${HEADERS})
           echo ${OUTPUT_REST}
           # check if rest response contains app-name
-          if [[ ${OUTPUT_REST} == *${{ parameters.appName }}* ]]; then
-            echo "appName: '${{ parameters.appName }}' found, continue"
+          if [[ ${OUTPUT_REST} == *${{ parameters.responseCheckString }}* ]]; then
+            echo "responseCheckString: '${{ parameters.responseCheckString }}' found, continue"
             exit 0
           else
-            echo "appName: '${{ parameters.appName }}' not found, fail"
+            echo "responseCheckString: '${{ parameters.responseCheckString }}' not found, fail"
             exit 1
           fi
         fi
@@ -118,11 +122,11 @@ steps:
           OUTPUT_DELETE=$(az container delete --resource-group ${{ parameters.containerInstanceResourceGroup }} --name ${CONTAINER_INSTANCE_NAME} --yes)
           echo ${OUTPUT_REST}
           # check if rest response contains app-name
-          if [[ ${OUTPUT_REST} == *${{ parameters.appName }}* ]]; then
-            echo "appName: '${{ parameters.appName }}' found, continue"
+          if [[ ${OUTPUT_REST} == *${{ parameters.responseCheckString }}* ]]; then
+            echo "responseCheckString: '${{ parameters.responseCheckString }}' found, continue"
             exit 0
           else
-            echo "appName: '${{ parameters.appName }}' not found, fail"
+            echo "responseCheckString: '${{ parameters.responseCheckString }}' not found, fail"
             exit 1
           fi
         fi
