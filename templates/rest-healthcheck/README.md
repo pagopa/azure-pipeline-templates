@@ -32,6 +32,7 @@ jobs:
 | ------------------------------ | ------------------------------------------------------------------------------- | ----------------------- | ------------------------------- |
 | azureSubscription              | Azure Subscription we run the script with                                       |                         | true                            |
 | appName                        | The name of the app in the Azure account                                        |                         | true                            |
+| responseCheckString            | String to find in response payload to check if healthcheck success              | `version`               | false                           |
 | endpoint                       | The endpoint to call                                                            |                         | true                            |
 | endpointType                   | Weather the endpoint is exposed on public network. Value: `public` or `private` |                         | true                            |
 | headers                        | If needed add custom headers to HTTP request in `KEY=VALUE` format              |                         | false                           |
