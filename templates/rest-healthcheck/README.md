@@ -28,16 +28,16 @@ jobs:
 
 ## Parameters
 
-| param                          | description                                                                     | default                 | required                        |
-| ------------------------------ | ------------------------------------------------------------------------------- | ----------------------- | ------------------------------- |
-| azureSubscription              | Azure Subscription we run the script with                                       |                         | true                            |
-| appName                        | The name of the app in the Azure account                                        |                         | true                            |
-| responseCheckString            | String to find in response payload to check if healthcheck success              | `version`               | false                           |
-| endpoint                       | The endpoint to call                                                            |                         | true                            |
-| endpointType                   | Weather the endpoint is exposed on public network. Value: `public` or `private` |                         | true                            |
-| headers                        | If needed add custom headers to HTTP request in `KEY=VALUE` format              |                         | false                           |
-| containerInstanceCpu           | Max container CPU allocation                                                    | 0.5 (minimum allocable) | only if `endpointType: private` |
-| containerInstanceMemory        | Max container memory allocation                                                 | 0.5 (minimum allocable) | only if `endpointType: private` |
-| containerInstanceResourceGroup | The resource group the container is mounted with                                |                         | only if `endpointType: private` |
-| containerInstanceVNet          | The VNet the container is mounted onto                                          |                         | only if `endpointType: private` |
-| containerInstanceSubnet        | The subnet the container is mounted onto                                        |                         | only if `endpointType: private` |
+| param                          | description                                                                     | default                 | required                                              |
+| ------------------------------ | ------------------------------------------------------------------------------- | ----------------------- | ------------------------------------------------------|
+| azureSubscription              | Azure Subscription we run the script with                                       |                         | `true`                                                |
+| appName                        | The name of the app in the Azure account                                        |                         | `true` but meaningful only if `endpointType: private` |
+| responseCheckString            | String to find in response payload to check if healthcheck success              | `version`               | `false`                                               |
+| endpoint                       | The endpoint to call                                                            |                         | `true`                                                |
+| endpointType                   | Weather the endpoint is exposed on public network. Value: `public` or `private` |                         | `true`                                                |
+| headers                        | If needed add custom headers to HTTP request in `KEY=VALUE` format              |                         | `false`                                               |
+| containerInstanceCpu           | Max container CPU allocation                                                    | 0.5 (minimum allocable) | meaningful only if `endpointType: private`            |
+| containerInstanceMemory        | Max container memory allocation                                                 | 0.5 (minimum allocable) | meaningful only if `endpointType: private`            |
+| containerInstanceResourceGroup | The resource group the container is mounted with                                |                         | `true` but meaningful only if `endpointType: private` |
+| containerInstanceVNet          | The VNet the container is mounted onto                                          |                         | `true` but meaningful only if `endpointType: private` |
+| containerInstanceSubnet        | The subnet the container is mounted onto                                        |                         | `true` but meaningful only if `endpointType: private` |
