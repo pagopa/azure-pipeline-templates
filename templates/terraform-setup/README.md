@@ -2,7 +2,7 @@
 
 Install terraform and terragrunt in a debian besed linux vm.
 
-## Prerequisite
+## Prerequisites
 
 The repository aming to use this template within a `azure pipeline` must have in its root the following hidden files:
 
