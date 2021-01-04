@@ -26,7 +26,7 @@ resources:
     - repository: templates
       type: github
       name: pagopa/azure-devops-templates
-      ref: refs/tags/v2
+      ref: refs/tags/v5
 
 jobs:
 - template: templates/terraform-setup/template.yaml@templates
