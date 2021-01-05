@@ -12,6 +12,7 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 
 * [Rest Healthcheck](templates/rest-healthcheck)
 * [Node Github Release](templates/node-github-release)
+* [Terraform Setup](templates/terraform-setup)
 
 ## Contributing
 
