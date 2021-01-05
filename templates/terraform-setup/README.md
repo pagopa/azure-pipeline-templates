@@ -30,4 +30,7 @@ resources:
 
 jobs:
 - template: templates/terraform-setup/template.yaml@templates
+- script:|
+    terraform -version && terragrunt -version 
+   displayName: 'here you can execute any terraform/terragrunt command'
 ```
