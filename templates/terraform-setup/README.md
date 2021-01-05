@@ -25,12 +25,12 @@ resources:
   repositories:
     - repository: templates
       type: github
-      name: pagopa/azure-devops-templates
+      name: pagopa/azure-pipeline-templates
       ref: refs/tags/v5
 
 jobs:
 - template: templates/terraform-setup/template.yaml@templates
 - script:|
-    terraform -version && terragrunt -version 
+    terraform -version && terragrunt -version
    displayName: 'here you can execute any terraform/terragrunt command'
 ```
