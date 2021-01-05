@@ -1,6 +1,6 @@
 # Install terraform and terragrunt
 
-Install terraform and terragrunt in a debian besed linux vm.
+Install terraform and terragrunt in a debian-based linux agent. This is intended as a setup step in order to run terraform/terragrunt script in subsequent tasks of the same job.
 
 ## Prerequisites
 
