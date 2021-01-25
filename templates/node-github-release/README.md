@@ -2,7 +2,6 @@
 
 Opinionated sequence of steps to mark a new release of a Nodejs project hosted on a Github repository. It does the following:
 
-1. checkout a given release branch (usually `master`)
 1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor` or `patch`)
 1. tag the repository with the new version number
 1. push changes and tags to the repository
@@ -27,9 +26,6 @@ jobs:
     gitEmail: 'janedoe@company.com'
     gitUsername: 'JaneDoe'
     gitHubConnection: 'company_gh_connection'
-    nodeVersion: '10.19.0'
-    pkg_cache_version_id: 'v1'
-    pkg_cache_folder: $(Pipeline.Workspace)/.yarn
 ```
 
 ## Parameters
@@ -40,6 +36,3 @@ jobs:
 |gitEmail|The email of the Github user which authors the version bump commit ||
 |gitUsername|The username of the Github user which authors the version bump commit ||
 |gitHubConnection|The service connection used by the Azure Pipeline to connect to Github||
-|nodeVersion|The version of Node to use||
-|pkg_cache_version_id|Used by the package cache, identifies the cache version ||
-|pkg_cache_folder|Used by the package cache, the folder where cached package are persisted by the pipeline ||
