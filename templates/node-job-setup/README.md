@@ -1,6 +1,6 @@
 # Node Yarn Job Setup template
 
-Ideally all the steps needed at the beginning of a new job when working on a Node.js project with `yarn`. The templates does the following:
+Ideally all the steps needed at the beginning of a new job when working on a Node.js. The templates does the following:
 
 1. checkout code
 1. setup Node.js
@@ -18,7 +18,7 @@ resources:
       ref: refs/tags/v5
 
 jobs:
-- template: templates/node-yarn-job-setup/template.yaml@templates 
+- template: templates/node-job-setup/template.yaml@templates 
 ```
 
 ## Parameters
