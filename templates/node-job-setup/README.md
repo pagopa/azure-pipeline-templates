@@ -1,4 +1,4 @@
-# Node Yarn Job Setup template
+# Node Job Setup template
 
 Ideally all the steps needed at the beginning of a new job when working on a Node.js. The templates does the following:
 
