@@ -13,20 +13,12 @@ parameters:
   type: string
   default: '$(NONE)'
 
-# whether code must be checked-out with persisted credentials
-- name: 'persistCredentials'
-  type: string
-  default: false
-
 # if not set, the Node version will be red from .node-version and -nvmrc files, in this order
 - name: 'nodeVersion'
   type: string
   default: '$(NONE)'
   
 steps:
-- checkout: self
-  displayName: 'Checkout'
-  persistCredentials: ${{ parameters.persistCredentials }}
 
 # This is needed because the pipeline may point to a different commit than expected
 # The common case is when the previous stage pushed another commit
