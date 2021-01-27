@@ -18,11 +18,6 @@ stages:
       # Test that the job is setup with a provided Node version
       - job: test-provided-node-version      
         steps:
-        # prepare test
-        - checkout: self
-        - script: |
-            cd __tests__/sample-node-app
-          displayName: 'Move to sample app folder'
         # use template  
         - template: ../templates/node-job-setup/template.yaml
           parameters:
@@ -42,11 +37,6 @@ stages:
       # Test that the job is setup and Node version is inferred from the app source
       - job: test-inferred-node-version      
         steps:
-        # prepare test
-        - checkout: self
-        - script: |
-            cd __tests__/sample-node-app
-          displayName: 'Move to sample app folder'
         # use template  
         - template: ../templates/node-job-setup/template.yaml
           parameters:
@@ -65,11 +55,6 @@ stages:
       # Test that packages are been installed
       - job: test-installed packages
         steps:
-        # prepare test
-        - checkout: self
-        - script: |
-            cd __tests__/sample-node-app
-          displayName: 'Move to sample app folder'
         # use template  
         - template: ../templates/node-job-setup/template.yaml
           parameters:
