@@ -71,20 +71,3 @@ stages:
               exit 0
             fi
           displayName: 'Test'
-
-       # Test that setup fails when project dir not exists
-      - job: test_fail_on_wrong_folder
-        steps:
-        # use template  
-        - template: ../templates/node-job-setup/template.yaml
-          parameters:
-            projectDir: 'any-wrong-folder'
-        # test results    
-        - script: |
-            echo "it's ok, it's meant to fail"
-          condition: failed()
-          displayName: 'Test ok'         
-        - script: |
-            echo "oops, it was supposed to fail"
-          condition: succeeded()
-          displayName: 'Test ko'         
