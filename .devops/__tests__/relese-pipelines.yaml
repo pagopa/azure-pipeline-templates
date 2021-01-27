@@ -41,17 +41,26 @@ stages:
             
           # bump version and push
           - script: |
-              ./release.sh
-            displayName: 'Version bump and tag'
-          - script: |
-              NEXT_VERSION=$(git describe --abbrev=0 --tags)
+              set -euo pipefail
+              IFS=$'\n\t'
+              
+              oldversion=$(cut -d ',' -f2 .version)
+              newversion=$(expr "$oldversion" + 1)
+              TAG="v$newversion"
+              TITLE="Release $newversion"
+              echo "$newversion" > .version
+
+              git add .version
+              git commit -m "Bump to version $newversion [skip ci]"
+              git tag "$TAG"
+              git push origin master
+              git push --tags
+
               HEAD_SHA=$(git rev-parse HEAD)
-              TITLE="Release $NEXT_VERSION"
-              TAG="v$NEXT_VERSION"
               echo "##vso[task.setvariable variable=title]$TITLE"
               echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
               echo "##vso[task.setvariable variable=tag]$TAG"
-            displayName: 'Set release variables'
+            displayName: 'Version bump'
 
           # create new releae
           - task: GitHubRelease@0
