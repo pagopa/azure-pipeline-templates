@@ -22,7 +22,7 @@ stages:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
           parameters:
-            projectDir: '__tests__/sample-node-app'
+            projectDir: '.devops/__tests__/sample-node-app'
             nodeVersion: '12.6.0'
         # test results    
         - script: |
@@ -41,7 +41,7 @@ stages:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
           parameters:
-            projectDir: '__tests__/sample-node-app'
+            projectDir: '.devops/__tests__/sample-node-app'
         # test results    
         - script: |
             if [[ $(node -v) = 'v14.1.0' ]]; then
@@ -59,7 +59,7 @@ stages:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
           parameters:
-            projectDir: '__tests__/sample-node-app'
+            projectDir: '.devops/__tests__/sample-node-app'
         # test results    
         - script: |
             # a dummy package we expect to be installed
