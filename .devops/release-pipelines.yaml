@@ -1,0 +1,82 @@
+# Azure DevOps pipeline to release a new version
+#
+# The following variables must be configured in the pipeline settings
+#
+# GIT_EMAIL         - when bumping the package version, is the email we author the commit with
+# GIT_USERNAME      - when bumping the package version, is the name we author the commit with
+# GITHUB_CONNECTION - name of the Github service connection used to create a new release; be sure that the related user has appopriate right
+# 
+
+# Activated on every push on master, one at a time, only when files in /templates folder are modified
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - template/*
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+
+  # Create a relase
+  - stage: Release
+    jobs:
+      - job: make_release
+        steps:
+        - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          - checkout: self
+            displayName: 'Checkout'
+            clean: true
+            persistCredentials: true
+
+          # setup git author
+          - script: |
+              git config --global user.email "${{ parameters.gitEmail }}" && git config --global user.name "${{ parameters.gitUsername }}"
+            displayName: 'Git setup' 
+            
+          # bump version and push
+          - script: |
+              set -euo pipefail
+              IFS=$'\n\t'
+              
+              oldversion=$(cut -d ',' -f2 .version)
+              newversion=$(expr "$oldversion" + 1)
+              TAG="v$newversion"
+              TITLE="Release $newversion"
+              echo "$newversion" > .version
+
+              git add .version
+              git commit -m "Bump to version $newversion [skip ci]"
+              git tag "$TAG"
+              git push origin master
+              git push --tags
+
+              HEAD_SHA=$(git rev-parse HEAD)
+              echo "##vso[task.setvariable variable=title]$TITLE"
+              echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
+              echo "##vso[task.setvariable variable=tag]$TAG"
+            displayName: 'Version bump'
+
+          # create new releae
+          - task: GitHubRelease@0
+            inputs:
+              gitHubConnection: ${{ parameters.gitHubConnection }}
+              repositoryName: $(Build.Repository.Name)
+              action: create
+              target: $(sha)
+              tagSource: manual
+              tag: $(tag)
+              title: $(title)
+              addChangelog: true
+
+
+        - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          - script: |
+              echo "Releases are created only from master branch"
+              exit 1
+            displayName: 'Skip release'
