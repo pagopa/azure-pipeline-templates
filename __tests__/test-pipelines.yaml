@@ -73,7 +73,7 @@ stages:
           displayName: 'Test'
 
        # Test that setup fails when project dir not exists
-      - job: test_installed_packages
+      - job: test_fail_on_wrong_folder
         steps:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
