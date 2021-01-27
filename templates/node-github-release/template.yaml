@@ -27,21 +27,8 @@ parameters:
 - name: 'gitHubConnection'
   type: string
 
-# Node runtime parameters
-- name: 'nodeVersion'
-  type: string
-- name: 'pkg_cache_version_id'
-  type: string
-- name: 'pkg_cache_folder'
-  type: string
-
 
 steps:
-- checkout: self
-  displayName: 'Checkout'
-  clean: true
-  persistCredentials: true
-
 # setup git author
 - script: |
     git config --global user.email "${{ parameters.gitEmail }}" && git config --global user.name "${{ parameters.gitUsername }}"
@@ -51,23 +38,6 @@ steps:
 - script: |
     git checkout ${{ parameters.release_branch }}
   displayName: 'Checkout release branch'
-      
-# setup Node runtime
-- task: UseNode@1
-  inputs:
-    version: '${{ parameters.nodeVersion }}'
-  displayName: 'Set up Node.js'
-- task: Cache@2
-  inputs:
-    key: 'yarn-${{ parameters.pkg_cache_version_id }} | "$(Agent.OS)" | yarn.lock'
-    restoreKeys: |
-      yarn-${{ parameters.pkg_cache_version_id }} | "$(Agent.OS)"
-    path: '${{ parameters.pkg_cache_folder }}'
-  displayName: 'Cache yarn packages'
-- script: |
-    yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1
-  displayName: 'Install node modules'
-  condition: ne(variables.CACHE_RESTORED, 'true')
   
 # bump version
 - script: |
