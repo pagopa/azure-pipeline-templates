@@ -18,6 +18,11 @@ parameters:
   type: string
   default: false
 
+# optional sub path where the project to be initialized is located. To be used on repository with multiple projects. 
+- name: 'projectDir'
+  type: string
+  default: '.' # current folder is default
+
 # if not set, the Node version will be red from .node-version and -nvmrc files, in this order
 - name: 'nodeVersion'
   type: string
@@ -34,6 +39,10 @@ steps:
   - script: |
       git fetch && git checkout ${{ parameters.gitReference }}
     displayName: 'Checkout reference'  
+
+- script: |
+    cd ${{ parameters.projectDir }}
+  displayName: 'Move to project folder'  
 
 # If a Node version is defined explicitly by parameter, such version is used
 # Else, version is red from .node-version file
