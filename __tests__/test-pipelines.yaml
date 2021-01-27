@@ -16,7 +16,7 @@ stages:
     dependsOn: []
     jobs:
       # Test that the job is setup with a provided Node version
-      - job: test-provided-node-version      
+      - job: test_provided_node_version      
         steps:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
@@ -35,7 +35,7 @@ stages:
           displayName: 'Test'
 
       # Test that the job is setup and Node version is inferred from the app source
-      - job: test-inferred-node-version      
+      - job: test_inferred_node_version      
         steps:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
@@ -53,7 +53,7 @@ stages:
           displayName: 'Test'
 
       # Test that packages are been installed
-      - job: test-installed packages
+      - job: test_installed_packages
         steps:
         # use template  
         - template: ../templates/node-job-setup/template.yaml
