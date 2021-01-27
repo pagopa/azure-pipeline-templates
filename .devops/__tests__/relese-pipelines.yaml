@@ -7,9 +7,16 @@
 # GITHUB_CONNECTION - name of the Github service connection used to create a new release; be sure that the related user has appopriate right
 # 
 
-# Only manual activations are intended
-trigger: none
-# pr: none
+# Activated on every push on master, one at a time, only when files in /templates folder are modified
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - template/*
+pr: none
 
 pool:
   vmImage: 'ubuntu-latest'
