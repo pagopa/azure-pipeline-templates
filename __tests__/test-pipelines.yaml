@@ -1,0 +1,88 @@
+# Azure DevOps pipeline to build, check source codes and run tests.
+#
+
+
+# Automatically triggered on PR
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
+trigger: none
+
+# Execute agents (jobs) on latest Ubuntu version.
+# To change OS for a specific, ovverride "pool" attribute inside the job definition
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Test_NodeJobSetup
+    dependsOn: []
+    jobs:
+      # Test that the job is setup with a provided Node version
+      - job: test-provided-node-version      
+        steps:
+        # prepare test
+        - checkout: self
+        - script: |
+            cd __tests__/sample-node-app
+          displayName: 'Move to sample app folder'
+        # use template  
+        - template: ../templates/node-job-setup/template.yaml
+          parameters:
+            projectDir: 'sample-node-app'
+            nodeVersion: '12.6.0'
+        # test results    
+        - script: |
+            if [[ $(node -v) = 'v12.6.0' ]]; then
+              echo "Node version correcly set"
+              exit 0
+            else 
+              echo "Wrong Node version set, received: $(node -v)"
+              exit 0
+            fi
+          displayName: 'Test'
+
+      # Test that the job is setup and Node version is inferred from the app source
+      - job: test-inferred-node-version      
+        steps:
+        # prepare test
+        - checkout: self
+        - script: |
+            cd __tests__/sample-node-app
+          displayName: 'Move to sample app folder'
+        # use template  
+        - template: ../templates/node-job-setup/template.yaml
+          parameters:
+            projectDir: 'sample-node-app'
+        # test results    
+        - script: |
+            if [[ $(node -v) = 'v14.1.0' ]]; then
+              echo "Node version correcly set"
+              exit 0
+            else 
+              echo "Wrong Node version set, received: $(node -v)"
+              exit 0
+            fi
+          displayName: 'Test'
+
+      # Test that packages are been installed
+      - job: test-installed packages
+        steps:
+        # prepare test
+        - checkout: self
+        - script: |
+            cd __tests__/sample-node-app
+          displayName: 'Move to sample app folder'
+        # use template  
+        - template: ../templates/node-job-setup/template.yaml
+          parameters:
+            projectDir: 'sample-node-app'
+        # test results    
+        - script: |
+            # a dummy package we expect to be installed
+            expectedPackage="./node_modules/strings"
+            if [[ -d $expectedPackage ]]; then
+              echo "Node packages correctly installed"
+              exit 0
+            else 
+              echo "Failed to install packages"
+              exit 0
+            fi
+          displayName: 'Test'
