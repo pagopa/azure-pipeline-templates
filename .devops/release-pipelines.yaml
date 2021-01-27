@@ -53,6 +53,7 @@ stages:
               git add .version
               git commit -m "Bump to version $newversion [skip ci]"
               git tag "$TAG"
+              git status
               git push origin master
               git push --tags
 
