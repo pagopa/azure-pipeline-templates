@@ -13,6 +13,7 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 * [Rest Healthcheck](templates/rest-healthcheck)
 * [Node Github Release](templates/node-github-release)
 * [Terraform Setup](templates/terraform-setup)
+* [Node Job Setup template](templates/node-job-setup)
 
 ## Contributing
 
@@ -27,4 +28,4 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 * Add an entry in the `Available templates` section of the repo main README (this file), with a link to the README of the template you just created.
 
 ### Release a new version
-To mark a new version, use the `release.sh` script.
+New versions are created automatically on each merge on master branch. In the need of creating a release manually, use the `release.sh` script.
