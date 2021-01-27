@@ -44,6 +44,8 @@ stages:
               set -euo pipefail
               IFS=$'\n\t'
               
+              git checkout master
+
               oldversion=$(cut -d ',' -f2 .version)
               newversion=$(expr "$oldversion" + 1)
               TAG="v$newversion"
@@ -53,7 +55,6 @@ stages:
               git add .version
               git commit -m "Bump to version $newversion [skip ci]"
               git tag "$TAG"
-              git status
               git push origin master
               git push --tags
 
