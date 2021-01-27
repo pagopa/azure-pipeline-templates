@@ -1,4 +1,5 @@
-# Azure DevOps pipeline to build, check source codes and run tests.
+# Azure DevOps pipeline to test pipeline templates
+# Each stage is dedicated to a template. Each job of a stage is a test.
 #
 
 

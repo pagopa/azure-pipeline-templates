@@ -1,0 +1,66 @@
+# Azure DevOps pipeline to release a new version
+#
+# The following variables must be configured in the pipeline settings
+#
+# GIT_EMAIL         - when bumping the package version, is the email we author the commit with
+# GIT_USERNAME      - when bumping the package version, is the name we author the commit with
+# GITHUB_CONNECTION - name of the Github service connection used to create a new release; be sure that the related user has appopriate right
+# 
+
+# Only manual activations are intended
+trigger: none
+# pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+
+  # Create a relase
+  - stage: Release
+    jobs:
+      - job: make_release
+        steps:
+        - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          - checkout: self
+            displayName: 'Checkout'
+            clean: true
+            persistCredentials: true
+
+          # setup git author
+          - script: |
+              git config --global user.email "${{ parameters.gitEmail }}" && git config --global user.name "${{ parameters.gitUsername }}"
+            displayName: 'Git setup' 
+            
+          # bump version and push
+          - script: |
+              ./release.sh
+            displayName: 'Version bump and tag'
+          - script: |
+              NEXT_VERSION=$(git describe --abbrev=0 --tags)
+              HEAD_SHA=$(git rev-parse HEAD)
+              TITLE="Release $NEXT_VERSION"
+              TAG="v$NEXT_VERSION"
+              echo "##vso[task.setvariable variable=title]$TITLE"
+              echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
+              echo "##vso[task.setvariable variable=tag]$TAG"
+            displayName: 'Set release variables'
+
+          # create new releae
+          - task: GitHubRelease@0
+            inputs:
+              gitHubConnection: ${{ parameters.gitHubConnection }}
+              repositoryName: $(Build.Repository.Name)
+              action: create
+              target: $(sha)
+              tagSource: manual
+              tag: $(tag)
+              title: $(title)
+              addChangelog: true
+
+
+        - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+          - script: |
+              echo "Releases are created only from master branch"
+              exit 1
+            displayName: 'Skip release'
