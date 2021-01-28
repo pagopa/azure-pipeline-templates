@@ -1,0 +1,71 @@
+# Azure DevOps pipeline template to release Client SDK to NPM
+
+parameters:
+
+  - name: 'dependsOn'
+    type: string
+    default: 'No_Name'
+
+  - name: 'projectDir'
+    type: string
+    default: '.'
+
+  - name: 'openapiSpecPath'
+    type: string
+    default: 'openapi/index.yaml'
+
+
+stages:
+
+ # Prepare SDK
+ # make this stage run after Release, so package.json will be automatically updated
+ - stage: Prepare_SDK_Artifact_And_Release  
+   dependsOn: ['${{parameters.dependsOn}}']
+   
+
+   variables:
+    openapiSpecPath_withProjectDir: '${{ parameters.projectDir }}/${{ parameters.openapiSpecPath }}'
+    generatedCodeDir: '${{ parameters.projectDir }}/generated/sdk'
+
+   pool:
+     vmImage: 'ubuntu-latest'
+   jobs:
+     - job: generate_sdk_artifact
+       steps:
+         - checkout: self
+
+         - script: |
+             npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ variables.openapiSpecPath_withProjectDir }} --out-dir ${{variables.generatedCodeDir}} --client
+           displayName: 'Generate client and definitions'
+         
+         - script: |
+              cd ${{variables.generatedCodeDir}} && yarn install
+           displayName: 'Install depencencies'
+         
+         - script: |
+              cd ${{variables.generatedCodeDir}} && yarn build
+           displayName: 'Build depencencies'
+ 
+         - task: CopyFiles@2
+           inputs:
+             SourceFolder: '$(System.DefaultWorkingDirectory)/${{variables.generatedCodeDir}}'
+             TargetFolder: '$(System.DefaultWorkingDirectory)/bundle_sdk'
+             # The list of files to be considered is determined by the "files" entry in package.json
+             Contents: |
+               ?(*.js|*.js.map)
+               package.json
+               openapi.yaml
+             flattenFolders: true
+           displayName: 'Copy bundle files'
+         
+          #Publish artifact so we can check it
+         - publish: $(System.DefaultWorkingDirectory)/bundle_sdk
+           artifact: Bundle_SDK
+          
+         - task: Npm@1
+           inputs: 
+             command: custom
+             customCommand: publish --access public
+             customEndpoint: $(NPM_CONNECTION)
+             verbose: true
+             workingDir: '$(System.DefaultWorkingDirectory)/bundle_sdk'
