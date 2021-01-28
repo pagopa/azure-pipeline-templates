@@ -45,12 +45,12 @@ steps:
 # Else, version is red from .node-version file
 # Else, version is red from .nvmrc file
 - ${{ if ne(parameters.nodeVersion, 'none') }}:
-  - script: |
+  - bash: |
       FROM_PARAM=${{ parameters.nodeVersion }}
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_PARAM"
     displayName: 'Determine Node.js version from template param'
 - ${{ if eq(parameters.nodeVersion, 'none') }}:
-  - script: |
+  - bash: |
       FROM_SOURCE=$(cat .node-version || cat .nvmrc)
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_SOURCE"
     displayName: 'Determine Node.js version from source'
