@@ -84,3 +84,14 @@ stages:
                 exit 0
               fi
             displayName: 'Test'
+
+  - stage: Results
+    dependsOn: '*'
+    jobs:
+      - job: show results
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps: 
+        - bash: |
+            echo "it works!"
+          displayName: 'Test'
