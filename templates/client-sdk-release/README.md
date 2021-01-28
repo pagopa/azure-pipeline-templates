@@ -30,13 +30,14 @@ stages:
  - template: templates/client-sdk-release/template.yaml@templates 
    parameters:
      dependsOn: Release
+     openapiSpecPath: openapi/index.yaml
 
 ```
 
 ## Parameters
 
-|param|description|default|
-|-|-|-|
-|dependsOn|The of the stage that performs the versioning ||
-|projectDir|The project directory, in case of multi-project repo |.|
-|openapiSpecPath|The relative path of the OpenAPI spec from projectDir folder | openapi/index.yml |
+|param|description|default|required
+|-|-|-|-|
+|openapiSpecPath|The relative path of the OpenAPI spec from projectDir folder ||yes|
+|dependsOn|The of the stage that performs the versioning ||no|
+|projectDir|The project directory, in case of multi-project repo |.|no!

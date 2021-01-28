@@ -12,7 +12,6 @@ parameters:
 
   - name: 'openapiSpecPath'
     type: string
-    default: 'openapi/index.yaml'
 
 
 stages:
