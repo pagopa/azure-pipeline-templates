@@ -20,7 +20,7 @@ pool:
 
 stages:
   - ${{ each vm in parameters.testOnImages }}:
-    - stage: Test_NodeJobSetup${{ vm.Key }}
+    - stage: Test_NodeJobSetup_on_${{ vm.Key }}
       dependsOn: []
       jobs:
         # Test that the job is setup with a provided Node version
