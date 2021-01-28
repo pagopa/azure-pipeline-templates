@@ -27,7 +27,6 @@ stages:
    ...
   
  # Template for generating and deploying client SDk to NPM
- - template: azure-templates/deploy-client-sdk.yml
  - template: templates/client-sdk-release/template.yaml@templates 
    parameters:
      dependsOn: Release
@@ -39,5 +38,5 @@ stages:
 |param|description|default|
 |-|-|-|
 |dependsOn|The of the stage that performs the versioning ||
-|projectDir|The project directory, in case of multi-project repo |'.'|
-|openapiSpecPath|The relative path of the OpenAPI spec from projectDir folder | 'openapi/index.yml' |
+|projectDir|The project directory, in case of multi-project repo |.|
+|openapiSpecPath|The relative path of the OpenAPI spec from projectDir folder | openapi/index.yml |
