@@ -6,8 +6,8 @@ parameters:
   - name: 'testOnImages'
     type: 'object'
     default:
-      - 'ubuntu-latest'
-      - 'windows-2019'
+      linux: 'ubuntu-latest'
+      windows: 'windows-2019'
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
@@ -20,13 +20,13 @@ pool:
 
 stages:
   - ${{ each vm in parameters.testOnImages }}:
-    - stage: Test_NodeJobSetup
+    - stage: Test_NodeJobSetup${{ vm.Key }}
       dependsOn: []
       jobs:
         # Test that the job is setup with a provided Node version
         - job: test_provided_node_version
           pool:
-            vmImage: '${{ vm }}'
+            vmImage: '${{ vm.Value }}'
           steps:
           # use template  
           - template: ../templates/node-job-setup/template.yaml
@@ -47,7 +47,7 @@ stages:
         # Test that the job is setup and Node version is inferred from the app source
         - job: test_inferred_node_version   
           pool:
-            vmImage: '${{ vm }}'   
+            vmImage: '${{ vm.Value }}'   
           steps:
           # use template  
           - template: ../templates/node-job-setup/template.yaml
@@ -67,7 +67,7 @@ stages:
         # Test that packages are been installed
         - job: test_installed_packages
           pool:
-            vmImage: '${{ vm }}'
+            vmImage: '${{ vm.Value }}'
           steps:
           # use template  
           - template: ../templates/node-job-setup/template.yaml
