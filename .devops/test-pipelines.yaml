@@ -3,7 +3,10 @@
 #
 
 parameters:
-  - name: 'testOnImages'
+  # A set of agents to execute test against.
+  #  Key is an arbitrary string (avoid using `-`)
+  #  Value is the name of the vm to test against
+  - name: 'vmToTestOn'
     type: 'object'
     default:
       linux: 'ubuntu-latest'
@@ -13,13 +16,9 @@ parameters:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
 trigger: none
 
-# Execute agents (jobs) on latest Ubuntu version.
-# To change OS for a specific, ovverride "pool" attribute inside the job definition
-pool:
-  vmImage: 'ubuntu-latest'
-
 stages:
-  - ${{ each vm in parameters.testOnImages }}:
+  # Stages are applied on every VM we support, to ensure templates work well on each
+  - ${{ each vm in parameters.vmToTestOn }}:
     - stage: Test_NodeJobSetup_on_${{ vm.Key }}
       dependsOn: []
       jobs:
