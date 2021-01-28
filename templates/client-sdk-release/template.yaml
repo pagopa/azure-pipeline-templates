@@ -24,7 +24,7 @@ stages:
 
    variables:
     openapiSpecPath_withProjectDir: '${{ parameters.projectDir }}/${{ parameters.openapiSpecPath }}'
-    generatedCodeDir: '${{ parameters.projectDir }}/generated/sdk'
+    generatedCodeDir: '$(Agent.TempDirectory)/generated'
 
    pool:
      vmImage: 'ubuntu-latest'
