@@ -33,11 +33,11 @@ steps:
 # This is needed because the pipeline may point to a different commit than expected
 # The common case is when the previous stage pushed another commit
 - ${{ if ne(parameters.gitReference, 'none') }}:
-  - script: |
+  - bash: |
       git fetch && git checkout ${{ parameters.gitReference }}
     displayName: 'Checkout reference'  
 
-- script: |
+- bash: |
     cd ${{ parameters.projectDir }}
   displayName: 'Move to project folder'  
 
@@ -60,6 +60,6 @@ steps:
     version: $(NODE_VERSION)
   displayName: 'Set up Node.js'
 
-- script: |
+- bash: |
     yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1 
   displayName: 'Install node modules'
