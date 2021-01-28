@@ -3,9 +3,11 @@
 #
 
 parameters:
-  testOnImages:
-    - 'ubuntu-latest'
-    - 'windows-2019'
+  - name: 'testOnImages'
+    type: 'object'
+    default:
+      - 'ubuntu-latest'
+      - 'windows-2019'
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
