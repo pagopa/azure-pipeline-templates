@@ -2,7 +2,7 @@
 # Each stage is dedicated to a template. Each job of a stage is a test.
 #
 
-perameter:
+parameters:
   testOnImages:
     - 'ubuntu-latest'
     - 'windows-2019'
@@ -17,7 +17,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-  - ${{ each vm in perameters.testOnImages }}:
+  - ${{ each vm in parameters.testOnImages }}:
     - stage: Test_NodeJobSetup_${{ vm }}
       dependsOn: []
       jobs:
