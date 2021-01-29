@@ -39,7 +39,7 @@ stages:
                 exit 0
               else 
                 echo "Wrong Node version set, received: $(node -v)"
-                exit 0
+                exit 1
               fi
             displayName: 'Test'
 
@@ -59,7 +59,7 @@ stages:
                 exit 0
               else 
                 echo "Wrong Node version set, received: $(node -v)"
-                exit 0
+                exit 1
               fi
             displayName: 'Test'
 
@@ -81,6 +81,6 @@ stages:
                 exit 0
               else 
                 echo "Failed to install packages"
-                exit 0
+                exit 1
               fi
             displayName: 'Test'
