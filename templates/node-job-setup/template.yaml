@@ -39,6 +39,7 @@ steps:
 
 - bash: |
     cd ${{ parameters.projectDir }}
+    echo "current folder: $(pwd)"
   displayName: 'Move to project folder'  
 
 # If a Node version is defined explicitly by parameter, such version is used
@@ -46,12 +47,14 @@ steps:
 # Else, version is red from .nvmrc file
 - ${{ if ne(parameters.nodeVersion, 'none') }}:
   - bash: |
+      echo "current folder: $(pwd)"
       FROM_PARAM=${{ parameters.nodeVersion }}
       echo "set FROM_PARAM='$FROM_PARAM'"
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_PARAM"
     displayName: 'Determine Node.js version from template param'
 - ${{ if eq(parameters.nodeVersion, 'none') }}:
   - bash: |
+      echo "current folder: $(pwd)"
       FROM_SOURCE=$(cat .node-version || cat .nvmrc)
       ls .node-version && echo ".node-version found, value: '$(cat .node-version)'" || echo ".node-version not found" 
       ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found" 
@@ -65,5 +68,6 @@ steps:
   displayName: 'Set up Node.js'
 
 - bash: |
+    echo "current folder: $(pwd)"
     yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1 
   displayName: 'Install node modules'
