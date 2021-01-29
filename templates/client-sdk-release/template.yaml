@@ -2,16 +2,21 @@
 
 parameters:
 
-  - name: 'dependsOn'
+  - name: 'openapiSpecPath'
     type: string
-    default: 'No_Name'
 
   - name: 'projectDir'
     type: string
     default: '.'
 
-  - name: 'openapiSpecPath'
+  - name: 'sdkPackageName'
     type: string
+    default: ''
+  
+  - name: 'dependsOn'
+    type: object
+    default: []
+
 
 
 stages:
@@ -19,12 +24,12 @@ stages:
  # Prepare SDK
  # make this stage run after Release, so package.json will be automatically updated
  - stage: Prepare_SDK_Artifact_And_Release  
-   dependsOn: ['${{parameters.dependsOn}}']
-   
+   dependsOn: ${{parameters.dependsOn}}
 
    variables:
-    openapiSpecPath_withProjectDir: '${{ parameters.projectDir }}/${{ parameters.openapiSpecPath }}'
-    generatedCodeDir: '$(Agent.TempDirectory)/generated'
+      openapiSpecPath_withProjectDir: '${{ parameters.projectDir }}/${{ parameters.openapiSpecPath }}'
+      generatedCodeDir: '$(Agent.TempDirectory)/generated'
+      #codegenPackageNameParameter set with condition in 'setvarStep' script
 
    pool:
      vmImage: 'ubuntu-latest'
@@ -33,8 +38,14 @@ stages:
        steps:
          - checkout: self
 
-         - script: |
-             npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ variables.openapiSpecPath_withProjectDir }} --out-dir ${{variables.generatedCodeDir}} --client
+         - bash: |
+             [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{parameters.sdkPackageName}}'  
+             echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
+           name: setvarStep
+           displayName: 'Setup conditional variables'
+
+         - bash: |
+             npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ variables.openapiSpecPath_withProjectDir }} --out-dir ${{variables.generatedCodeDir}} $(codegenPackageNameParameter) --client
            displayName: 'Generate client and definitions'
          
          - script: |
@@ -47,7 +58,7 @@ stages:
  
          - task: CopyFiles@2
            inputs:
-             SourceFolder: '$(System.DefaultWorkingDirectory)/${{variables.generatedCodeDir}}'
+             SourceFolder: '${{variables.generatedCodeDir}}'
              TargetFolder: '$(System.DefaultWorkingDirectory)/bundle_sdk'
              # The list of files to be considered is determined by the "files" entry in package.json
              Contents: |
