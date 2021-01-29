@@ -76,9 +76,8 @@ stages:
           - bash: |
               echo "current folder: $(pwd)"
               # a dummy package we expect to be installed
-              expectedPackage="./node_modules/strings"
+              expectedPackage="./node_modules/stringz"
               ls $expectedPackage && echo "package found" || echo "package not found"
-              node index.js && echo "test ok" || echo "test not ok"
               if [[ -d $expectedPackage ]]; then
                 echo "Node packages correctly installed"
                 exit 0
@@ -86,5 +85,15 @@ stages:
                 echo "Failed to install packages"
                 exit 1
               fi
+              # run sample app
+              # if more extensive test
+              node index.js && echo "test ok" || echo "test not ok"
             workingDirectory: '.devops/__tests__/sample-node-app'
-            displayName: 'Test'
+            displayName: 'Test package are installed'
+          - bash: |
+              echo "current folder: $(pwd)"
+              # run sample app
+              # index.js runs a script that ensure the app is correctly set up 
+              node index.js
+            workingDirectory: '.devops/__tests__/sample-node-app'
+            displayName: 'Test sample app is working'
