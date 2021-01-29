@@ -47,11 +47,15 @@ steps:
 - ${{ if ne(parameters.nodeVersion, 'none') }}:
   - bash: |
       FROM_PARAM=${{ parameters.nodeVersion }}
+      echo "set FROM_PARAM='$FROM_PARAM'"
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_PARAM"
     displayName: 'Determine Node.js version from template param'
 - ${{ if eq(parameters.nodeVersion, 'none') }}:
   - bash: |
       FROM_SOURCE=$(cat .node-version || cat .nvmrc)
+      ls .node-version && echo ".node-version found, value: '$(cat .node-version)'" || echo ".node-version not found" 
+      ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found" 
+      echo "set FROM_SOURCE='$FROM_SOURCE'"
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_SOURCE"
     displayName: 'Determine Node.js version from source'
 
