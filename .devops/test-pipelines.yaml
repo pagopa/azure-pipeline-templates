@@ -83,4 +83,5 @@ stages:
                 echo "Failed to install packages"
                 exit 1
               fi
+            workingDirectory: '.devops/__tests__/sample-node-app'
             displayName: 'Test'
