@@ -51,6 +51,7 @@ steps:
       FROM_PARAM=${{ parameters.nodeVersion }}
       echo "set FROM_PARAM='$FROM_PARAM'"
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_PARAM"
+    workingDirectory: ${{ parameters.projectDir }}
     displayName: 'Determine Node.js version from template param'
 - ${{ if eq(parameters.nodeVersion, 'none') }}:
   - bash: |
@@ -60,6 +61,7 @@ steps:
       ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found" 
       echo "set FROM_SOURCE='$FROM_SOURCE'"
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_SOURCE"
+    workingDirectory: ${{ parameters.projectDir }} 
     displayName: 'Determine Node.js version from source'
 
 - task: UseNode@1
@@ -70,4 +72,5 @@ steps:
 - bash: |
     echo "current folder: $(pwd)"
     yarn install --frozen-lockfile --no-progress --non-interactive --network-concurrency 1 
+  workingDirectory: ${{ parameters.projectDir }}    
   displayName: 'Install node modules'
