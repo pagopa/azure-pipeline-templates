@@ -74,8 +74,11 @@ stages:
               projectDir: '.devops/__tests__/sample-node-app'
           # test results    
           - bash: |
+              echo "current folder: $(pwd)"
               # a dummy package we expect to be installed
               expectedPackage="./node_modules/strings"
+              ls $expectedPackage && echo "package found" || echo "package not found"
+              node index.js && echo "test ok" || echo "test not ok"
               if [[ -d $expectedPackage ]]; then
                 echo "Node packages correctly installed"
                 exit 0
