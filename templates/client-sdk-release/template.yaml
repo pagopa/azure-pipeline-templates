@@ -12,7 +12,7 @@ parameters:
   - name: 'sdkPackageName'
     type: string
     default: ''
-  
+
   - name: 'dependsOn'
     type: object
     default: []
@@ -25,37 +25,35 @@ stages:
  # make this stage run after Release, so package.json will be automatically updated
  - stage: Prepare_SDK_Artifact_And_Release  
    dependsOn: ${{parameters.dependsOn}}
-
    variables:
-      openapiSpecPath_withProjectDir: '${{ parameters.projectDir }}/${{ parameters.openapiSpecPath }}'
-      generatedCodeDir: '$(Agent.TempDirectory)/generated'
-      #codegenPackageNameParameter set with condition in 'setvarStep' script
-
+     generatedCodeDir: '$(Agent.TempDirectory)/generated'
+     #codegenPackageNameParameter set with condition in 'setvarStep' script
    pool:
      vmImage: 'ubuntu-latest'
    jobs:
      - job: generate_sdk_artifact
        steps:
          - checkout: self
-
          - bash: |
              [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{parameters.sdkPackageName}}'  
              echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
            name: setvarStep
            displayName: 'Setup conditional variables'
-
          - bash: |
-             npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ variables.openapiSpecPath_withProjectDir }} --out-dir ${{variables.generatedCodeDir}} $(codegenPackageNameParameter) --client
+             npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ parameters.openapiSpecPath }} --out-dir ${{variables.generatedCodeDir}} $(codegenPackageNameParameter) --client
            displayName: 'Generate client and definitions'
+           workingDirectory: ${{ parameters.projectDir }}
          
          - script: |
-              cd ${{variables.generatedCodeDir}} && yarn install
+               yarn install
            displayName: 'Install depencencies'
+           workingDirectory: ${{ variables.generatedCodeDir }}
          
          - script: |
-              cd ${{variables.generatedCodeDir}} && yarn build
+               yarn build
            displayName: 'Build depencencies'
- 
+           workingDirectory: ${{ variables.generatedCodeDir }}
+
          - task: CopyFiles@2
            inputs:
              SourceFolder: '${{variables.generatedCodeDir}}'
@@ -68,10 +66,10 @@ stages:
              flattenFolders: true
            displayName: 'Copy bundle files'
          
-          #Publish artifact so we can check it
+         #Publish artifact so we can check it
          - publish: $(System.DefaultWorkingDirectory)/bundle_sdk
            artifact: Bundle_SDK
-          
+           
          - task: Npm@1
            inputs: 
              command: custom
