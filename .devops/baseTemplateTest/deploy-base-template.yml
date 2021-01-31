@@ -1,0 +1,210 @@
+# Azure DevOps Base pipeline to release a new version of 'io-funtions-xyz' and deploy to production.
+
+
+
+# -----------------------------------------
+
+parameters:  
+
+  - name: 'releaseSemVer'
+    displayName: 'When packing a release, define the version bump to apply'
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+    default: minor
+
+  - name: 'nodeVersion'
+    type: string
+  - name: 'projectDir'
+    type: string
+    default: '.'
+
+  - name: 'gitEmail'
+    type: string
+  - name: 'gitUsername'
+    type: string
+  - name: 'gitHubConnection'
+    type: string
+
+  # - name: 'HEALTHCHECK_CONTAINER_RG'
+  #   type: string
+  # - name: 'HEALTHCHECK_CONTAINER_VNET'
+  #   type: string
+  # - name: 'HEALTHCHECK_CONTAINER_SUBNET'
+  #   type: string
+  # - name: 'HEALTHCHECK_PATH'
+  #   type: string
+
+# -----------------------------------------
+
+
+
+
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v7
+      endpoint: 'pagopa'
+
+
+stages:
+
+  # Create a relase
+  # Activated when ONE OF these are met:
+  # - is on branch master 
+  # - is a tag in the form v{version}-RELEASE
+  - stage: Release
+
+    variables:
+      # isMainBranch: $[ eq(variables['Build.SourceBranch'], 'refs/heads/master') ]
+      # isReleaseTag: $[ and(
+      #                   startsWith(variables['Build.SourceBranch'], 'refs/tags'),
+      #                   endsWith(variables['Build.SourceBranch'], '-RELEASE')
+      #                  ) ]
+     
+      isReleaseTag: true
+      isMainBranch: false
+
+    condition:
+      and(
+        succeeded(),
+        or(
+          eq(variables.isMainBranch, true),
+          eq(variables.isReleaseTag, true)
+          )
+      )
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+
+      - job: make_release
+        condition: ${{ eq(variables.isMainBranch, true) }}
+        steps:
+        - checkout: self
+          persistCredentials: true
+        
+        - task: UseNode@1
+          inputs:
+            version: $(nodeVersion)
+          displayName: 'Set up Node.js'  
+
+        - template: fake-release-template.yml  
+          parameters:
+            semver: '${{ parameters.releaseSemVer }}'
+            gitEmail: $(gitEmail)
+            gitUsername: $(gitUsername)
+            gitHubConnection: $(gitHubConnection)
+            
+      - job: skip_release
+        condition: eq(variables.isReleaseTag, true)
+        steps:
+        - script: |
+            echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
+          displayName: 'Skip release bundle'
+
+  # Prepare Artifact
+  - stage: Deploy_staging
+    dependsOn:
+      - Release
+    jobs:
+      - job: 'prepare_artifact_and_deploy'
+        steps:
+          # Build application
+          - template: templates/node-job-setup/template.yaml@templates 
+            parameters:
+              # On the assumption that this stage is executed only when Relase stage is,
+              #  with this parameter we set the reference the deploy script must pull changes from.
+              # The branch/tag name is calculated from the source branch
+              #  ex: Build.SourceBranch=refs/heads/master --> master
+              #  ex: Build.SourceBranch=refs/tags/v1.2.3-RELEASE --> v1.2.3-RELEASE
+              gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
+              projectDir: ${{ parameters.projectDir }}
+          
+          - script: |
+              yarn predeploy
+            displayName: 'Build'
+
+          # Install functions extensions
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: "build"
+              arguments: "-o bin"
+
+          # Copy application to  
+          - task: CopyFiles@2
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)'
+              Contents: |
+                **/*
+                !.git/**/*
+                !**/*.js.map
+                !**/*.ts
+                !.vscode/**/*
+                !.devops/**/*
+                !.prettierrc
+                !.gitignore
+                !README.md
+                !jest.config.js
+                !local.settings.json
+                !test
+                !tsconfig.json
+                !tslint.json
+                !yarn.lock
+                !Dangerfile.js
+                !CODEOWNERS
+                !__*/**/*
+            displayName: 'Copy deploy files'
+            
+          - task: AzureFunctionApp@1  
+            inputs:
+              azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+              resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
+              appType: 'functionApp'
+              appName: '$(PRODUCTION_APP_NAME)'
+              package: '$(Build.ArtifactStagingDirectory)/'
+              deploymentMethod: 'auto'
+              deployToSlotOrASE: true
+              slotName: 'staging'
+            displayName: Deploy to staging slot
+
+            # Check that the staging instance is healthy
+  
+  # Call Healthcheck endpoint to verify          
+  - stage: Healthcheck
+    dependsOn:
+      - Deploy_staging
+    jobs:
+      - job: 'do_healthcheck'       
+        steps:  
+          - template: templates/rest-healthcheck/template.yaml@pagopaCommons 
+            parameters:
+              azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+              appName: '$(PRODUCTION_APP_NAME)'
+              endpoint: 'https://$(PRODUCTION_APP_NAME)-staging.azurewebsites.net/$(HEALTHCHECK_PATH)'
+              endpointType: 'private'
+              containerInstanceResourceGroup: '$(HEALTHCHECK_CONTAINER_RG)'
+              containerInstanceVNet: '$(HEALTHCHECK_CONTAINER_VNET)'
+              containerInstanceSubnet: '$(HEALTHCHECK_CONTAINER_SUBNET)'              
+
+  # Promote the staging instance to production
+  - stage: Deploy_production
+    dependsOn:
+      - Healthcheck
+      - Deploy_staging
+    jobs:
+      - job: 'do_deploy'       
+        steps:  
+          - task: AzureAppServiceManage@0   
+            inputs:
+              azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
+              resourceGroupName: '$(PRODUCTION_RESOURCE_GROUP_NAME)'
+              webAppName: '$(PRODUCTION_APP_NAME)'
+              sourceSlot: staging
+              swapWithProduction: true
+            displayName: Swap with production slot

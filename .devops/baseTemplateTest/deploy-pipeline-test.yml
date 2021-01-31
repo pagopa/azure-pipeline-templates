@@ -1,0 +1,32 @@
+# Azure DevOps pipeline to release a new version and deploy to production.
+
+variables:
+  nodeVersion: '10.14.1'
+
+parameters:
+  - name: 'releaseSemVer'
+    displayName: 'When packing a release, define the version bump to apply'
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+    default: minor
+
+
+
+
+# Only manual activations are intended
+trigger: none
+pr: none
+
+
+extends:
+  template: deploy-base-template.yml
+  parameters:
+    nodeVersion: $(nodeVersion)
+    releaseSemVer: ${{ parameters.releaseSemVer }}
+    gitEmail: $(gitEmail)
+    gitUsername: $(gitUsername)
+    gitHubConnection: $(gitHubConnection)
+
