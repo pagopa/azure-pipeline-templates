@@ -35,7 +35,8 @@ stages:
        steps:
          - checkout: self
          - bash: |
-             [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{parameters.sdkPackageName}}'  
+             [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{parameters.sdkPackageName}}' 
+             echo "setting PKG_NAME_PARAM=$PKG_NAME_PARAM" 
              echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
            name: setvarStep
            displayName: 'Setup conditional variables'
