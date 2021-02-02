@@ -17,64 +17,89 @@ parameters:
     type: object
     default: []
 
+# ------------------
+# Test parameters only
+
+  - name: 'isTestEnvironment'
+    type: boolean
+    default: false
+
+  - name: 'npmRegistry'
+    type: string
+    default: ''
+
+  - name: 'artifactName'
+    type: string
+    default: Bundle_SDK
+
+# ------------------
+# Steps 
+
+steps:
+
+#Setting variables:
+# codegenPackageNameParameter : string to setup generated package name
+# generatedCodeDir: generated package directory
+# 
+# If test:
+# setNpmRegistryValue: string to setup npm registry
+- bash: |
+    # Set SDK package name, if needed
+    [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{ parameters.sdkPackageName }}'     
+    echo "setting codegenPackageNameParameter=$PKG_NAME_PARAM" 
+    echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
+    
+    #Set generated code base directory
+    echo "setting generatedCodeDir=$(Agent.TempDirectory)/generated" 
+    echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated"
+
+    # Set NPM Registry, if test
+    [ "${{parameters.isTestEnvironment}}" == true ] && NPM_REGISTRY='' || NPM_REGISTRY='--registry ${{ parameters.npmRegistry }}'     
+    echo "setting setNpmRegistryValue=$NPM_REGISTRY" 
+    echo "##vso[task.setvariable variable=setNpmRegistryValue;]$NPM_REGISTRY"
+  name: setvarStep
+  displayName: 'Setup conditional variables'
+- bash: |
+    npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ parameters.openapiSpecPath }} --out-dir $(generatedCodeDir) $(codegenPackageNameParameter) --client
+  displayName: 'Generate client and definitions'
+  workingDirectory: ${{ parameters.projectDir }}
+
+- script: |
+      yarn install
+  displayName: 'Install depencencies'
+  workingDirectory: $(generatedCodeDir)
+
+- script: |
+      yarn build
+  displayName: 'Build depencencies'
+  workingDirectory: $(generatedCodeDir)
+
+# - task: CopyFiles@2
+#   inputs:
+#     SourceFolder: '$(generatedCodeDir)'
+#     TargetFolder: '$(System.DefaultWorkingDirectory)/bundle_sdk'
+#     # The list of files to be added to the bundle
+#     # We need to add .ts and tsconfig.json files because of the 'prepublish' script within
+#     # the generate package.json file (as visible in the template here:  https://github.com/pagopa/io-utils/blob/master/templates/sdk/package.json.njk#L10 )
+#     Contents: |
+#       ?(*.ts|*.js|*.js.map)
+#       package.json
+#       tsconfig.json
+#       openapi.yaml
+#     flattenFolders: true
+#   displayName: 'Copy bundle files'
+
+#Publish artifact so we can check it
+- publish: $(generatedCodeDir)
+  artifact: ${{ parameters.artifactName }}
 
 
-stages:
+- task: Npm@1
+  inputs: 
+    command: custom
+    customCommand: publish --access public $(setNpmRegistryValue)
+    customEndpoint: $(NPM_CONNECTION)
+    verbose: true
+    workingDir: ' $(generatedCodeDir)'
+  
 
- # Prepare SDK
- # make this stage run after Release, so package.json will be automatically updated
- - stage: Prepare_SDK_Artifact_And_Release  
-   dependsOn: ${{parameters.dependsOn}}
-   variables:
-     generatedCodeDir: '$(Agent.TempDirectory)/generated'
-     #codegenPackageNameParameter set with condition in 'setvarStep' script
-   pool:
-     vmImage: 'ubuntu-latest'
-   jobs:
-     - job: generate_sdk_artifact
-       steps:
-         - checkout: self
-         - bash: |
-             [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{parameters.sdkPackageName}}' 
-             echo "setting PKG_NAME_PARAM=$PKG_NAME_PARAM" 
-             echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
-           name: setvarStep
-           displayName: 'Setup conditional variables'
-         - bash: |
-             npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ parameters.openapiSpecPath }} --out-dir ${{variables.generatedCodeDir}} $(codegenPackageNameParameter) --client
-           displayName: 'Generate client and definitions'
-           workingDirectory: ${{ parameters.projectDir }}
-         
-         - script: |
-               yarn install
-           displayName: 'Install depencencies'
-           workingDirectory: ${{ variables.generatedCodeDir }}
-         
-         - script: |
-               yarn build
-           displayName: 'Build depencencies'
-           workingDirectory: ${{ variables.generatedCodeDir }}
-
-         - task: CopyFiles@2
-           inputs:
-             SourceFolder: '${{variables.generatedCodeDir}}'
-             TargetFolder: '$(System.DefaultWorkingDirectory)/bundle_sdk'
-             # The list of files to be considered is determined by the "files" entry in package.json
-             Contents: |
-               ?(*.js|*.js.map)
-               package.json
-               openapi.yaml
-             flattenFolders: true
-           displayName: 'Copy bundle files'
-         
-         #Publish artifact so we can check it
-         - publish: $(System.DefaultWorkingDirectory)/bundle_sdk
-           artifact: Bundle_SDK
-           
-         - task: Npm@1
-           inputs: 
-             command: custom
-             customCommand: publish --access public
-             customEndpoint: $(NPM_CONNECTION)
-             verbose: true
-             workingDir: '$(System.DefaultWorkingDirectory)/bundle_sdk'

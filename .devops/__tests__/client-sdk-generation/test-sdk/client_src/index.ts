@@ -1,7 +1,7 @@
 import {
   Client,
   createClient,
-} from "./node_modules/test-sdk-generation-sdk/client";
+} from "./node_modules/@pagopa/api_test-sdk/client";
 
 const fetch = require('node-fetch');
 

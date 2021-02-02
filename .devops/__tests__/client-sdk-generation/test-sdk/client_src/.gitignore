@@ -48,3 +48,6 @@ local.*
 
 # Exclude ESLint cache file
 .eslintcache
+
+
+yarn.lock

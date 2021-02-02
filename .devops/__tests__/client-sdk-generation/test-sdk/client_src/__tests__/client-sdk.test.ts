@@ -1,25 +1,20 @@
-import {
-  Client,
-  createClient,
-} from "../node_modules/test-sdk-generation-sdk/client";
+import { Client, createClient } from "../node_modules/@pagopa/api_test-sdk/client";
 
 const fetch = require("node-fetch");
 const baseUrl = "http://localhost:8088";
 
 describe("API SDK generation", () => {
-  
   const client = createClient({
     basePath: "",
     baseUrl,
     fetchApi: fetch,
   }) as Client;
-  
+
   it("should return version", async () => {
-  
     var version: string | undefined = "";
-    
+
     await client.getServerInfo({}).then((v) =>
-        v
+      v
         .mapLeft((_) => {})
         .map((val) => {
           version = val.value.version;

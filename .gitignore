@@ -7,3 +7,5 @@ local*
 coverage
 .npmrc
 **/.DS_Store
+
+generated_sdk/
