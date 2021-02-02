@@ -1,0 +1,34 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Public API
+  description: Mobile and web proxy API gateway.
+host: localhost
+basePath: /
+schemes:
+  - https
+paths:
+  /info:
+    x-swagger-router-controller: ServerInfoController
+    get:
+      operationId: getServerInfo
+      summary: Runtime server info
+      description: |
+        Returns runtime information about the server.
+      responses:
+        '200':
+          description: Runtime server info.
+          schema:
+            $ref: '#/definitions/ServerInfo'
+          examples:
+            application/json:
+              version: 0.0.1
+              min_app_version: 0.0.0
+              min_app_version_pagopa: 0.0.0
+definitions:
+  ServerInfo:
+    type: object
+    title: Server information
+    properties:
+      version:
+        type: string

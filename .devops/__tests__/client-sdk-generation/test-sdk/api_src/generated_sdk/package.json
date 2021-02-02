@@ -1,0 +1,21 @@
+{
+  "name": "api_test-sdk",
+  "version": "1.0.0",
+  "description": "Generated SDK for api_test. undefined",
+  "author": "",
+  "license": "MIT",
+  "main": "index.js",
+  "types": "index.d.js",
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "tsc --skipLibCheck"
+  },
+  "dependencies": {
+    "fp-ts": "1.17.4",
+    "io-ts": "1.8.5",
+    "italia-ts-commons": "^5.1.13"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.3"
+  }
+}
