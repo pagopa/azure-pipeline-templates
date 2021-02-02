@@ -19,4 +19,3 @@ export const ServerInfo = t.exact(
 );
 
 export type ServerInfo = t.TypeOf<typeof ServerInfo>;
-

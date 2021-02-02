@@ -4,6 +4,7 @@
   "main": "index.ts",
   "license": "MIT",
   "scripts": {
+    "prebuild": "npx -p @pagopa/openapi-codegen-ts gen-api-models --api-spec ../api_test.yaml  --out-dir ./generated",
     "build": "tsc",
     "start": "node ./dist"
   },
