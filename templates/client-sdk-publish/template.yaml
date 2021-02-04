@@ -5,7 +5,7 @@ parameters:
   - name: 'openapiSpecPath'
     type: string
 
-  - name: 'projectDir'
+  - name: 'apiProjectDir'
     type: string
     default: '.'
 
@@ -59,7 +59,7 @@ steps:
 - bash: |
     npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ parameters.openapiSpecPath }} --out-dir $(generatedCodeDir) $(codegenPackageNameParameter) --client
   displayName: 'Generate client and definitions'
-  workingDirectory: ${{ parameters.projectDir }}
+  workingDirectory: ${{ parameters.apiProjectDir }}
 
 - script: |
       yarn install
@@ -70,21 +70,6 @@ steps:
       yarn build
   displayName: 'Build depencencies'
   workingDirectory: $(generatedCodeDir)
-
-# - task: CopyFiles@2
-#   inputs:
-#     SourceFolder: '$(generatedCodeDir)'
-#     TargetFolder: '$(System.DefaultWorkingDirectory)/bundle_sdk'
-#     # The list of files to be added to the bundle
-#     # We need to add .ts and tsconfig.json files because of the 'prepublish' script within
-#     # the generate package.json file (as visible in the template here:  https://github.com/pagopa/io-utils/blob/master/templates/sdk/package.json.njk#L10 )
-#     Contents: |
-#       ?(*.ts|*.js|*.js.map)
-#       package.json
-#       tsconfig.json
-#       openapi.yaml
-#     flattenFolders: true
-#   displayName: 'Copy bundle files'
 
 #Publish artifact so we can check it
 - publish: $(generatedCodeDir)

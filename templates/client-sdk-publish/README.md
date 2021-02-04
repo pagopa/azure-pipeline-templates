@@ -49,6 +49,6 @@ stages:
 |param|description|default|required
 |-|-|-|-|
 |openapiSpecPath|The relative path of the OpenAPI spec from projectDir folder ||yes|
-|projectDir|The project directory, in case of multi-project repo |.|no|
+|apiProjectDir|The project directory, in case of multi-project repo |.|no|
 |sdkPackageName|The name of the generated package| (Inherited from the project's package.json) |no|
 
