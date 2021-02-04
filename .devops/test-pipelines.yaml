@@ -127,20 +127,20 @@ stages:
         # ----------------------------------------------------------------------------------------
         
         #Start Verdaccio
-        - script: |
+        - bash: |
             docker run -d --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio 
             sleep 5
           displayName: 'Start verdaccio'
         
         #Using 'sleep (n)' to fake user input
-        - script: |
+        - bash: |
             { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
           displayName: 'Create verdaccio user'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
 
 
         #Start simple API that implements openapi spec
-        - script: |
+        - bash: |
             yarn install && yarn build && yarn start
           displayName: 'Start simple API for testing'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
@@ -162,7 +162,7 @@ stages:
         # ----------------------------------------------------------------------------------------
 
         #Install SDK from verdaccio
-        - script: |
+        - bash: |
             cp use.npmrc .npmrc
             cp jest.config.js_use jest.config.js
             yarn install
@@ -170,7 +170,7 @@ stages:
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
         # Test node_modules folder content    
-        - script: |
+        - bash: |
             expectedPackage="./node_modules/@pagopa/api_test-sdk"
             if [[ -d $expectedPackage ]]; then exit 0; else echo "package not found"; exit 1; fi
 
@@ -183,13 +183,13 @@ stages:
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
         #Build the code that uses the SDK
-        - script: |
+        - bash: |
             yarn build
           displayName: 'it should build the code that uses the generated SDK'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
         #Call the API using the SDK
-        - script: |
+        - bash: |
             yarn test
           displayName: 'it should call the api and receive the expected result'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
