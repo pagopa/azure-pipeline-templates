@@ -2,7 +2,6 @@
 # Each stage is dedicated to a template. Each job of a stage is a test.
 #
 #
-#
 # Note:
 #
 # A VerdaccioSimpleUserSC Service connection is needed for Test_ClientSDKGeneration 
@@ -12,76 +11,103 @@
 #  - password: psw
 
 
+parameters:
+  # A set of agents to execute test against.
+  #  Key is an arbitrary string (avoid using `-`)
+  #  Value is the name of the vm to test against
+  - name: 'vmToTestOn'
+    type: 'object'
+    default:
+      linux: 'ubuntu-latest'
+      windows: 'windows-2019'
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
 trigger: none
 
-# Execute agents (jobs) on latest Ubuntu version.
-# To change OS for a specific, ovverride "pool" attribute inside the job definition
-pool:
-  vmImage: 'ubuntu-latest'
-
 stages:
-  - stage: Test_NodeJobSetup
-    dependsOn: []
-    jobs:
-      # Test that the job is setup with a provided Node version
-      - job: test_provided_node_version      
-        steps:
-        # use template  
-        - template: ../templates/node-job-setup/template.yaml
-          parameters:
-            projectDir: '.devops/__tests__/sample-node-app'
-            nodeVersion: '12.6.0'
-        # test results    
-        - script: |
-            if [[ $(node -v) = 'v12.6.0' ]]; then
-              echo "Node version correcly set"
-              exit 0
-            else 
-              echo "Wrong Node version set, received: $(node -v)"
-              exit 0
-            fi
-          displayName: 'Test'
+  # Stages are applied on every VM we support, to ensure templates work well on each
+  - ${{ each vm in parameters.vmToTestOn }}:
+    - stage: Test_NodeJobSetup_on_${{ vm.Key }}
+      dependsOn: []
+      jobs:
+        # Test that the job is setup with a provided Node version
+        - job: test_provided_node_version
+          pool:
+            vmImage: '${{ vm.Value }}'
+          steps:
+          # use template  
+          - template: ../templates/node-job-setup/template.yaml
+            parameters:
+              projectDir: '.devops/__tests__/sample-node-app'
+              nodeVersion: '12.6.0'
+          # test results    
+          - bash: |
+              if [[ $(node -v) = 'v12.6.0' ]]; then
+                echo "Node version correcly set"
+                exit 0
+              else 
+                echo "Wrong Node version set, received: $(node -v)"
+                exit 1
+              fi
+            displayName: 'Test'
 
-      # Test that the job is setup and Node version is inferred from the app source
-      - job: test_inferred_node_version      
-        steps:
-        # use template  
-        - template: ../templates/node-job-setup/template.yaml
-          parameters:
-            projectDir: '.devops/__tests__/sample-node-app'
-        # test results    
-        - script: |
-            if [[ $(node -v) = 'v14.1.0' ]]; then
-              echo "Node version correcly set"
-              exit 0
-            else 
-              echo "Wrong Node version set, received: $(node -v)"
-              exit 0
-            fi
-          displayName: 'Test'
+        # Test that the job is setup and Node version is inferred from the app source
+        - job: test_inferred_node_version   
+          pool:
+            vmImage: '${{ vm.Value }}'   
+          steps:
+          # use template  
+          - template: ../templates/node-job-setup/template.yaml
+            parameters:
+              projectDir: '.devops/__tests__/sample-node-app'
+          # test results    
+          - bash: |
+              if [[ $(node -v) = 'v14.1.0' ]]; then
+                echo "Node version correcly set"
+                exit 0
+              else 
+                echo "Wrong Node version set, received: $(node -v)"
+                exit 1
+              fi
+            displayName: 'Test'
 
-      # Test that packages are been installed
-      - job: test_installed_packages
-        steps:
-        # use template  
-        - template: ../templates/node-job-setup/template.yaml
-          parameters:
-            projectDir: '.devops/__tests__/sample-node-app'
-        # test results    
-        - script: |
-            # a dummy package we expect to be installed
-            expectedPackage="./node_modules/strings"
-            if [[ -d $expectedPackage ]]; then
-              echo "Node packages correctly installed"
-              exit 0
-            else 
-              echo "Failed to install packages"
-              exit 0
-            fi
-          displayName: 'Test'
+        # Test that packages are been installed
+        - job: test_installed_packages
+          pool:
+            vmImage: '${{ vm.Value }}'
+          steps:
+          # use template  
+          - template: ../templates/node-job-setup/template.yaml
+            parameters:
+              projectDir: '.devops/__tests__/sample-node-app'
+          # test results    
+          - bash: |
+              echo "current folder: $(pwd)"
+              # a dummy package we expect to be installed
+              expectedPackage="./node_modules/stringz"
+              ls $expectedPackage && echo "package found" || echo "package not found"
+              if [[ -d $expectedPackage ]]; then
+                echo "Node packages correctly installed"
+                exit 0
+              else 
+                echo "Failed to install packages"
+                exit 1
+              fi
+              # run sample app
+              # if more extensive test
+              node index.js && echo "test ok" || echo "test not ok"
+            workingDirectory: '.devops/__tests__/sample-node-app'
+            displayName: 'Test package are installed'
+          - bash: |
+              echo "current folder: $(pwd)"
+              # run sample app
+              # index.js runs a script that ensure the app is correctly set up 
+              node index.js
+            workingDirectory: '.devops/__tests__/sample-node-app'
+            displayName: 'Test sample app is working'
+
+
 
 
   - stage: Test_ClientSDKGeneration

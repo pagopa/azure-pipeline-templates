@@ -27,6 +27,10 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
   * an example snippet to describe usage
   * a full parameters table
 * Add an entry in the `Available templates` section of the repo main README (this file), with a link to the README of the template you just created.
+### Testing
+We have a [pipeline](.devops/test-pipelines.yaml) configured on this project to run test against the templates we produce. Although Azure Pipelines' DSL is not designed for a test-first approach, it's worth to try. Assets, mocks and scripts used for testings can be placed in [`.devops/__tests__`](.devops/__tests__) folder.
+
+Tests are configured to run on every Pull Request and there's no way ton run tests locally, so far. To use a _red-green-refactor_ approach, the best we can do is to work on a branch and open a draft PR on that.
 
 ### Release a new version
 New versions are created automatically on each merge on master branch. In the need of creating a release manually, use the `release.sh` script.
