@@ -54,7 +54,7 @@ steps:
     echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated"
 
     # Set NPM Registry, if test
-    [ ${{parameters.isTestEnvironment}} == true ] && NPM_REGISTRY='--registry ${{ parameters.npmRegistry }}' || NPM_REGISTRY=''     
+    [ "${{parameters.isTestEnvironment}}" == "true" ] && NPM_REGISTRY='--registry ${{ parameters.npmRegistry }}' || NPM_REGISTRY=''     
     echo "setting setNpmRegistryValue=$NPM_REGISTRY" 
     echo "##vso[task.setvariable variable=setNpmRegistryValue;]$NPM_REGISTRY"
   name: setvarStep
