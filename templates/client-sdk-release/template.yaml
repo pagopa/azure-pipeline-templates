@@ -22,7 +22,7 @@ parameters:
 
   - name: 'isTestEnvironment'
     type: boolean
-    default: false
+    default: False
 
   - name: 'npmRegistry'
     type: string
