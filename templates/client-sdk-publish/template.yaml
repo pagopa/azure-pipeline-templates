@@ -16,13 +16,9 @@ parameters:
 # ------------------
 # Test parameters only
 
-  - name: 'isTestEnvironment'
-    type: boolean
-    default: False
-
   - name: 'npmRegistry'
     type: string
-    default: ''
+    default: 'https://registry.npmjs.org/'
 
   - name: 'artifactName'
     type: string
@@ -50,10 +46,9 @@ steps:
     echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated"
 
     # Set NPM Registry, if test
-    [ "${{ parameters.isTestEnvironment }}" == "True" ] && NPM_REGISTRY='--registry ${{ parameters.npmRegistry }}' || NPM_REGISTRY=''     
-    echo "setting setNpmRegistryValue=$NPM_REGISTRY" 
-    echo "--> ${{ parameters.isTestEnvironment }}" 
-    echo "##vso[task.setvariable variable=setNpmRegistryValue;]$NPM_REGISTRY"
+    SET_NPM_REGISTRY='--registry ${{ parameters.npmRegistry }}'
+    echo "setting setNpmRegistryValue=$SET_NPM_REGISTRY" 
+    echo "##vso[task.setvariable variable=setNpmRegistryValue;]$SET_NPM_REGISTRY"
   name: setvarStep
   displayName: 'Setup conditional variables'
 - bash: |

@@ -150,11 +150,10 @@ stages:
         # ----------------------------------------------------------------------------------------
 
         #Call The template to generate SDK package and publish it to Verdaccio
-        - template: ../templates/client-sdk-release/template.yaml
+        - template: ../templates/client-sdk-publish/template.yaml
           parameters:
             apiProjectDir: .devops/__tests__/client-sdk-generation/test-sdk/api_src
             openapiSpecPath: ../api_test.yaml
-            isTestEnvironment: true
             npmRegistry: ${{ variables.verdaccioUrl }}
 
         # ----------------------------------------------------------------------------------------
