@@ -6,3 +6,6 @@ local*
 .vscode
 coverage
 .npmrc
+**/.DS_Store
+
+generated_sdk/

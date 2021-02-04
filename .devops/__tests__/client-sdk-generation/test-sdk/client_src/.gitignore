@@ -1,0 +1,53 @@
+# Exclude OS Folders
+.DS_Store
+
+# Exclude IDE folders.
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+.idea
+
+# Exclude Yarn managed depencencies.
+/node_modules
+yarn-error.log
+npm-debug.log
+
+# Exclude Jest coverage reports.
+/coverage
+
+# Exclude test IDP material.
+/testenv2/conf/sp_metadata.xml
+
+# Exclude custom local enviroment variables.
+/.env
+
+# Exclude typescript generated javascript files.
+*.js
+!.eslintrc.js
+!.release-it.js
+*.js.map
+
+# Excluded auto-generated API client.
+/src/clients/pagopa
+
+# Excluded auto-generated API types.
+/src/types/api/*.ts
+/generated
+
+# Exclude certificates
+*.pem
+
+# Exclude local files
+local.*
+
+# Exclude .npmrc file
+.npmrc 
+
+# Exclude Codetour plugin folder
+.tours
+
+# Exclude ESLint cache file
+.eslintcache
+
+
+yarn.lock

@@ -1,0 +1,78 @@
+# Azure DevOps pipeline template to publish Client SDK to NPM
+
+parameters:
+
+  - name: 'openapiSpecPath'
+    type: string
+
+  - name: 'apiProjectDir'
+    type: string
+    default: '.'
+
+  - name: 'sdkPackageName'
+    type: string
+    default: ''
+
+# ------------------
+# Test parameters only
+
+  - name: 'npmRegistry'
+    type: string
+    default: 'https://registry.npmjs.org/'
+
+  - name: 'artifactName'
+    type: string
+    default: Bundle_SDK
+
+# ------------------
+# Steps 
+
+steps:
+
+#Setting variables:
+# codegenPackageNameParameter : string to setup generated package name
+# generatedCodeDir: generated package directory
+# 
+# If test:
+# setNpmRegistryValue: string to setup npm registry
+- bash: |
+    # Set SDK package name, if needed
+    [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{ parameters.sdkPackageName }}'     
+    echo "setting codegenPackageNameParameter=$PKG_NAME_PARAM" 
+    echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
+    
+    #Set generated code base directory
+    echo "setting generatedCodeDir=$(Agent.TempDirectory)/generated" 
+    echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated"
+
+  name: setvarStep
+  displayName: 'Setup conditional variables'
+- bash: |
+    npx -p @pagopa/openapi-codegen-ts gen-api-sdk --api-spec ${{ parameters.openapiSpecPath }} --out-dir $(generatedCodeDir) $(codegenPackageNameParameter) --client
+  displayName: 'Generate client and definitions'
+  workingDirectory: ${{ parameters.apiProjectDir }}
+
+- script: |
+      yarn install
+  displayName: 'Install depencencies'
+  workingDirectory: $(generatedCodeDir)
+
+- script: |
+      yarn build
+  displayName: 'Build depencencies'
+  workingDirectory: $(generatedCodeDir)
+
+#Publish artifact so we can check it
+- publish: $(generatedCodeDir)
+  artifact: ${{ parameters.artifactName }}
+
+
+- task: Npm@1
+  inputs: 
+    command: custom
+    customCommand: publish --access public --registry ${{ parameters.npmRegistry }}
+    customEndpoint: $(NPM_CONNECTION)
+    verbose: true
+    workingDir: ' $(generatedCodeDir)'
+  
+
