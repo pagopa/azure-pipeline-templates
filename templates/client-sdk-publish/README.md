@@ -6,7 +6,7 @@ It does the following:
 
 1. generate models and client code based on a give OpenAPI spec, using [@pagopa/openapi-codegen-ts](https://www.npmjs.com/package/@pagopa/openapi-codegen-ts)
 1. generate package.json based on main package.json values (like name and version), using [@pagopa/openapi-codegen-ts](https://www.npmjs.com/package/@pagopa/openapi-codegen-ts)
-1. publish the package to NPM
+1. publish the package on NPM
 
 Be sure that this template is called **after** the main package.json has been updated.
 
@@ -31,14 +31,11 @@ stages:
 
   # Publish client SDK to 
   - stage: PublishClientSDKtoNPM
-    dependsOn: Release
-    variables:
-      verdaccioUrl: 'http://localhost:4873'  
+    dependsOn: Release 
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
-      - job: publish_SDK   
-        
+      - job: do_generate_and_publish   
         steps:
         # Template for generating and publishing client SDK to NPM
         - template: templates/client-sdk-publish/template.yaml@templates
