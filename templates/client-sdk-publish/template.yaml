@@ -70,7 +70,7 @@ steps:
 - task: Npm@1
   inputs: 
     command: custom
-    customCommand: publish --access public $(setNpmRegistryValue) --registry ${{ parameters.npmRegistry }}
+    customCommand: publish --access public --registry ${{ parameters.npmRegistry }}
     customEndpoint: $(NPM_CONNECTION)
     verbose: true
     workingDir: ' $(generatedCodeDir)'
