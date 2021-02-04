@@ -45,10 +45,6 @@ steps:
     echo "setting generatedCodeDir=$(Agent.TempDirectory)/generated" 
     echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated"
 
-    # Set NPM Registry, if test
-    SET_NPM_REGISTRY='--registry ${{ parameters.npmRegistry }}'
-    echo "setting setNpmRegistryValue=$SET_NPM_REGISTRY" 
-    echo "##vso[task.setvariable variable=setNpmRegistryValue;]$SET_NPM_REGISTRY"
   name: setvarStep
   displayName: 'Setup conditional variables'
 - bash: |
@@ -74,7 +70,7 @@ steps:
 - task: Npm@1
   inputs: 
     command: custom
-    customCommand: publish --access public $(setNpmRegistryValue)
+    customCommand: publish --access public $(setNpmRegistryValue) --registry ${{ parameters.npmRegistry }}
     customEndpoint: $(NPM_CONNECTION)
     verbose: true
     workingDir: ' $(generatedCodeDir)'
