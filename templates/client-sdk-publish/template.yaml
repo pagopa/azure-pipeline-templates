@@ -1,4 +1,4 @@
-# Azure DevOps pipeline template to release Client SDK to NPM
+# Azure DevOps pipeline template to publish Client SDK to NPM
 
 parameters:
 
@@ -12,10 +12,6 @@ parameters:
   - name: 'sdkPackageName'
     type: string
     default: ''
-
-  - name: 'dependsOn'
-    type: object
-    default: []
 
 # ------------------
 # Test parameters only
