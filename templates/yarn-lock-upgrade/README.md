@@ -52,5 +52,3 @@ stages:
         - template: templates/yarn-lock-upgrade/template.yaml@templates
 
 ```
-
-git statu
