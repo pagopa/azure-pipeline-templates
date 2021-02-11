@@ -33,8 +33,28 @@ jobs:
       parameters:
         projectDir: .devops/__tests__/sample-yarn-upgrade
 
+
+    # setup git author
     - script: |
-        GITHUB_TOKEN=$(GITHUB_TOKEN)
-        hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'
-      
+        #setup hub CLI
+        echo "github.com: 
+        - user: $GITHUB_USERNAME
+          oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+      displayName: 'Git setup' 
+
+    - script: |
+        PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'`
+
+        echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
+
+        echo "==> PR $PR_NUMBER"
+        if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
+
       displayName: 'it should open a PR'
+  
+  
+    - script: |
+        hub issue update $(pr_number) -s closed   
+        echo "" > ~/.config/hub
+      displayName: Cleanup

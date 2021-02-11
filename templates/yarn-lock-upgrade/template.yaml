@@ -33,7 +33,6 @@ steps:
     displayName: 'Git setup' 
 
   - script: |
-      
       set -euo pipefail
       
       # It should be 'master', but right now it has no files in it
