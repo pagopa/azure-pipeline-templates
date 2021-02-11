@@ -116,31 +116,6 @@ stages:
     
     jobs:
 
-      - job: test
-        pool:
-          vmImage: ubuntu-latest   
-        steps:
-        #Needed for git to work
-        - checkout: self
-          clean: true
-          persistCredentials: true
-          displayName: 'Checkout'
-
-        - script: |
-            #setup hub CLI
-            echo "github.com: 
-            - user: $GITHUB_USERNAME
-              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
-
-            
-            TEST_VAR=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
-            echo "$TEST_VAR"
-
-          displayName: 'TEST'
-
-
-
-
       - job: do_yarn_lock_upgrade
         pool:
           vmImage: ubuntu-latest   
@@ -163,6 +138,12 @@ stages:
             
           displayName: 'it should open a PR'
 
+
+        #Call it again, when a PR is open
+        - template: ../templates/yarn-lock-upgrade/template.yaml
+          parameters:
+            projectDir: .devops/__tests__/sample-yarn-upgrade
+
         - script: |
             #setup hub CLI
             echo "github.com: 
@@ -170,7 +151,6 @@ stages:
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
             OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
-           
             if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
 
           displayName: 'it should not open a new PR, if present'
