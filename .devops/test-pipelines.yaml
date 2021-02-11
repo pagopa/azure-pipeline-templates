@@ -198,7 +198,7 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    condition: contains(variables['build.sourceBranch'], 'lockfile-auto-upgrade-')
+    condition: not( contains(variables['Build.SourceBranchName'], 'lockfile-auto-upgrade-') )
    
     jobs:
 
