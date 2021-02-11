@@ -29,7 +29,7 @@ steps:
       #setup hub CLI
       echo "github.com: 
       - user: $GITHUB_USERNAME
-        oauth_token: $GITHUB_TOKEN" > ~/.config/hub
+        oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
       ls ~/.config
       cat ~/.config/hub
