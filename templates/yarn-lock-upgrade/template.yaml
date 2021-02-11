@@ -35,7 +35,7 @@ steps:
   - script: |
       set -euo pipefail
 
-      hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'
+      hub pr list
     
     displayName: "Check yarn.lock file and make PR if needed"
     workingDirectory: ${{ parameters.projectDir }}
