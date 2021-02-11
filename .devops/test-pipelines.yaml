@@ -115,6 +115,32 @@ stages:
     dependsOn: []
     
     jobs:
+
+      - job: do_yarn_lock_upgrade
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
+        #Needed for git to work
+        - checkout: self
+          clean: true
+          persistCredentials: true
+          displayName: 'Checkout'
+
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            
+            TEST_VAR=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
+            echo "$TEST_VAR"
+
+          displayName: 'TEST'
+
+
+
+
       - job: do_yarn_lock_upgrade
         pool:
           vmImage: ubuntu-latest   
@@ -133,10 +159,10 @@ stages:
             PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
             echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
             echo "==> PR $PR_NUMBER"
+            if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
             
             TEST_VAR=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
-
-            if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
+            echo "==> PR $TEST_VAR"
 
           displayName: 'it should open a PR'
       
