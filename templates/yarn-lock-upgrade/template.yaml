@@ -35,7 +35,7 @@ steps:
   - bash: |
       set -euo pipefail
 
-      PULL_REQUEST_NUMBER=`hub pr list | grep "\[Yarn.lock\]" | awk '{print $1}' | sed 's/#//'`
+      PULL_REQUEST_NUMBER=$(hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//')
       echo "==> PR $PULL_REQUEST_NUMBER"
 
       #if there is an PR aloready open, switch to it
