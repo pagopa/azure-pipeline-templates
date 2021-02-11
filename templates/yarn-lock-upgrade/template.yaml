@@ -33,7 +33,7 @@ steps:
     displayName: 'Git setup' 
 
   - bash: |
-      set -euo pipefail
+      # set -euo pipefail
 
       PULL_REQUEST_NUMBER=$(hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//')
       echo "==> PR $PULL_REQUEST_NUMBER"
