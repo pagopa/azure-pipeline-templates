@@ -24,6 +24,13 @@ steps:
   # setup git author
   - script: |
       git config --global user.email "$(GIT_EMAIL)" && git config --global user.name "$(GIT_USERNAME)"
+
+      #setup hub CLI
+      echo "github.com: 
+      - user: $GITHUB_USERNAME
+        oauth_token: $GITHUB_TOKEN" > hub
+
+
     displayName: 'Git setup' 
 
   - script:
@@ -34,10 +41,6 @@ steps:
 
     displayName: Test hub CLI
 
-
-
-  - bash: printenv
-    displayName: List env variables
 
   # - script: |
       
