@@ -36,12 +36,8 @@ steps:
       set -euo pipefail
 
       hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'
-      
-      PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'`
-      echo "PR number: $PR_NUMBER"
     
     displayName: "Check yarn.lock file and make PR if needed"
-      
     workingDirectory: ${{ parameters.projectDir }}
 
 
