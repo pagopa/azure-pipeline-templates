@@ -171,6 +171,7 @@ stages:
       
 
       - job: Cleanup_Tests
+        dependsOn: do_yarn_lock_upgrade_test_2
         pool:
           vmImage: ubuntu-latest   
         steps:
