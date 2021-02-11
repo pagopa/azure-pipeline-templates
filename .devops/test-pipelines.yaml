@@ -139,6 +139,13 @@ stages:
           displayName: 'it should open a PR'
 
 
+
+      - job: do_yarn_lock_upgrade
+        
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
+
         #Call it again, when a PR is open
         - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
