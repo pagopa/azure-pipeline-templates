@@ -119,6 +119,21 @@ stages:
         pool:
           vmImage: ubuntu-latest   
         steps:
+        
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
+
+            echo "==> PR $PR_NUMBER"
+            if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
+
+          displayName: 'it should open a PR'
+          
         - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
             projectDir: .devops/__tests__/sample-yarn-upgrade
