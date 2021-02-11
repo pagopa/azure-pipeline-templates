@@ -31,9 +31,14 @@ steps:
       - user: $GITHUB_USERNAME
         oauth_token: $GITHUB_TOKEN" > ~/.config/hub
 
+      ls ~/.config
+
     displayName: 'Git setup' 
 
   - script: |
+
+      ls ~/.config
+
       hub version
       hub pr list
 
