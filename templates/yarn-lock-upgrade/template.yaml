@@ -41,7 +41,7 @@ steps:
       then
         #It should be 'master', but right now it has no files in it
         #CURRENT_BRANCH=master
-        CURRENT_BRANCH=`git branch | grep '*' | awk '{print $2}'`
+        CURRENT_BRANCH="yarn-lockfile-upgrade-template"
         CREATE_NEW_PR=false
         echo "A PR already exists. Using #$PULL_REQUEST_NUMBER."
         echo "Chechout $CURRENT_BRANCH" 
