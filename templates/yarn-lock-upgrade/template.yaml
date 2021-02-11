@@ -32,7 +32,7 @@ steps:
         oauth_token: $GIT_EMAIL" > ~/.config/hub
 
       ls ~/.config
-      cat ~/.config
+      cat ~/.config/hub
  
 
     displayName: 'Git setup' 
