@@ -26,7 +26,8 @@ parameters:
 trigger: none
 pr:
   branches:
-  - exclude: 'lockfile-upgrade-*'
+    exclude: 
+    - 'lockfile-upgrade-*'
 
 stages:
   # Stages are applied on every VM we support, to ensure templates work well on each
