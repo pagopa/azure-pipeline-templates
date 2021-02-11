@@ -116,7 +116,7 @@ stages:
     
     jobs:
 
-      - job: do_yarn_lock_upgrade
+      - job: test
         pool:
           vmImage: ubuntu-latest   
         steps:
