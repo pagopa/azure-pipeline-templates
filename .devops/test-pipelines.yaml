@@ -136,14 +136,13 @@ stages:
             echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
             echo "==> PR $PR_NUMBER"
             if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
-            
           displayName: 'it should open a PR'
 
 
-        # #Call it again, when a PR is open
-        # - template: ../templates/yarn-lock-upgrade/template.yaml
-        #   parameters:
-        #     projectDir: .devops/__tests__/sample-yarn-upgrade
+        #Call it again, when a PR is open
+        - template: ../templates/yarn-lock-upgrade/template.yaml
+          parameters:
+            projectDir: .devops/__tests__/sample-yarn-upgrade
 
         - script: |
             #setup hub CLI
@@ -153,7 +152,6 @@ stages:
 
             OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
             if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
-
           displayName: 'it should not open a new PR, if present'
       
         - script: |
