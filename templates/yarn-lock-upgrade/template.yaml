@@ -34,9 +34,26 @@ steps:
 
   - script: |
       set -euo pipefail
-      
-      # It should be 'master', but right now it has no files in it
-      #git checkout master
+
+      PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'`
+
+      #if there is an PR aloready open, switch to it
+      if [[ -n "$PR_NUMBER" ]]; 
+      then
+        #It should be 'master', but right now it has no files in it
+        #CURRENT_BRANCH=master
+        CURRENT_BRANCH=`git branch | grep '*' | awk '{print $2}'`
+        CREATE_NEW_PR=false
+
+        echo "##vso[task.logissue type=debug]A PR is already open. Using #$PR_NUMBER"
+        
+      else
+        CURRENT_BRANCH=`hub pr show $PR_NUMBER --format %H`
+        CREATE_NEW_PR=true
+        echo "##vso[task.logissue type=debug]No PR in place, a new one will be created"
+      fi
+
+      git checkout $CURRENT_BRANCH
 
       yarn install
       lockfile_changed=`git ls-files -m | grep yarn.lock`
@@ -44,6 +61,7 @@ steps:
      
       if [ -n "$lockfile_changed" ]
       then
+
           echo "Yarn.lock has changed, create a PR"
 
           title="[Yarn.lock Upgrade] Upgrade yarn.lock file"
@@ -51,12 +69,20 @@ steps:
           
           branch_name="lockfile-upgrade-$(date +%s)"
           
-          git checkout -b "$branch_name"
+          if [[ $CREATE_NEW_PR ]] 
+          then
+            git checkout -b "$branch_name"
+          fi
+
           git add yarn.lock
-          git commit -m "$title"
-          
+          git commit -m "$title"        
           git push origin "$branch_name"
-          hub pull-request -m "$title" -m "$description" 
+
+          if [[ $CREATE_NEW_PR ]] 
+          then
+            hub pull-request -m "$title" -m "$description" 
+          fi
+          
       fi
       
     workingDirectory: ${{ parameters.projectDir }}

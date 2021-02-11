@@ -198,7 +198,7 @@ stages:
     jobs:
       - job: do_yarn_lock_upgrade   
         steps:
-        - template: ../../templates/yarn-lock-upgrade/template.yaml
+        - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
             projectDir: .devops/__tests__/sample-yarn-upgrade
 
