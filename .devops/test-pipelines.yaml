@@ -116,7 +116,7 @@ stages:
     
     jobs:
 
-      - job: do_yarn_lock_upgrade
+      - job: do_yarn_lock_upgrade_test_1
         pool:
           vmImage: ubuntu-latest   
         steps:
@@ -140,7 +140,7 @@ stages:
 
 
 
-      - job: do_yarn_lock_upgrade
+      - job: do_yarn_lock_upgrade_test_2
         
         pool:
           vmImage: ubuntu-latest   
