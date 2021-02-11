@@ -133,15 +133,14 @@ stages:
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
             PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
-            echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
+
             echo "==> PR $PR_NUMBER"
             if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
           displayName: 'it should open a PR'
 
-
-
       - job: do_yarn_lock_upgrade_test_2
-        
+        dependsOn: do_yarn_lock_upgrade_test_1
+
         pool:
           vmImage: ubuntu-latest   
         steps:
@@ -158,10 +157,12 @@ stages:
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
             OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
+            echo "PR open: $OPEN_PR_NR"
             if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
           displayName: 'it should not open a new PR, if present'
       
         - script: |
-            hub issue update $(pr_number) -s closed   
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            hub issue update $(PR_NUMBER) -s closed   
             echo "" > ~/.config/hub
           displayName: Cleanup
