@@ -29,13 +29,14 @@ steps:
       echo "github.com: 
       - user: $GITHUB_USERNAME
         oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
-
+  
     displayName: 'Git setup' 
 
   - script: |
       set -euo pipefail
 
-      PR_NUMBER=`hub pr list | grep "Yarn.lock Upgrade" | awk '{print $1}' | sed 's/#//'`
+      # | awk '{print $1}' | sed 's/#//'`
+      PR_NUMBER=`hub pr list | grep "Yarn.lock Upgrade"
       echo "==> PR $PR_NUMBER"
       
     
