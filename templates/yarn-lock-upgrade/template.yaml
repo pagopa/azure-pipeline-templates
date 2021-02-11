@@ -42,7 +42,7 @@ steps:
       ls ~/.config
 
       hub version
-      # hub pr list
+      hub pr list
 
     displayName: Test hub CLI
 
