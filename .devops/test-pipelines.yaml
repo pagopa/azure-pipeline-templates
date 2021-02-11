@@ -126,7 +126,7 @@ stages:
             - user: $GITHUB_USERNAME
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
-            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            PR_NUMBER=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
 
             echo "==> PR $PR_NUMBER"
 
