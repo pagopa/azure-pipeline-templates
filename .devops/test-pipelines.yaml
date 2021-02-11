@@ -25,6 +25,13 @@ parameters:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
 trigger: none
 
+pr:
+  branches:
+    include:
+    - '*'
+    exclude:
+    - 'lockfile-upgrade-*'
+
 stages:
   # Stages are applied on every VM we support, to ensure templates work well on each
   - ${{ each vm in parameters.vmToTestOn }}:
