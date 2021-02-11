@@ -29,8 +29,6 @@ steps:
       echo "github.com: 
       - user: $GITHUB_USERNAME
         oauth_token: $GITHUB_TOKEN" > ~/.config/hub
-
-
     displayName: 'Git setup' 
 
   - script:
@@ -40,6 +38,14 @@ steps:
       hub pr list
 
     displayName: Test hub CLI
+
+
+  - script: |
+      echo "" > ~/.config/hub
+    displayName: Cleanup
+
+
+
 
 
   # - script: |
