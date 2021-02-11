@@ -198,7 +198,8 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    
+    condition: contains(variables['build.sourceBranch'], 'lockfile-upgrade-')
+   
     jobs:
 
       - job: do_yarn_lock_upgrade_test_1
@@ -250,10 +251,10 @@ stages:
             echo "PR open: $OPEN_PR_NR"
             if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
           displayName: 'it should not open a new PR, if present'
+        
         - script: | 
             echo "" > ~/.config/hub
           displayName: Cleanup Tests 2
-      
 
       - job: Cleanup_Tests
         dependsOn: do_yarn_lock_upgrade_test_2
