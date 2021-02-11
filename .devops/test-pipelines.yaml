@@ -135,6 +135,7 @@ stages:
         
         #Using 'sleep (n)' to fake user input
         - bash: |
+            sleep 5
             { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
           displayName: 'Create verdaccio user'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
