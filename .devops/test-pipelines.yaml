@@ -9,6 +9,8 @@
 #  - registry: http://localhost:4873
 #  - username: user
 #  - password: psw
+variables:
+  system.debug: true
 
 
 parameters:
