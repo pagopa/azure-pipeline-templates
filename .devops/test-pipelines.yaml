@@ -9,8 +9,6 @@
 #  - registry: http://localhost:4873
 #  - username: user
 #  - password: psw
-variables:
-  system.debug: true
 
 
 parameters:
@@ -26,6 +24,10 @@ parameters:
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
 trigger: none
+pr:
+  branches:
+    exclude: 
+    - 'lockfile-upgrade-*'
 
 stages:
   # Stages are applied on every VM we support, to ensure templates work well on each
@@ -110,7 +112,6 @@ stages:
             displayName: 'Test sample app is working'
 
 
-
   - stage: Test_ClientSDKGeneration
     dependsOn: []
     jobs:
@@ -135,7 +136,6 @@ stages:
         
         #Using 'sleep (n)' to fake user input
         - bash: |
-            sleep 5
             { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
           displayName: 'Create verdaccio user'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
@@ -196,16 +196,21 @@ stages:
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
 
-
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
     
     jobs:
-      - job: do_yarn_lock_upgrade   
+
+      - job: do_yarn_lock_upgrade_test_1
+        pool:
+          vmImage: ubuntu-latest   
         steps:
+
+        #Call the Yarn.lock updated the first time
         - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
             projectDir: .devops/__tests__/sample-yarn-upgrade
+            isTest: true
 
         - script: |
             #setup hub CLI
@@ -213,15 +218,56 @@ stages:
             - user: $GITHUB_USERNAME
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
-            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'`
-            echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
 
             echo "==> PR $PR_NUMBER"
             if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
-
           displayName: 'it should open a PR'
-      
-        - script: |
-            hub issue update $(pr_number) -s closed   
+        
+        - script: | 
             echo "" > ~/.config/hub
-          displayName: Cleanup
+          displayName: Cleanup Tests 2
+
+      - job: do_yarn_lock_upgrade_test_2
+        dependsOn: do_yarn_lock_upgrade_test_1
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
+
+        #Call it again, when a PR is open
+        - template: ../templates/yarn-lock-upgrade/template.yaml
+          parameters:
+            projectDir: .devops/__tests__/sample-yarn-upgrade
+            isTest: true
+
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
+            echo "PR open: $OPEN_PR_NR"
+            if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
+          displayName: 'it should not open a new PR, if present'
+        - script: | 
+            echo "" > ~/.config/hub
+          displayName: Cleanup Tests 2
+      
+
+      - job: Cleanup_Tests
+        dependsOn: do_yarn_lock_upgrade_test_2
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
+        
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            PR_TO_DELETE_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            hub issue update $PR_TO_DELETE_NR -s closed   
+            echo "" > ~/.config/hub
+          displayName: Cleanup Tests
