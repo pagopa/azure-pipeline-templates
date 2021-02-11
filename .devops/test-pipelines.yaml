@@ -161,10 +161,19 @@ stages:
             echo "==> PR $PR_NUMBER"
             if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
             
-            TEST_VAR=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
-            echo "==> PR $TEST_VAR"
-
           displayName: 'it should open a PR'
+
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
+           
+            if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
+
+          displayName: 'it should not open a new PR, if present'
       
         - script: |
             hub issue update $(pr_number) -s closed   
