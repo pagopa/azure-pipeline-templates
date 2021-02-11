@@ -32,3 +32,9 @@ jobs:
     - template: ../../templates/yarn-lock-upgrade/template.yaml
       parameters:
         projectDir: .devops/__tests__/sample-yarn-upgrade
+
+    - script: |
+        GITHUB_TOKEN=$(GITHUB_TOKEN)
+        hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'
+      
+      displayName: 'it should open a PR'
