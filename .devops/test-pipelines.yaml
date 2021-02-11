@@ -120,7 +120,8 @@ stages:
         pool:
           vmImage: ubuntu-latest   
         steps:
-          
+
+        #Call the Yarn.lock updated the first time
         - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
             projectDir: .devops/__tests__/sample-yarn-upgrade

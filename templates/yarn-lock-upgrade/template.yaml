@@ -77,8 +77,6 @@ steps:
             hub pull-request -m "$title" -m "$description" 
           fi
       fi
-
-    
     displayName: "Check yarn.lock file and make PR if needed"
     workingDirectory: ${{ parameters.projectDir }}
 
