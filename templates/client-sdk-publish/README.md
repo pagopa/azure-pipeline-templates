@@ -8,6 +8,10 @@ It does the following:
 1. generate package.json based on main package.json values (like name and version), using [@pagopa/openapi-codegen-ts](https://www.npmjs.com/package/@pagopa/openapi-codegen-ts)
 1. publish the package on NPM
 
+If the template is executed against a library/application that has [@pagopa/openapi-codegen-ts](https://www.npmjs.com/package/@pagopa/openapi-codegen-ts) as dependency, the specific version of such package is used; otherwise, the latest version will be fetched from registry. This mechanism supports `yarn` only, so far. 
+
+Please note that there's no need to install dependencies before the template, as no code from the application is executed.
+
 Be sure that this template is called **after** the main package.json has been updated.
 
 
@@ -46,8 +50,12 @@ stages:
 
 ## Parameters
 
-|param|description|default|required
+|param|description|default|required|
 |-|-|-|-|
 |openapiSpecPath|The relative path of the OpenAPI spec from projectDir folder | _To be defined_ |yes|
-|apiProjectDir|The project directory, in case of multi-project repo |'.'|no|
+|apiProjectDir|The project directory, in case of multi-project repo |`.`|no|
 |sdkPackageName|The name of the generated package| _Inherited from the api project's package.json_ |no|
+|generatorPackageName|Define the name of the generator package to be used. In most cases, there's no need do edit this parameter|`@pagopa/openapi-codegen-ts`|no|
+|npmRegistry|Define the url fo the registy to upload the package onto. In most cases, there's no need do edit this parameter|`https://registry.npmjs.org/`|no|
+|artifactName|The name of the artifact published in the pipeline space. The artifact is published to allow inspection, however the artifact name is overridable as it may be used in next steps or even jobs. In most cases, there's no need do edit this parameter|`Bundle_SDK`|no|
+
