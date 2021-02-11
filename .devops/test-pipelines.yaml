@@ -170,7 +170,7 @@ stages:
           displayName: Cleanup Tests 2
       
 
-      - job: do_yarn_lock_upgrade_test_1
+      - job: Cleanup_Tests
         pool:
           vmImage: ubuntu-latest   
         steps:
