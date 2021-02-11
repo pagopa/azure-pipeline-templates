@@ -25,13 +25,9 @@ steps:
   - script: |
       git config --global user.email "$(GIT_EMAIL)" && git config --global user.name "$(GIT_USERNAME)"
 
-      #setup hub CLI
-      echo "github.com: 
-      - user: $GITHUB_USERNAME
-        oauth_token: $GITHUB_TOKEN" > ~/.config/hub
     displayName: 'Git setup' 
 
-  - script:
+  - script: |
       hub version
       hub user
 
