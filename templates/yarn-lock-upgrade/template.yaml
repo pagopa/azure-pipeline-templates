@@ -29,9 +29,11 @@ steps:
       #setup hub CLI
       echo "github.com: 
       - user: $GITHUB_USERNAME
-        oauth_token: $GITHUB_TOKEN" > ~/.config/hub
+        oauth_token: $GIT_EMAIL" > ~/.config/hub
 
       ls ~/.config
+      cat ~/.config
+ 
 
     displayName: 'Git setup' 
 
@@ -40,7 +42,7 @@ steps:
       ls ~/.config
 
       hub version
-      hub pr list
+      # hub pr list
 
     displayName: Test hub CLI
 
