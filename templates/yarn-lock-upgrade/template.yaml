@@ -24,13 +24,6 @@ steps:
     persistCredentials: true
     displayName: 'Checkout'
 
-    variables:
-     - name: "draftCommand"
-       value:
-       ${{ if eq(parapeters.isTest, true) }}:
-          '-d'
-       ${{ if ne(parapeters.isTest, true) }}:
-          ''
 
   # setup git author
   - script: |
@@ -42,6 +35,18 @@ steps:
         oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
     displayName: 'Git setup' 
+
+  - bash: |
+      # Set SDK package name, if needed
+      [ "${{parameters.isTest}}" == "True" ] && HUB_PR_CMD='-d' || HUB_PR_CMD=''     
+      echo "setting hub_pr_cmd=$HUB_PR_CMD" 
+      echo "##vso[task.setvariable variable=hub_pr_cmd;]$HUB_PR_CMD"
+      
+      #Set generated code base directory
+      echo "setting generatedCodeDir=$(Agent.TempDirectory)/generated_${{ parameters.artifactName }}" 
+      echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated_${{ parameters.artifactName }}"
+    name: setvarStep
+    displayName: 'Setup conditional variables'
 
   - bash: |
       PULL_REQUEST_NUMBER=$(hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//')
@@ -85,7 +90,7 @@ steps:
           if [[ $CREATE_NEW_PR == true ]] 
           then
             echo "Create PR $description"
-            hub pull-request -m "$title" -m "$description" ${{ variables.draftCommand }} 
+            hub pull-request -m "$title" -m "$description" $(hub_pr_cmd) 
           fi
       fi
     displayName: "Check yarn.lock file and make PR if needed"
