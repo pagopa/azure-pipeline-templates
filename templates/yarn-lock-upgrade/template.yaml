@@ -36,9 +36,9 @@ steps:
       set -euo pipefail
 
       # | awk '{print $1}' | sed 's/#//'`
-      PR_NUMBER=`hub pr list | grep "Yarn.lock Upgrade"``
+      PR_NUMBER=`hub pr list | grep "Yarn.lock Upgrade"`
       echo "==> PR $PR_NUMBER"
-            
+
     
     displayName: "Check yarn.lock file and make PR if needed"
     workingDirectory: ${{ parameters.projectDir }}
