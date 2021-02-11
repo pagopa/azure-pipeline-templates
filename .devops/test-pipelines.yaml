@@ -19,9 +19,7 @@ parameters:
   #  Value is the name of the vm to test against
   - name: 'vmToTestOn'
     type: 'object'
-    default:
-      linux: 'ubuntu-latest'
-      windows: 'windows-2019'
+    default: []
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
@@ -110,90 +108,6 @@ stages:
             displayName: 'Test sample app is working'
 
 
-
-  - stage: Test_ClientSDKGeneration
-    dependsOn: []
-    jobs:
-    
-      # Test that the job is setup with a provided Node version
-      - job: Test_SDK_Generation    
-        variables:
-          verdaccioUrl: 'http://localhost:4873'  
-        
-        steps:
-        - checkout: self
-
-        # ----------------------------------------------------------------------------------------
-        # Test - Arrange 
-        # ----------------------------------------------------------------------------------------
-        
-        #Start Verdaccio
-        - bash: |
-            docker run -d --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio 
-            sleep 5
-          displayName: 'Start verdaccio'
-        
-        #Using 'sleep (n)' to fake user input
-        - bash: |
-            sleep 5
-            { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
-          displayName: 'Create verdaccio user'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-
-
-        #Start simple API that implements openapi spec
-        - bash: |
-            yarn install && yarn build && yarn start
-          displayName: 'Start simple API for testing'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-
-        # ----------------------------------------------------------------------------------------
-        # Test - Act 
-        # ----------------------------------------------------------------------------------------
-
-        #Call The template to generate SDK package and publish it to Verdaccio
-        - template: ../templates/client-sdk-publish/template.yaml
-          parameters:
-            apiProjectDir: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-            openapiSpecPath: ../api_test.yaml
-            npmRegistry: ${{ variables.verdaccioUrl }}
-
-        # ----------------------------------------------------------------------------------------
-        # Test - Assert 
-        # ----------------------------------------------------------------------------------------
-
-        #Install SDK from verdaccio
-        - bash: |
-            cp use.npmrc .npmrc
-            cp jest.config.js_use jest.config.js
-            yarn install
-          displayName: 'it should download it from registy'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
-
-        # Test node_modules folder content    
-        - bash: |
-            expectedPackage="./node_modules/@pagopa/api_test-sdk"
-            if [[ -d $expectedPackage ]]; then exit 0; else echo "package not found"; exit 1; fi
-
-            files=("package.json" "openapi.yaml" "client.js" "ServerInfo.js" )
-            for file in "${files[@]}"; do
-                if [[ -f $expectedPackage/${file} ]]; then echo "File ${file} fould!"; else echo "File ${file} not fould!"; exit 1; fi
-            done
-
-          displayName: 'it should contains @pagopa/api_test-sdk package and expected files'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
-
-        #Build the code that uses the SDK
-        - bash: |
-            yarn build
-          displayName: 'it should build the code that uses the generated SDK'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
-
-        #Call the API using the SDK
-        - bash: |
-            yarn test
-          displayName: 'it should call the api and receive the expected result'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
 
 
