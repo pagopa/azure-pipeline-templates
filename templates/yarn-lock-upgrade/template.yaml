@@ -35,8 +35,6 @@ steps:
 
   - script: |
       hub version
-      hub user
-
       hub pr list
 
     displayName: Test hub CLI
