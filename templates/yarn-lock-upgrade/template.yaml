@@ -36,8 +36,8 @@ steps:
       set -euo pipefail
 
       # | awk '{print $1}' | sed 's/#//'`
-      PR_NUMBER=`hub pr list | grep "Yarn.lock" | awk '{print $1}' | sed 's/#//'`
-      echo "==> PR $PR_NUMBER"
+      PULL_REQUEST_NUMBER=`hub pr list | grep "Yarn.lock" | awk '{print $1}' | sed 's/#//'`
+      echo "==> PR $PULL_REQUEST_NUMBER"
 
     
     displayName: "Check yarn.lock file and make PR if needed"
