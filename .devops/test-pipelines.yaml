@@ -140,10 +140,10 @@ stages:
           displayName: 'it should open a PR'
 
 
-        #Call it again, when a PR is open
-        - template: ../templates/yarn-lock-upgrade/template.yaml
-          parameters:
-            projectDir: .devops/__tests__/sample-yarn-upgrade
+        # #Call it again, when a PR is open
+        # - template: ../templates/yarn-lock-upgrade/template.yaml
+        #   parameters:
+        #     projectDir: .devops/__tests__/sample-yarn-upgrade
 
         - script: |
             #setup hub CLI
