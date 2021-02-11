@@ -9,6 +9,9 @@ parameters:
 # ------------------
 # Test parameters only
 
+  - name: 'isTest'
+    type: boolean
+    default: false
 
 # ------------------
 # Steps 
@@ -20,6 +23,14 @@ steps:
     clean: true
     persistCredentials: true
     displayName: 'Checkout'
+
+    variables:
+     - name: "draftCommand"
+       value:
+       ${{ if eq(parapeters.isTest, true) }}:
+          '-d'
+       ${{ if ne(parapeters.isTest, true) }}:
+          ''
 
   # setup git author
   - script: |
@@ -74,7 +85,7 @@ steps:
           if [[ $CREATE_NEW_PR == true ]] 
           then
             echo "Create PR $description"
-            hub pull-request -m "$title" -m "$description" 
+            hub pull-request -m "$title" -m "$description" ${{ variables.draftCommand }} 
           fi
       fi
     displayName: "Check yarn.lock file and make PR if needed"

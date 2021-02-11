@@ -162,7 +162,7 @@ stages:
           displayName: 'it should not open a new PR, if present'
       
         - script: |
-            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
-            hub issue update $(PR_NUMBER) -s closed   
+            PR_TO_DELETE_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            hub issue update $(PR_TO_DELETE_NR) -s closed   
             echo "" > ~/.config/hub
           displayName: Cleanup
