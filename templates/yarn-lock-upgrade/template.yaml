@@ -36,10 +36,10 @@ steps:
       set -euo pipefail
 
       #| grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'
-      PR_NUMBER=`hub pr list | grep "Yarn"`
+      PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]"`
       echo "==> PR $PR_NUMBER"
       
-      TEST_VAR=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
+      TEST_VAR=`hub pr list | grep "\[proposal]" | awk '{print $1}' | sed 's/#//'`
       
       echo "==> $TEST_VAR <=="
     
