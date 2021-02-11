@@ -54,7 +54,7 @@ steps:
           git checkout -b "$branch_name"
           git add yarn.lock
           git commit -m "$title"
-          #git push origin "$branch_name"
+          git push origin "$branch_name"
           
           echo "------> 3"
           hub pull-request -m "$title" -m "$description" 
