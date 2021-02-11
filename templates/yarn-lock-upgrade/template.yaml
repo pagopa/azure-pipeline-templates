@@ -36,7 +36,7 @@ steps:
       set -euo pipefail
 
       #| grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'
-      PR_NUMBER=`hub pr list`
+      PR_NUMBER=`hub pr list | grep "Yarn"`
 
       echo "==> PR $PR_NUMBER"
 

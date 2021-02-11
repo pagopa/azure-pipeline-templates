@@ -127,7 +127,6 @@ stages:
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
             PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
-            echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
 
             echo "==> PR $PR_NUMBER"
 
