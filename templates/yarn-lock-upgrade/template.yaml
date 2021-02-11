@@ -32,11 +32,11 @@ steps:
 
     displayName: 'Git setup' 
 
-  - script: |
+  - bash: |
       set -euo pipefail
 
       # | awk '{print $1}' | sed 's/#//'`
-      PR_NUMBER=`hub pr list | grep "Yarn.lock Upgrade"`
+      PR_NUMBER=`hub pr list | grep "Yarn.lock" | awk '{print $1}' | sed 's/#//'`
       echo "==> PR $PR_NUMBER"
 
     
