@@ -48,12 +48,12 @@ steps:
       PULL_REQUEST_NUMBER=$(hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//')
       echo "==> PR $PULL_REQUEST_NUMBER"
 
-      #if there is an PR aloready open, switch to it
+      #if there is a PR already open, switch to it
       if [[ -n "$PULL_REQUEST_NUMBER" ]] 
       then
         #It should be 'master', but right now it has no files in it
         #CURRENT_BRANCH=master
-        CURRENT_BRANCH="yarn-lockfile-upgrade-template"
+        CURRENT_BRANCH=`hub pr show $PULL_REQUEST_NUMBER --format %H`
         CREATE_NEW_PR=false
         echo "A PR already exists. Using #$PULL_REQUEST_NUMBER."
         echo "Chechout $CURRENT_BRANCH" 
