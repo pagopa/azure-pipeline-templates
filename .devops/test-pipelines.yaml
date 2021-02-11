@@ -119,18 +119,6 @@ stages:
         pool:
           vmImage: ubuntu-latest   
         steps:
-        
-        - script: |
-            #setup hub CLI
-            echo "github.com: 
-            - user: $GITHUB_USERNAME
-              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
-
-            PR_NUMBER=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
-
-            echo "==> PR $PR_NUMBER"
-
-          displayName: 'Eval PR_NUMBER'
           
         - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:

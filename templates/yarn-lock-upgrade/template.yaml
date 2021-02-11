@@ -37,9 +37,11 @@ steps:
 
       #| grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'
       PR_NUMBER=`hub pr list | grep "Yarn"`
-
       echo "==> PR $PR_NUMBER"
-
+      
+      TEST_VAR=`hub pr list | grep "\[proposal\]" | awk '{print $1}' | sed 's/#//'`
+      
+      echo "==> $TEST_VAR <=="
     
     displayName: "Check yarn.lock file and make PR if needed"
     workingDirectory: ${{ parameters.projectDir }}
