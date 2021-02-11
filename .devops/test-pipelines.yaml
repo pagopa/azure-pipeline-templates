@@ -115,7 +115,9 @@ stages:
     dependsOn: []
     
     jobs:
-      - job: do_yarn_lock_upgrade   
+      - job: do_yarn_lock_upgrade
+        pool:
+          vmImage: ubuntu-latest   
         steps:
         - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
@@ -127,7 +129,7 @@ stages:
             - user: $GITHUB_USERNAME
               oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
-            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'`
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
             echo "##vso[task.setvariable variable=pr_number]$PR_NUMBER"
 
             echo "==> PR $PR_NUMBER"

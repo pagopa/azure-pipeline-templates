@@ -35,7 +35,7 @@ steps:
   - script: |
       set -euo pipefail
 
-      hub pr list | grep "\[Yarn.lock Upgrade]"
+      hub pr list | grep "\[Yarn.lock Upgrade\]"
     
     displayName: "Check yarn.lock file and make PR if needed"
     workingDirectory: ${{ parameters.projectDir }}
