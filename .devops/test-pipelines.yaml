@@ -9,6 +9,8 @@
 #  - registry: http://localhost:4873
 #  - username: user
 #  - password: psw
+variables:
+  system.debug: true
 
 
 parameters:
@@ -17,9 +19,7 @@ parameters:
   #  Value is the name of the vm to test against
   - name: 'vmToTestOn'
     type: 'object'
-    default:
-      linux: 'ubuntu-latest'
-      windows: 'windows-2019'
+    default: []
 
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
@@ -110,85 +110,59 @@ stages:
 
 
 
-  - stage: Test_ClientSDKGeneration
+
+  - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    jobs:
     
-      # Test that the job is setup with a provided Node version
-      - job: Test_SDK_Generation    
-        variables:
-          verdaccioUrl: 'http://localhost:4873'  
-        
+    jobs:
+
+      - job: do_yarn_lock_upgrade_test_1
+        pool:
+          vmImage: ubuntu-latest   
         steps:
-        - checkout: self
 
-        # ----------------------------------------------------------------------------------------
-        # Test - Arrange 
-        # ----------------------------------------------------------------------------------------
-        
-        #Start Verdaccio
-        - bash: |
-            docker run -d --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio 
-            sleep 5
-          displayName: 'Start verdaccio'
-        
-        #Using 'sleep (n)' to fake user input
-        - bash: |
-            { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
-          displayName: 'Create verdaccio user'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-
-
-        #Start simple API that implements openapi spec
-        - bash: |
-            yarn install && yarn build && yarn start
-          displayName: 'Start simple API for testing'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-
-        # ----------------------------------------------------------------------------------------
-        # Test - Act 
-        # ----------------------------------------------------------------------------------------
-
-        #Call The template to generate SDK package and publish it to Verdaccio
-        - template: ../templates/client-sdk-publish/template.yaml
+        #Call the Yarn.lock updated the first time
+        - template: ../templates/yarn-lock-upgrade/template.yaml
           parameters:
-            apiProjectDir: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-            openapiSpecPath: ../api_test.yaml
-            npmRegistry: ${{ variables.verdaccioUrl }}
+            projectDir: .devops/__tests__/sample-yarn-upgrade
 
-        # ----------------------------------------------------------------------------------------
-        # Test - Assert 
-        # ----------------------------------------------------------------------------------------
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
-        #Install SDK from verdaccio
-        - bash: |
-            cp use.npmrc .npmrc
-            cp jest.config.js_use jest.config.js
-            yarn install
-          displayName: 'it should download it from registy'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
 
-        # Test node_modules folder content    
-        - bash: |
-            expectedPackage="./node_modules/@pagopa/api_test-sdk"
-            if [[ -d $expectedPackage ]]; then exit 0; else echo "package not found"; exit 1; fi
+            echo "==> PR $PR_NUMBER"
+            if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
+          displayName: 'it should open a PR'
 
-            files=("package.json" "openapi.yaml" "client.js" "ServerInfo.js" )
-            for file in "${files[@]}"; do
-                if [[ -f $expectedPackage/${file} ]]; then echo "File ${file} fould!"; else echo "File ${file} not fould!"; exit 1; fi
-            done
+      - job: do_yarn_lock_upgrade_test_2
+        dependsOn: do_yarn_lock_upgrade_test_1
 
-          displayName: 'it should contains @pagopa/api_test-sdk package and expected files'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
 
-        #Build the code that uses the SDK
-        - bash: |
-            yarn build
-          displayName: 'it should build the code that uses the generated SDK'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+        #Call it again, when a PR is open
+        - template: ../templates/yarn-lock-upgrade/template.yaml
+          parameters:
+            projectDir: .devops/__tests__/sample-yarn-upgrade
 
-        #Call the API using the SDK
-        - bash: |
-            yarn test
-          displayName: 'it should call the api and receive the expected result'
-          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
+            echo "PR open: $OPEN_PR_NR"
+            if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
+          displayName: 'it should not open a new PR, if present'
+      
+        - script: |
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            hub issue update $(PR_NUMBER) -s closed   
+            echo "" > ~/.config/hub
+          displayName: Cleanup
