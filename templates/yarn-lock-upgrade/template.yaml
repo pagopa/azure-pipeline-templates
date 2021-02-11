@@ -35,6 +35,8 @@ steps:
   - script: |
       set -euo pipefail
 
+      hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'
+      
       PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade]" | awk '{print $1}' | sed 's/#//'`
       echo "PR number: $PR_NUMBER"
 
