@@ -52,3 +52,12 @@ stages:
         - template: templates/yarn-lock-upgrade/template.yaml@templates
 
 ```
+
+
+## Variables
+
+|variable|description|required|
+|-|-|-|
+|GITHUB_USERNAME|The username of the GitHub user that will do the PR |yes|
+|GITHUB_EMAIL|The email of the GitHub user that will do the PR |no|
+|GITHUB_TOKEN|The access token of the GitHub user that will do the PR |no|
