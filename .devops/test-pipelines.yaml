@@ -207,9 +207,9 @@ stages:
           vmImage: ubuntu-latest   
         steps:
           - script: |
-              echo "1: $(variables['build.sourceBranch'])"  
-              echo "2: $(contains(variables['build.sourceBranch'], 'lockfile-auto-upgrade-'))"  
-              echo "3: $(variables['Build.SourceBranchName'])"  
+              echo "1: ${{ variables['build.sourceBranch'] }}"  
+              echo "2: ${{ contains(variables['build.sourceBranch'], 'lockfile-auto-upgrade-') }}"  
+              echo "3: ${{ variables['Build.SourceBranchName'] }}"  
             
             displayName: 'Test'
 
