@@ -214,7 +214,7 @@ stages:
             displayName: 'Test'
 
       - job: test2
-        condition: and(succeeded(), eq(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-upgrade-template'))
+        condition: and(succeeded(), ne(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-upgrade-template'))
         pool:
           vmImage: ubuntu-latest   
         steps:
