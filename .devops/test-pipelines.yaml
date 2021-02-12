@@ -199,6 +199,8 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
+    condition: and(succeeded(), ne(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-upgrade-template'))
+    
     jobs:
 
       - job: test1
@@ -207,14 +209,12 @@ stages:
         steps:
           - script: |
               echo "1: $(system.pullRequest.sourceBranch)"
-              echo "1: $(variables['System.PullRequest.SourceBranch'])"
               echo "2: ${{ contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') }}"  
               echo "3: ${{ not( contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-')) }}"  
 
             displayName: 'Test'
 
       - job: test2
-        condition: and(succeeded(), ne(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-upgrade-template'))
         pool:
           vmImage: ubuntu-latest   
         steps:
