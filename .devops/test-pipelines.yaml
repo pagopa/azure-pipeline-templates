@@ -202,94 +202,73 @@ stages:
     condition: and(succeeded(), not( contains(variables['System.PullRequest.SourceBranch'], 'lockfile-auto-upgrade-') ))
     
     jobs:
-
-      - job: test1
+      - job: do_yarn_lock_upgrade_test_1
         pool:
           vmImage: ubuntu-latest   
         steps:
-          - script: |
-              echo "1: $(system.pullRequest.sourceBranch)"
-              echo "2: ${{ contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') }}"  
-              echo "3: ${{ not( contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-')) }}"  
 
-            displayName: 'Test'
+        #Call the Yarn.lock updated the first time
+        - template: ../templates/yarn-lock-upgrade/template.yaml
+          parameters:
+            projectDir: .devops/__tests__/sample-yarn-upgrade
+            isTest: true
 
-      - job: test2
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
+
+            PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+
+            echo "==> PR $PR_NUMBER"
+            if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
+          displayName: 'it should open a PR'
+        
+        - script: | 
+            echo "" > ~/.config/hub
+          displayName: Cleanup Tests 2
+
+      - job: do_yarn_lock_upgrade_test_2
+        dependsOn: do_yarn_lock_upgrade_test_1
         pool:
           vmImage: ubuntu-latest   
         steps:
-          - script: |
-              echo "Ciao"  
 
-            displayName: 'Test2'
+        #Call it again, when a PR is open
+        - template: ../templates/yarn-lock-upgrade/template.yaml
+          parameters:
+            projectDir: .devops/__tests__/sample-yarn-upgrade
+            isTest: true
 
-      # - job: do_yarn_lock_upgrade_test_1
-      #   pool:
-      #     vmImage: ubuntu-latest   
-      #   steps:
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
-      #   #Call the Yarn.lock updated the first time
-      #   - template: ../templates/yarn-lock-upgrade/template.yaml
-      #     parameters:
-      #       projectDir: .devops/__tests__/sample-yarn-upgrade
-      #       isTest: true
-
-      #   - script: |
-      #       #setup hub CLI
-      #       echo "github.com: 
-      #       - user: $GITHUB_USERNAME
-      #         oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
-
-      #       PR_NUMBER=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
-
-      #       echo "==> PR $PR_NUMBER"
-      #       if [[ -n "$PR_NUMBER" ]]; then exit 0; else echo "PR Not Found"; exit 1; fi
-      #     displayName: 'it should open a PR'
+            OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
+            echo "PR open: $OPEN_PR_NR"
+            if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
+          displayName: 'it should not open a new PR, if present'
         
-      #   - script: | 
-      #       echo "" > ~/.config/hub
-      #     displayName: Cleanup Tests 2
+        - script: | 
+            echo "" > ~/.config/hub
+          displayName: Cleanup Tests 2
 
-      # - job: do_yarn_lock_upgrade_test_2
-      #   dependsOn: do_yarn_lock_upgrade_test_1
-      #   pool:
-      #     vmImage: ubuntu-latest   
-      #   steps:
-
-      #   #Call it again, when a PR is open
-      #   - template: ../templates/yarn-lock-upgrade/template.yaml
-      #     parameters:
-      #       projectDir: .devops/__tests__/sample-yarn-upgrade
-      #       isTest: true
-
-      #   - script: |
-      #       #setup hub CLI
-      #       echo "github.com: 
-      #       - user: $GITHUB_USERNAME
-      #         oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
-
-      #       OPEN_PR_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | wc -l`
-      #       echo "PR open: $OPEN_PR_NR"
-      #       if [[ "$OPEN_PR_NR" == 2 ]]; then echo "It opened a new PR instead of using the same one"; exit 1; else exit 0; fi
-      #     displayName: 'it should not open a new PR, if present'
+      - job: Cleanup_Tests
+        dependsOn: do_yarn_lock_upgrade_test_2
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
         
-      #   - script: | 
-      #       echo "" > ~/.config/hub
-      #     displayName: Cleanup Tests 2
+        - script: |
+            #setup hub CLI
+            echo "github.com: 
+            - user: $GITHUB_USERNAME
+              oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
 
-      # - job: Cleanup_Tests
-      #   dependsOn: do_yarn_lock_upgrade_test_2
-      #   pool:
-      #     vmImage: ubuntu-latest   
-      #   steps:
-        
-      #   - script: |
-      #       #setup hub CLI
-      #       echo "github.com: 
-      #       - user: $GITHUB_USERNAME
-      #         oauth_token: $(GITHUB_TOKEN)" > ~/.config/hub
-
-      #       PR_TO_DELETE_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
-      #       hub issue update $PR_TO_DELETE_NR -s closed   
-      #       echo "" > ~/.config/hub
-      #     displayName: Cleanup Tests
+            PR_TO_DELETE_NR=`hub pr list | grep "\[Yarn.lock Upgrade\]" | awk '{print $1}' | sed 's/#//'`
+            hub issue update $PR_TO_DELETE_NR -s closed   
+            echo "" > ~/.config/hub
+          displayName: Cleanup Tests
