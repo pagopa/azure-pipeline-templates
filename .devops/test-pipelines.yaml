@@ -203,11 +203,11 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    condition:  not( contains( variables.prSourceBranch, 'lockfile-'))
+    condition:  ${{ not( contains( variables.prSourceBranch, 'lockfile-')) }}
     
     jobs:
 
-      - job: do_yarn_lock_upgrade_test_1
+      - job: test1
         pool:
           vmImage: ubuntu-latest   
         steps:
@@ -216,6 +216,14 @@ stages:
               echo "2: ${{ contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') }}"  
               echo "3: ${{ not( contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-')) }}"  
 
+            displayName: 'Test'
+
+      # -${{ if }}
+      - job: test2
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
+          - script: |
               echo "1: ${{ variables.prSourceBranch }} "
               echo "2: ${{ contains( variables.prSourceBranch, 'lockfile-auto-upgrade-') }}"  
               echo "3: ${{ not( contains( variables.prSourceBranch, 'lockfile-auto-upgrade-')) }}"  
