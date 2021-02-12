@@ -216,7 +216,7 @@ stages:
               echo "2: ${{ contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') }}"  
               echo "3: ${{ not( contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-')) }}"  
 
-              echo "1: $(variables.prSourceBranch)"
+              echo "1: ${{ variables.prSourceBranch }} "
               echo "2: ${{ contains( variables.prSourceBranch, 'lockfile-auto-upgrade-') }}"  
               echo "3: ${{ not( contains( variables.prSourceBranch, 'lockfile-auto-upgrade-')) }}"  
 
