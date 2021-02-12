@@ -24,181 +24,184 @@ parameters:
 # Automatically triggered on PR
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
 trigger: none
-pr:
-  branches:
-    exclude: 
-    - 'lockfile-upgrade-*'
 
 
 stages:
-  # # Stages are applied on every VM we support, to ensure templates work well on each
-  # - ${{ each vm in parameters.vmToTestOn }}:
-  #   - stage: Test_NodeJobSetup_on_${{ vm.Key }}
-  #     dependsOn: []
-  #     jobs:
-  #       # Test that the job is setup with a provided Node version
-  #       - job: test_provided_node_version
-  #         pool:
-  #           vmImage: '${{ vm.Value }}'
-  #         steps:
-  #         # use template  
-  #         - template: ../templates/node-job-setup/template.yaml
-  #           parameters:
-  #             projectDir: '.devops/__tests__/sample-node-app'
-  #             nodeVersion: '12.6.0'
-  #         # test results    
-  #         - bash: |
-  #             if [[ $(node -v) = 'v12.6.0' ]]; then
-  #               echo "Node version correcly set"
-  #               exit 0
-  #             else 
-  #               echo "Wrong Node version set, received: $(node -v)"
-  #               exit 1
-  #             fi
-  #           displayName: 'Test'
+  # Stages are applied on every VM we support, to ensure templates work well on each
+  - ${{ each vm in parameters.vmToTestOn }}:
+    - stage: Test_NodeJobSetup_on_${{ vm.Key }}
+      dependsOn: []
+      #exclude auto-generated PR for testing purposes
+      condition: and(succeeded(), not( contains(variables['System.PullRequest.SourceBranch'], 'lockfile-auto-upgrade-') ))
 
-  #       # Test that the job is setup and Node version is inferred from the app source
-  #       - job: test_inferred_node_version   
-  #         pool:
-  #           vmImage: '${{ vm.Value }}'   
-  #         steps:
-  #         # use template  
-  #         - template: ../templates/node-job-setup/template.yaml
-  #           parameters:
-  #             projectDir: '.devops/__tests__/sample-node-app'
-  #         # test results    
-  #         - bash: |
-  #             if [[ $(node -v) = 'v14.1.0' ]]; then
-  #               echo "Node version correcly set"
-  #               exit 0
-  #             else 
-  #               echo "Wrong Node version set, received: $(node -v)"
-  #               exit 1
-  #             fi
-  #           displayName: 'Test'
+      jobs:
+        # Test that the job is setup with a provided Node version
+        - job: test_provided_node_version
+          pool:
+            vmImage: '${{ vm.Value }}'
+          steps:
+          # use template  
+          - template: ../templates/node-job-setup/template.yaml
+            parameters:
+              projectDir: '.devops/__tests__/sample-node-app'
+              nodeVersion: '12.6.0'
+          # test results    
+          - bash: |
+              if [[ $(node -v) = 'v12.6.0' ]]; then
+                echo "Node version correcly set"
+                exit 0
+              else 
+                echo "Wrong Node version set, received: $(node -v)"
+                exit 1
+              fi
+            displayName: 'Test'
 
-  #       # Test that packages are been installed
-  #       - job: test_installed_packages
-  #         pool:
-  #           vmImage: '${{ vm.Value }}'
-  #         steps:
-  #         # use template  
-  #         - template: ../templates/node-job-setup/template.yaml
-  #           parameters:
-  #             projectDir: '.devops/__tests__/sample-node-app'
-  #         # test results    
-  #         - bash: |
-  #             echo "current folder: $(pwd)"
-  #             # a dummy package we expect to be installed
-  #             expectedPackage="./node_modules/stringz"
-  #             ls $expectedPackage && echo "package found" || echo "package not found"
-  #             if [[ -d $expectedPackage ]]; then
-  #               echo "Node packages correctly installed"
-  #               exit 0
-  #             else 
-  #               echo "Failed to install packages"
-  #               exit 1
-  #             fi
-  #             # run sample app
-  #             # if more extensive test
-  #             node index.js && echo "test ok" || echo "test not ok"
-  #           workingDirectory: '.devops/__tests__/sample-node-app'
-  #           displayName: 'Test package are installed'
-  #         - bash: |
-  #             echo "current folder: $(pwd)"
-  #             # run sample app
-  #             # index.js runs a script that ensure the app is correctly set up 
-  #             node index.js
-  #           workingDirectory: '.devops/__tests__/sample-node-app'
-  #           displayName: 'Test sample app is working'
+        # Test that the job is setup and Node version is inferred from the app source
+        - job: test_inferred_node_version   
+          pool:
+            vmImage: '${{ vm.Value }}'   
+          steps:
+          # use template  
+          - template: ../templates/node-job-setup/template.yaml
+            parameters:
+              projectDir: '.devops/__tests__/sample-node-app'
+          # test results    
+          - bash: |
+              if [[ $(node -v) = 'v14.1.0' ]]; then
+                echo "Node version correcly set"
+                exit 0
+              else 
+                echo "Wrong Node version set, received: $(node -v)"
+                exit 1
+              fi
+            displayName: 'Test'
+
+        # Test that packages are been installed
+        - job: test_installed_packages
+          pool:
+            vmImage: '${{ vm.Value }}'
+          steps:
+          # use template  
+          - template: ../templates/node-job-setup/template.yaml
+            parameters:
+              projectDir: '.devops/__tests__/sample-node-app'
+          # test results    
+          - bash: |
+              echo "current folder: $(pwd)"
+              # a dummy package we expect to be installed
+              expectedPackage="./node_modules/stringz"
+              ls $expectedPackage && echo "package found" || echo "package not found"
+              if [[ -d $expectedPackage ]]; then
+                echo "Node packages correctly installed"
+                exit 0
+              else 
+                echo "Failed to install packages"
+                exit 1
+              fi
+              # run sample app
+              # if more extensive test
+              node index.js && echo "test ok" || echo "test not ok"
+            workingDirectory: '.devops/__tests__/sample-node-app'
+            displayName: 'Test package are installed'
+          - bash: |
+              echo "current folder: $(pwd)"
+              # run sample app
+              # index.js runs a script that ensure the app is correctly set up 
+              node index.js
+            workingDirectory: '.devops/__tests__/sample-node-app'
+            displayName: 'Test sample app is working'
 
 
-  # - stage: Test_ClientSDKGeneration
-  #   dependsOn: []
-  #   jobs:
+  - stage: Test_ClientSDKGeneration
+    dependsOn: []
+    #exclude auto-generated PR for testing purposes
+    condition: and(succeeded(), not( contains(variables['System.PullRequest.SourceBranch'], 'lockfile-auto-upgrade-') ))
+
+    jobs:
     
-  #     # Test that the job is setup with a provided Node version
-  #     - job: Test_SDK_Generation    
-  #       variables:
-  #         verdaccioUrl: 'http://localhost:4873'  
+      # Test that the job is setup with a provided Node version
+      - job: Test_SDK_Generation    
+        variables:
+          verdaccioUrl: 'http://localhost:4873'  
         
-  #       steps:
-  #       - checkout: self
+        steps:
+        - checkout: self
 
-  #       # ----------------------------------------------------------------------------------------
-  #       # Test - Arrange 
-  #       # ----------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------------------------
+        # Test - Arrange 
+        # ----------------------------------------------------------------------------------------
         
-  #       #Start Verdaccio
-  #       - bash: |
-  #           docker run -d --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio 
-  #           sleep 5
-  #         displayName: 'Start verdaccio'
+        #Start Verdaccio
+        - bash: |
+            docker run -d --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio 
+            sleep 5
+          displayName: 'Start verdaccio'
         
-  #       #Using 'sleep (n)' to fake user input
-  #       - bash: |
-  #           { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
-  #         displayName: 'Create verdaccio user'
-  #         workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
+        #Using 'sleep (n)' to fake user input
+        - bash: |
+            { echo "user"; sleep 5; echo "psw"; sleep 5; echo "test@pagopa.it"; sleep 5; } | npm adduser --registry ${{ variables.verdaccioUrl }}
+          displayName: 'Create verdaccio user'
+          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
 
 
-  #       #Start simple API that implements openapi spec
-  #       - bash: |
-  #           yarn install && yarn build && yarn start
-  #         displayName: 'Start simple API for testing'
-  #         workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
+        #Start simple API that implements openapi spec
+        - bash: |
+            yarn install && yarn build && yarn start
+          displayName: 'Start simple API for testing'
+          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/api_src
 
-  #       # ----------------------------------------------------------------------------------------
-  #       # Test - Act 
-  #       # ----------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------------------------
+        # Test - Act 
+        # ----------------------------------------------------------------------------------------
 
-  #       #Call The template to generate SDK package and publish it to Verdaccio
-  #       - template: ../templates/client-sdk-publish/template.yaml
-  #         parameters:
-  #           apiProjectDir: .devops/__tests__/client-sdk-generation/test-sdk/api_src
-  #           openapiSpecPath: ../api_test.yaml
-  #           npmRegistry: ${{ variables.verdaccioUrl }}
+        #Call The template to generate SDK package and publish it to Verdaccio
+        - template: ../templates/client-sdk-publish/template.yaml
+          parameters:
+            apiProjectDir: .devops/__tests__/client-sdk-generation/test-sdk/api_src
+            openapiSpecPath: ../api_test.yaml
+            npmRegistry: ${{ variables.verdaccioUrl }}
 
-  #       # ----------------------------------------------------------------------------------------
-  #       # Test - Assert 
-  #       # ----------------------------------------------------------------------------------------
+        # ----------------------------------------------------------------------------------------
+        # Test - Assert 
+        # ----------------------------------------------------------------------------------------
 
-  #       #Install SDK from verdaccio
-  #       - bash: |
-  #           cp use.npmrc .npmrc
-  #           cp jest.config.js_use jest.config.js
-  #           yarn install
-  #         displayName: 'it should download it from registy'
-  #         workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+        #Install SDK from verdaccio
+        - bash: |
+            cp use.npmrc .npmrc
+            cp jest.config.js_use jest.config.js
+            yarn install
+          displayName: 'it should download it from registy'
+          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
-  #       # Test node_modules folder content    
-  #       - bash: |
-  #           expectedPackage="./node_modules/@pagopa/api_test-sdk"
-  #           if [[ -d $expectedPackage ]]; then exit 0; else echo "package not found"; exit 1; fi
+        # Test node_modules folder content    
+        - bash: |
+            expectedPackage="./node_modules/@pagopa/api_test-sdk"
+            if [[ -d $expectedPackage ]]; then exit 0; else echo "package not found"; exit 1; fi
 
-  #           files=("package.json" "openapi.yaml" "client.js" "ServerInfo.js" )
-  #           for file in "${files[@]}"; do
-  #               if [[ -f $expectedPackage/${file} ]]; then echo "File ${file} fould!"; else echo "File ${file} not fould!"; exit 1; fi
-  #           done
+            files=("package.json" "openapi.yaml" "client.js" "ServerInfo.js" )
+            for file in "${files[@]}"; do
+                if [[ -f $expectedPackage/${file} ]]; then echo "File ${file} fould!"; else echo "File ${file} not fould!"; exit 1; fi
+            done
 
-  #         displayName: 'it should contains @pagopa/api_test-sdk package and expected files'
-  #         workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+          displayName: 'it should contains @pagopa/api_test-sdk package and expected files'
+          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
-  #       #Build the code that uses the SDK
-  #       - bash: |
-  #           yarn build
-  #         displayName: 'it should build the code that uses the generated SDK'
-  #         workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+        #Build the code that uses the SDK
+        - bash: |
+            yarn build
+          displayName: 'it should build the code that uses the generated SDK'
+          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
-  #       #Call the API using the SDK
-  #       - bash: |
-  #           yarn test
-  #         displayName: 'it should call the api and receive the expected result'
-  #         workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
+        #Call the API using the SDK
+        - bash: |
+            yarn test
+          displayName: 'it should call the api and receive the expected result'
+          workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
+    #exclude auto-generated PR for testing purposes
     condition: and(succeeded(), not( contains(variables['System.PullRequest.SourceBranch'], 'lockfile-auto-upgrade-') ))
     
     jobs:
