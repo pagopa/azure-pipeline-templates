@@ -199,7 +199,7 @@ stages:
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
     # condition: contains(variables['build.sourceBranch'], 'lockfile-auto-upgrade-')
-   
+    
     jobs:
 
       - job: do_yarn_lock_upgrade_test_1
@@ -208,8 +208,8 @@ stages:
         steps:
           - script: |
               echo "1: $(system.pullRequest.sourceBranch)"
-              echo "2: $( contains( $system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') )"  
- 
+              echo "2: ${{ contains( $system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') }}"  
+
 
             displayName: 'Test'
 
