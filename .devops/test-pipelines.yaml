@@ -203,7 +203,7 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    condition:  not( contains( variables['prSourceBranch'], 'lockfile-'))
+    condition:  not( contains( '$(system.pullRequest.sourceBranch)', 'lockfile-'))
     
     jobs:
 
