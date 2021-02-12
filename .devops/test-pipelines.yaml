@@ -207,20 +207,10 @@ stages:
           vmImage: ubuntu-latest   
         steps:
           - script: |
-              echo "1: ${{ variables['build.sourceBranch'] }}"  
-              echo "2: ${{ contains(variables['build.sourceBranch'], 'lockfile-auto-upgrade-') }}"  
-              echo "3: ${{ variables['Build.SourceBranchName'] }}"  
-              echo "4: ${{ variables['System.PullRequest.SourceBranch'] }}"  
-              echo "5: ${{ variables['System.PullRequest.TargetBranch'] }}"  
-              echo "6: ${{ variables['system.pullRequest.sourceBranch'] }}"  
-              echo "7: ${{ variables['system.pullRequest.targetBranch'] }}"  
-
-              BRANCH_NAME=$(echo "$(System.PullRequest.TargetBranch)" | awk -F/ '{print $NF}')
-              BRANCH_NAME_2=$(echo "$(system.pullRequest.sourceBranch)" | awk -F/ '{print $NF}')
-            
-              echo "$BRANCH_NAME"
-              echo "$BRANCH_NAME_2"
-              echo "$(system.pullRequest.sourceBranch)"
+              echo "1: $(system.pullRequest.sourceBranch)"
+              echo "2: ${{ contains(system.pullRequest.sourceBranch, 'lockfile-auto-upgrade-') }}"  
+              echo "3: ${{ contains($(system.pullRequest.sourceBranch), 'lockfile-auto-upgrade-') }}"  
+              echo "4: ${{ not(contains($(system.pullRequest.sourceBranch), 'lockfile-auto-upgrade-')) }}"  
 
             displayName: 'Test'
 
