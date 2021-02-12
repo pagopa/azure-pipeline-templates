@@ -207,8 +207,8 @@ stages:
           vmImage: ubuntu-latest   
         steps:
           - script: |
-              echo "1: $(system.pullRequest.sourceBranch)" 
-              echo "2: $(variables['system.pullRequest.sourceBranch'])" 
+              echo "1: $(system.pullRequest.sourceBranch)"
+              echo "2: $[ contains( system.pullRequest.sourceBranch, 'lockfile-auto-upgrade-') ]"  
  
 
             displayName: 'Test'
