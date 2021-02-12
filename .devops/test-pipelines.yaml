@@ -199,7 +199,7 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    condition: and(succeeded(), ne(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-upgrade-template'))
+    condition: and(succeeded(), not( contains(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-') ))
     
     jobs:
 
