@@ -220,6 +220,7 @@ stages:
             
               echo "$BRANCH_NAME"
               echo "$BRANCH_NAME_2"
+              echo "$(system.pullRequest.sourceBranch)"
 
             displayName: 'Test'
 
