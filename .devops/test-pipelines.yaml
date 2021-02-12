@@ -212,7 +212,15 @@ stages:
               echo "3: ${{ variables['Build.SourceBranchName'] }}"  
               echo "4: ${{ variables['System.PullRequest.SourceBranch'] }}"  
               echo "5: ${{ variables['System.PullRequest.TargetBranch'] }}"  
+              echo "6: ${{ variables['system.pullRequest.sourceBranch'] }}"  
+              echo "7: ${{ variables['system.pullRequest.targetBranch'] }}"  
+
+              BRANCH_NAME=$(echo "$(System.PullRequest.TargetBranch)" | awk -F/ '{print $NF}')
+              BRANCH_NAME_2=$(echo "$(system.pullRequest.sourceBranch)" | awk -F/ '{print $NF}')
             
+              echo "$BRANCH_NAME"
+              echo "$BRANCH_NAME_2"
+
             displayName: 'Test'
 
       # - job: do_yarn_lock_upgrade_test_1
