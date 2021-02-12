@@ -30,10 +30,6 @@ pr:
     - 'lockfile-upgrade-*'
 
 
-variables:
-  prSourceBranch: '$(system.pullRequest.sourceBranch)'
-
-
 stages:
   # # Stages are applied on every VM we support, to ensure templates work well on each
   # - ${{ each vm in parameters.vmToTestOn }}:
@@ -203,8 +199,6 @@ stages:
 
   - stage: Test_Yarn_Lock_File_Upgrade
     dependsOn: []
-    condition:  $[ not( contains( variables.prSourceBranch, 'lockfile-')) ]
-    
     jobs:
 
       - job: test1
@@ -213,22 +207,21 @@ stages:
         steps:
           - script: |
               echo "1: $(system.pullRequest.sourceBranch)"
+              echo "1: $(variables['System.PullRequest.SourceBranch'])"
               echo "2: ${{ contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-') }}"  
               echo "3: ${{ not( contains( variables.system.pullRequest.sourceBranch , 'lockfile-auto-upgrade-')) }}"  
 
             displayName: 'Test'
 
-      - ${{ if not( contains( variables.system.pullRequest.sourceBranch , 'lockfile-')) }} :
-        - job: test2
-          pool:
-            vmImage: ubuntu-latest   
-          steps:
-            - script: |
-                echo "1: ${{ variables.prSourceBranch }} "
-                echo "2: ${{ contains( variables.prSourceBranch, 'lockfile-auto-upgrade-') }}"  
-                echo "3: ${{ not( contains( variables.prSourceBranch, 'lockfile-auto-upgrade-')) }}"  
+      - job: test2
+        condition: and(succeeded(), eq(variables['System.PullRequest.SourceBranch'], 'yarn-lockfile-upgrade-template'))
+        pool:
+          vmImage: ubuntu-latest   
+        steps:
+          - script: |
+              echo "Ciao"  
 
-              displayName: 'Test2'
+            displayName: 'Test2'
 
       # - job: do_yarn_lock_upgrade_test_1
       #   pool:
