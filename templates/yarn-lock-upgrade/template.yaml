@@ -23,6 +23,7 @@ steps:
     clean: true
     persistCredentials: true
     displayName: 'Checkout'
+    
 
 
   # setup git author
@@ -56,8 +57,11 @@ steps:
       fi
 
       #It should be 'master', but right now it has no files in it
-      #git checkout master
-      
+      if [ "${{parameters.isTest}}" == "False" ]; 
+      then
+        git checkout master
+      fi
+
       yarn install
       lockfile_changed=`git ls-files -m | grep yarn.lock`
       echo "lockfile_changed => $lockfile_changed"
