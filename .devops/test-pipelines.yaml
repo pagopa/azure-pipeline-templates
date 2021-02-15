@@ -226,6 +226,7 @@ stages:
           parameters:
             projectDir: .devops/__tests__/sample-yarn-upgrade
             isTest: true
+            baseBranch: yarn-lockfile-upgrade-template
 
         - script: |
             #setup hub CLI
@@ -254,6 +255,7 @@ stages:
           parameters:
             projectDir: .devops/__tests__/sample-yarn-upgrade
             isTest: true
+            baseBranch: yarn-lockfile-upgrade-template
 
         - script: |
             #setup hub CLI
