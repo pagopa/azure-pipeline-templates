@@ -1,0 +1,13 @@
+{
+  "name": "sample-yarn-upgrade",
+  "description": "A dummy app skeleton used to test pipeline templates",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "stringz": "^2.1.0"
+  }
+}
