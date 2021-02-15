@@ -6,6 +6,10 @@ parameters:
     type: string
     default: '.'
 
+  - name: 'baseBranch'
+    type: string
+    default: 'master'
+
 # ------------------
 # Test parameters only
 
@@ -63,7 +67,7 @@ steps:
       #It should be 'master', but right now it has no files in it
       if [ "${{parameters.isTest}}" == "False" ]; 
       then
-        git checkout master
+        git checkout ${{ parameters.baseBranch }}
       fi
 
       yarn install
