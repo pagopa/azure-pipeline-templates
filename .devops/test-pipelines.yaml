@@ -9,6 +9,10 @@
 #  - registry: http://localhost:4873
 #  - username: user
 #  - password: psw
+#
+#
+# Stage 'Test_Yarn_Lock_File_Upgrade' creates two draft pull request each run.
+# To avoid running tests over this fake pull requests, we excluded them when branch name starts with 'lockfile-auto-upgrade-'  
 
 
 parameters:
@@ -25,6 +29,13 @@ parameters:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema%2Cparameter-schema#pr-trigger
 trigger: none
 
+# specific branch
+pr:
+  branches:
+    include:
+    - '*'
+    exclude:
+    - lockfile-auto-upgrade-
 
 stages:
   # Stages are applied on every VM we support, to ensure templates work well on each
