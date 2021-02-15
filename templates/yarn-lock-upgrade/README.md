@@ -5,7 +5,7 @@ A sequence of steps to upgrade yarn.lock file and make a PR to github.
 It does the following:
 
 1. do _yarn install_ 
-1. check whether if yarn.lock file has changed, if so:
+1. check whether yarn.lock file has changed, if so:
   1. create a new branch
   1. create a commit for the yarn.lock file
   1. make a PR
