@@ -65,7 +65,7 @@ steps:
         CREATE_NEW_PR=false
 
         git checkout $CURRENT_BRANCH
-        git merge origin/${{ parameters.baseBranch }}
+        git merge -X theirs origin/${{ parameters.baseBranch }}
       else
         CREATE_NEW_PR=true
         CURRENT_BRANCH="${{ parameters.baseBranch }}"
