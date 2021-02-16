@@ -32,8 +32,6 @@ trigger: none
 # specific branch
 pr:
   branches:
-    include:
-    - '*'
     exclude:
     - lockfile-auto-upgrade-*
 
