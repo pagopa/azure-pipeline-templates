@@ -5,8 +5,8 @@ A collection of common Azure Pipeline tasks to be used across out projects
 Templates are meant to be included into a project pipeline. Please refer to [this guide](https://github.com/MicrosoftDocs/azure-devops-docs/blob/master/docs/pipelines/process/templates.md#use-other-repositories) for examples.
 
 ### Best practices
-* Always include templates in your pipeline specifying the reference tag, so a new template version can never break your deploy workflow.
-* When writing templates, make little-to-no use of default values. Instead, pretend the hist pipeline to provide them.
+* Always include templates in your pipeline specifying the reference tag, so a new template version can never break your CI/CD workflow.
+* When writing templates, make little-to-no use of default values. Instead, pretend the host pipeline to provide them.
 
 ## Available templates
 
