@@ -50,7 +50,7 @@ describe("API SDK generation", () => {
     expect(returnValue).toBe(1);
   });
 
-  it("should get a 400 with input = 2", async () => {
+  it("should get a 401 with input = 2", async () => {
     var returnStatus: number | undefined;
 
     returnStatus = await (
@@ -62,7 +62,7 @@ describe("API SDK generation", () => {
 
     expect(returnStatus).toBe(401);
   });
-  it("should get a 400 with input > 2", async () => {
+  it("should get a 404 with input > 2", async () => {
     var returnStatus: number | undefined;
 
     returnStatus = await (
