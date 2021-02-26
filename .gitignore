@@ -8,4 +8,6 @@ coverage
 .npmrc
 **/.DS_Store
 
+yarn.lock
+
 generated_sdk/
