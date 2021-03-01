@@ -1,4 +1,7 @@
-import { Client, createClient } from "../node_modules/@pagopa/api_test-sdk/client";
+import {
+  Client,
+  createClient,
+} from "../node_modules/@pagopa/api_test-sdk/client";
 
 const fetch = require("node-fetch");
 const baseUrl = "http://localhost:8088";
@@ -24,4 +27,52 @@ describe("API SDK generation", () => {
 
     expect(version).toBe("1.0");
   });
+
+  it("should get a 200 with input = 1", async () => {
+    var returnValue: number | undefined;
+    var returnStatus: number | undefined;
+
+    await client.testResponseValues({ testinput: "1" }).then((v) =>
+      v
+        .mapLeft((_) => {})
+        .map((val) => {
+          returnStatus = val.status;
+
+          if (val.status === 200) {
+            returnValue = val.value.value;
+          }
+
+          // console.log(`Get value: ${val.value.version}`);
+        })
+    );
+
+    expect(returnStatus).toBe(200);
+    expect(returnValue).toBe(1);
+  });
+
+  it("should get a 401 with input = 2", async () => {
+    var returnStatus: number | undefined;
+
+    returnStatus = await (
+      await client.testResponseValues({ testinput: "2" })
+    ).fold(
+      () => undefined,
+      (val) => val.status
+    );
+
+    expect(returnStatus).toBe(401);
+  });
+  it("should get a 404 with input > 2", async () => {
+    var returnStatus: number | undefined;
+
+    returnStatus = await (
+      await client.testResponseValues({ testinput: "42" })
+    ).fold(
+      () => undefined,
+      (val) => val.status
+    );
+
+    expect(returnStatus).toBe(404);
+  });
+
 });

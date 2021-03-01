@@ -26,6 +26,36 @@ paths:
               min_app_version: "0.0.0"
               min_app_version_pagopa: "0.0.0"
 
+  "/test-response/{testinput}":
+    get:
+      summary: Test return value. 
+                If 1 - return 200 
+                if 2 - return 400
+                otherwise - return 404
+      operationId: testResponseValues
+      description: |
+        An endpoint to test input and reponse type
+      parameters:
+        - $ref: "#/parameters/TestInput"
+      responses:
+        "200":
+          description: The return value
+          schema:
+            $ref: "#/definitions/TestInput"
+        "401":
+          description: Wrong or missing function key.
+        "404":
+          description: Not found.
+
+parameters:
+  TestInput:
+    name: testinput
+    in: path
+    type: string
+    maxLength: 16
+    minLength: 16
+    required: true
+
 definitions:
   ServerInfo:
     type: object
@@ -33,3 +63,17 @@ definitions:
     properties:
       version:
         type: string
+
+  TestInput:
+    type: object
+    title: A test input
+    properties:
+      value:
+        type: integer
+
+  TestResponseType:
+    type: object
+    title: ResponseType dummy information
+    properties:
+      returnValue:
+        type: integer
