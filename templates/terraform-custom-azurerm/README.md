@@ -14,6 +14,9 @@ resources:
 
 jobs:
 - template: templates/terraform-custom-azurerm/template.yaml@templates
+  parameters:
+    AZURERM_PROVIDER_CUSTOM_VERSION: '2.46.1'
+    AZURERM_PROVIDER_CUSTOM_RELEASE: '2.46-beta.1'
 ```
 ## Paramenter
 
