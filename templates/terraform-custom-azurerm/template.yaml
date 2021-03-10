@@ -1,4 +1,14 @@
 # Install azurerm custom provider
+parameters:
+  - name: 'AZURERM_PROVIDER_CUSTOM_VERSION'
+    displayName: 'Azure provider version to download a custom provider. Use "none" to skip custom provider.'
+    type: string
+    default: "none"
+  - name: 'AZURERM_PROVIDER_CUSTOM_RELEASE'
+    displayName: 'Azure provider release to download a custom provider. Use "none" to skip custom provider.'
+    type: string
+    default: "none"
+
 steps:
 
 - task: Bash@3
