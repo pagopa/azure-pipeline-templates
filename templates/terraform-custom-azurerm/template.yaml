@@ -1,0 +1,15 @@
+# Install azurerm custom provider
+steps:
+
+- task: Bash@3
+  displayName: Install custom provider
+  condition: and(ne('${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}', 'none'), ne('${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}', 'none'))
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      export TERRAFORM_CACHE_DIR='.terraform.d/plugin-cache/registry.terraform.io/hashicorp/azurerm/${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}/linux_amd64'
+      mkdir -p ~/${TERRAFORM_CACHE_DIR}
+      wget https://github.com/uolter/terraform-provider-azurerm/releases/download/${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}/terraform-provider-azurerm
+      chmod +x terraform-provider-azurerm
+      mv terraform-provider-azurerm ~/${TERRAFORM_CACHE_DIR}/terraform-provider-azurerm_v${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}
