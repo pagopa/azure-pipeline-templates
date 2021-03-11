@@ -8,6 +8,10 @@ parameters:
     displayName: 'Azure provider release to download a custom provider. Use "none" to skip custom provider.'
     type: string
     default: "none"
+  - name: 'AZURERM_PROVIDER_CUSTOM_URL'
+    displayName: 'Repository from which to download the binary of the custom provider.'
+    type: string
+    default: "https://github.com/pagopa/terraform-provider-azurerm/releases/download"
 
 steps:
 
@@ -20,6 +24,6 @@ steps:
     script: |
       export TERRAFORM_CACHE_DIR='.terraform.d/plugin-cache/registry.terraform.io/hashicorp/azurerm/${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}/linux_amd64'
       mkdir -p ~/${TERRAFORM_CACHE_DIR}
-      wget https://github.com/uolter/terraform-provider-azurerm/releases/download/${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}/terraform-provider-azurerm
+      wget ${{ parameters.AZURERM_PROVIDER_CUSTOM_URL }}/${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}/terraform-provider-azurerm 2> /dev/null
       chmod +x terraform-provider-azurerm
       mv terraform-provider-azurerm ~/${TERRAFORM_CACHE_DIR}/terraform-provider-azurerm_v${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}

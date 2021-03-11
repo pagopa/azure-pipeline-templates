@@ -10,7 +10,7 @@ resources:
     - repository: templates
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v6
+      ref: refs/tags/v14
 
 jobs:
 - template: templates/terraform-custom-azurerm/template.yaml@templates
