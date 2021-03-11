@@ -20,10 +20,10 @@ steps:
   condition: and(ne('${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}', 'none'), ne('${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}', 'none'))
   inputs:
     targetType: 'inline'
-    failOnStderr: false
+    failOnStderr: true
     script: |
       export TERRAFORM_CACHE_DIR='.terraform.d/plugin-cache/registry.terraform.io/hashicorp/azurerm/${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}/linux_amd64'
       mkdir -p ~/${TERRAFORM_CACHE_DIR}
-      wget ${{ parameters.AZURERM_PROVIDER_CUSTOM_URL }}/${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}/terraform-provider-azurerm
+      wget ${{ parameters.AZURERM_PROVIDER_CUSTOM_URL }}/${{ parameters.AZURERM_PROVIDER_CUSTOM_RELEASE }}/terraform-provider-azurerm 2> /dev/null
       chmod +x terraform-provider-azurerm
       mv terraform-provider-azurerm ~/${TERRAFORM_CACHE_DIR}/terraform-provider-azurerm_v${{ parameters.AZURERM_PROVIDER_CUSTOM_VERSION }}
