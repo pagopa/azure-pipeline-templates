@@ -22,5 +22,6 @@ jobs:
 
 * AZURERM_PROVIDER_CUSTOM_VERSION the version of the custom provider.
 * AZURERM_PROVIDER_CUSTOM_RELEASE the release of the custom provider.
+* AZURERM_PROVIDER_CUSTOM_URL the url repository from which to download the binary of the custom provider (optional).
 
 Set both of them to none wheter you do not want to install the custom provider.
