@@ -106,7 +106,7 @@ steps:
           OUTPUT_CREATE=$(az container create \
                           --resource-group '${{ parameters.containerInstanceResourceGroup }}' \
                           --name ${CONTAINER_INSTANCE_NAME} \
-                          --image microsoft/azure-cli:latest \
+                          --image mcr.microsoft.com/azure-cli:latest \
                           --cpu '${{ parameters.containerInstanceCpu }}' \
                           --memory '${{ parameters.containerInstanceMemory }}' \
                           --restart-policy Never \
