@@ -14,15 +14,3 @@ steps:
       sudo mv terraform /usr/local/bin/
       terraform -v
       rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-# 2. Install terragrunt
-- task: Bash@3
-  displayName: Install terrgrunt
-  inputs:
-    targetType: 'inline'
-    failOnStderr: false
-    script: |
-      TERRAGRUNT_VERSION="$(cat .terragrunt-version)"
-      wget https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAGRUNT_VERSION}/terragrunt_linux_amd64
-      chmod +x terragrunt_linux_amd64
-      sudo mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
-      terragrunt -v
