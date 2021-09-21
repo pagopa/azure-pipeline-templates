@@ -1,0 +1,40 @@
+# Run terraform init and terraform plan 
+parameters:
+  - name: 'SUBSCRIPTION'
+    displayName: 'Azure service connection name.'
+    type: string
+    default: "none"
+  - name: 'ENVIRONMENT'
+    displayName: 'Environment to apply to. Possible values are [dev|uat|prod] etc.'
+    type: string
+    default: "dev"
+  - name: 'WORKINGDIR'
+    displayName: 'Working direcory containing terraform templates and the terraform.sh helper.'
+    type: string
+    default: "src"
+
+steps:
+
+- task: AzureCLI@2
+  displayName: Terraform plan
+  inputs:
+    azureSubscription: '${{ parameters.SUBSCRIPTION }}'
+    addSpnToEnvironment: true
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    failOnStandardError: true
+    workingDirectory: '${{ parameters.WORKINGDIR }}'
+    inlineScript: |
+        RED='\033[0;31m'
+        NC='\033[0m' # No Color
+
+        echo "Start pipeline"
+
+        export ARM_CLIENT_ID=$servicePrincipalId
+        export ARM_CLIENT_SECRET=$servicePrincipalKey
+        export ARM_SUBSCRIPTION_ID=`az account show --query id --output tsv`
+        export ARM_TENANT_ID=`az account show --query tenantId --output tsv`
+
+        ./terraform.sh init ${{ parameters.ENVIRONMENT }}
+        terraform validate
+        ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
