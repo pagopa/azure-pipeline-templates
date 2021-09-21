@@ -16,8 +16,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "@pagopa/ts-commons": "^10.1.0",
     "express": "^4.17.1",
-    "io-ts": "^2.2.13",
-    "italia-ts-commons": "^8.6.0"
+    "fp-ts": "^2.11.3",
+    "io-ts": "^2.2.13"
   }
 }
