@@ -56,7 +56,7 @@ steps:
     PACKAGE=${{ parameters.generatorPackageName }}
     # If the application use a specific version of the generator package, use it; otherwise, just use latest version from the registry
     # Warning: yarn only is supported
-    CODEGEN_VERSION=$(yarn list --depth=0 | grep $PACKAGE |  grep -Eo "([0-9]*\.)+([0-9]*)" || echo '*')
+    CODEGEN_VERSION=$(yarn list --depth=0 | grep $PACKAGE |  grep -Eo "([0-9]+\.)+[0-9]+" || echo '*')
     # Execute the generator fetching the specific pacakge from the registry
     npx -p $PACKAGE@$CODEGEN_VERSION gen-api-sdk --api-spec ${{ parameters.openapiSpecPath }} --out-dir $(generatedCodeDir) $(codegenPackageNameParameter) --request-types --response-decoders --client
   displayName: 'Generate client and definitions'
