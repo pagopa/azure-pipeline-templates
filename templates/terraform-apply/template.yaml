@@ -35,6 +35,4 @@ steps:
         export ARM_SUBSCRIPTION_ID=`az account show --query id --output tsv`
         export ARM_TENANT_ID=`az account show --query tenantId --output tsv`
 
-        ./terraform.sh init ${{ parameters.ENVIRONMENT }}
-        terraform validate
-        ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+        ./terraform.sh apply ${{ parameters.ENVIRONMENT }} -auto-approve
