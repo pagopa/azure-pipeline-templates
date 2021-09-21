@@ -3,6 +3,9 @@ import {
   createClient,
 } from "../node_modules/@pagopa/api_test-sdk/client";
 
+import { pipe } from "../node_modules/fp-ts/function";
+import * as E from "../node_modules/fp-ts/Either";
+
 const fetch = require("node-fetch");
 const baseUrl = "http://localhost:8088";
 
@@ -17,12 +20,14 @@ describe("API SDK generation", () => {
     var version: string | undefined = "";
 
     await client.getServerInfo({}).then((v) =>
-      v
-        .mapLeft((_) => {})
-        .map((val) => {
+      pipe(
+        v,
+        E.mapLeft((_) => {}),
+        E.map((val) => {
           version = val.value.version;
           // console.log(`Get value: ${val.value.version}`);
         })
+      )
     );
 
     expect(version).toBe("1.0");
@@ -33,17 +38,17 @@ describe("API SDK generation", () => {
     var returnStatus: number | undefined;
 
     await client.testResponseValues({ testinput: "1" }).then((v) =>
-      v
-        .mapLeft((_) => {})
-        .map((val) => {
+      pipe(
+        v,
+        E.mapLeft((_) => {}),
+        E.map((val) => {
           returnStatus = val.status;
 
           if (val.status === 200) {
             returnValue = val.value.value;
           }
-
-          // console.log(`Get value: ${val.value.version}`);
         })
+      )
     );
 
     expect(returnStatus).toBe(200);
@@ -51,28 +56,25 @@ describe("API SDK generation", () => {
   });
 
   it("should get a 401 with input = 2", async () => {
-    var returnStatus: number | undefined;
-
-    returnStatus = await (
-      await client.testResponseValues({ testinput: "2" })
-    ).fold(
-      () => undefined,
-      (val) => val.status
+    var returnStatus = pipe(
+      await client.testResponseValues({ testinput: "2" }),
+      E.fold(
+        () => undefined,
+        (val) => val.status
+      )
     );
 
     expect(returnStatus).toBe(401);
   });
   it("should get a 404 with input > 2", async () => {
-    var returnStatus: number | undefined;
-
-    returnStatus = await (
-      await client.testResponseValues({ testinput: "42" })
-    ).fold(
-      () => undefined,
-      (val) => val.status
+    var returnStatus = pipe(
+      await client.testResponseValues({ testinput: "42" }),
+      E.fold(
+        () => undefined,
+        (val) => val.status
+      )
     );
 
     expect(returnStatus).toBe(404);
   });
-
 });

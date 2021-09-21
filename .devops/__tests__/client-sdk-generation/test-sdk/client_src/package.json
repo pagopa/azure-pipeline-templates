@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@pagopa/api_test-sdk": "^1.0.0",
+    "@pagopa/ts-commons": "^10.1.0",
     "io-ts": "^2.2.13",
-    "italia-ts-commons": "^8.6.0",
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {
