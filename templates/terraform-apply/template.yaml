@@ -16,7 +16,7 @@ parameters:
 steps:
 
 - task: AzureCLI@2
-  displayName: Terraform plan
+  displayName: Terraform apply
   inputs:
     azureSubscription: '${{ parameters.SUBSCRIPTION }}'
     addSpnToEnvironment: true
