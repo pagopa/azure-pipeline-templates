@@ -179,7 +179,7 @@ stages:
             cp use.npmrc .npmrc
             cp jest.config.js_use jest.config.js
             yarn install
-          displayName: 'it should download it from registy'
+          displayName: 'it should download it from registry'
           workingDirectory: .devops/__tests__/client-sdk-generation/test-sdk/client_src
 
         # Test node_modules folder content    
