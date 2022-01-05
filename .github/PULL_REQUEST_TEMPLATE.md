@@ -17,6 +17,7 @@
 - [ ] Add new template
 - [ ] Update template configuration
 - [ ] Remove template
+- [ ] Other changes
 
 ### Other information
 
