@@ -26,16 +26,16 @@ steps:
     workingDirectory: '${{ parameters.WORKINGDIR }}'
     inlineScript: |
 
-      echo "##[group]Install Terraform cli"
+      # echo "##[group]Install Terraform cli"
 
-      TERRAFORM_VERSION="$(cat .terraform-version)"
-      wget "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
-      unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
-      sudo mv terraform /usr/local/bin/
-      terraform -v
-      rm "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+      # TERRAFORM_VERSION="$(cat .terraform-version)"
+      # wget "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+      # unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+      # sudo mv terraform /usr/local/bin/
+      # terraform -v
+      # rm "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
 
-      echo "##[endgroup]"
+      # echo "##[endgroup]"
 
       #--------------------------------------------------------------------------------------------
 
