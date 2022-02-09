@@ -1,0 +1,31 @@
+# Run terraform init and terraform plan
+parameters:
+  - name: 'CONNECTION'
+    displayName: 'Azure devops service connection name.'
+    type: string
+    default: "none"
+  - name: 'ENVIRONMENT'
+    displayName: 'Environment to apply to. Possible values are [dev|uat|prod] etc.'
+    type: string
+    default: "dev"
+  - name: 'AWS_REGION'
+    displayName: 'AWS Region.'
+    type: string
+    default: 'eu-south-1'
+  - name: 'WORKINGDIR'
+    displayName: 'Working direcory containing terraform templates and the terraform.sh helper.'
+    type: string
+    default: "src"
+
+steps:
+
+- task: AWSShellScript@1
+  inputs:
+    awsCredentials: '${{ parameters.CONNECTION }}'
+    regionName: '${{ parameters.AWS_REGION }}'
+    scriptType: 'inline'
+    workingDirectory: '${{ parameters.WORKINGDIR }}'
+    inlineScript: |
+      echo "##[section]Start terraform plan "
+      ./terraform.sh init ${{ parameters.ENVIRONMENT }}
+      ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
