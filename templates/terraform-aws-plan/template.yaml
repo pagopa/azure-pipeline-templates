@@ -28,8 +28,7 @@ steps:
     workingDirectory: '${{ parameters.WORKINGDIR }}'
     inlineScript: |
       echo "##[section]Start terraform plan "
+      # for some reasons it looks like the workingDirectory parameter does not work.
       cd '${{ parameters.WORKINGDIR }}'
-      echo "Working dir " 
-      pwd
       ./terraform.sh init ${{ parameters.ENVIRONMENT }}
       ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
