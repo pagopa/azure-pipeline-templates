@@ -30,4 +30,4 @@ steps:
       echo "##[section]Start terraform apply "
       # for some reasons it looks like the workingDirectory parameter does not work.
       cd '${{ parameters.WORKINGDIR }}'
-      ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -auto-approve
+      ./terraform.sh apply ${{ parameters.ENVIRONMENT }} -auto-approve
