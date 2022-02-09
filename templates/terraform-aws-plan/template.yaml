@@ -20,6 +20,7 @@ parameters:
 steps:
 
 - task: AWSShellScript@1
+  displayName: 'Terraform plan'
   inputs:
     awsCredentials: '${{ parameters.CONNECTION }}'
     regionName: '${{ parameters.AWS_REGION }}'
@@ -27,6 +28,7 @@ steps:
     workingDirectory: '${{ parameters.WORKINGDIR }}'
     inlineScript: |
       echo "##[section]Start terraform plan "
-      echo "Working dir " pwd
+      echo "Working dir " 
+      pwd
       ./terraform.sh init ${{ parameters.ENVIRONMENT }}
       ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
