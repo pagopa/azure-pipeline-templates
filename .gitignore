@@ -11,3 +11,4 @@ coverage
 yarn.lock
 
 generated_sdk/
+/.idea/
