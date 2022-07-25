@@ -4,30 +4,29 @@
 
 parameters:
 
-# Versioning parameters
-- name: 'semver'
-  type: string
-  values:
-  - major
-  - minor
-  - patch
-  - buildNumber
+  # Versioning parameters
+  - name: 'semver'
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+      - buildNumber
 
-# This is the branch in which we will push the release tag.
-# It'll be master, but it can be overridden
-# Basically, this variable is used to enforce the fact that we use the very same branch in different steps
-- name: 'release_branch'
-  type: string
-  default: master
+  # This is the branch in which we will push the release tag.
+  # It'll be master, but it can be overridden
+  # Basically, this variable is used to enforce the fact that we use the very same branch in different steps
+  - name: 'release_branch'
+    type: string
+    default: master
 
-# Github parameters
-- name: 'gitUsername'
-  type: string
-- name: 'gitEmail'
-  type: string
-- name: 'gitHubConnection'
-  type: string
-
+  # Github parameters
+  - name: 'gitUsername'
+    type: string
+  - name: 'gitEmail'
+    type: string
+  - name: 'gitHubConnection'
+    type: string
 
 steps:
   # setup git author
@@ -46,19 +45,26 @@ steps:
     inputs:
       mavenPomFile: "pom.xml"
       goals: 'build-helper:parse-version versions:set'
-      - ${{ if eq(parameters.semver, 'patch') }}:
+      ${{ if eq(parameters.semver, 'patch') }}:
         options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
-      - ${{ if eq(parameters.semver, 'minor') }}:
+      ${{ if eq(parameters.semver, 'minor') }}:
         options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
-      - ${{ if eq(parameters.semver, 'major') }}:
+      ${{ if eq(parameters.semver, 'major') }}:
         options: '-DnewVersion=${parsedVersion.nextMajorVersion}.0.0'
-      - ${{ if eq(parameters.semver, 'buildNumber') }}:
+      ${{ if eq(parameters.semver, 'buildNumber') }}:
         options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${parsedVersion.nextBuildNumber}'
 
-  - script: |
-      version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
-      echo "##vso[task.setvariable variable=next;isOutput=true]$version"
+
+
+  - task: Bash@3
+    name: pomversion
     displayName: 'Set release variables'
+    inputs:
+      targetType: "inline"
+      script: |
+        version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "##vso[task.setvariable variable=next;isOutput=true]$version"
+      failOnStderr: true
 
   # push new version
   - script: |
