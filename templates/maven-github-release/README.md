@@ -1,15 +1,15 @@
-# Node Github Release template
+# Maven Github Release template
 
-Opinionated sequence of steps to mark a new release of a Nodejs project hosted on a Github repository. It does the following:
+Opinionated sequence of steps to mark a new release of a Maven project hosted on a Github repository. It does the following:
 
-1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor`, `patch` or `prerelease`)
+1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor`, `patch` or `buildNumber`)
 1. tag the repository with the new version number
 1. push changes and tags to the repository
 1. creates a Github release from the release tag
 
 Be sure that code is checked-out using `persistCredentials: true` in the `checkout` step. Also be aware that the template commits **every** change on the release branch, thus be sure you only edit file you intend to include in the commit.
 
-The template does not make any assumption on any specific node version nor dependency to be installed. Please perform setup **before** including the template.
+The template does not make any assumption on any specific maven version nor dependency to be installed. Please perform setup **before** including the template.
 
 ## Usage
 
@@ -25,12 +25,7 @@ jobs:
 - checkout: self
   persistCredentials: true
 
-- task: UseNode@1
-  inputs:
-    version: '12.8.0'
-  displayName: 'Set up Node.js'  
-
-- template: templates/node-github-release/template.yaml@templates 
+- template: templates/maven-github-release/template.yaml@templates 
   parameters:
     semver: 'minor' # or major or patch
     gitEmail: 'janedoe@company.com'
