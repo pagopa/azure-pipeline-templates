@@ -57,13 +57,13 @@ steps:
 
 
   - task: Bash@3
-    name: pomversion
+    name: next_version
     displayName: 'Set release variables'
     inputs:
       targetType: "inline"
       script: |
         version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
-        echo "##vso[task.setvariable variable=next;isOutput=true]$version"
+        echo "##vso[task.setvariable variable=value;isOutput=true]$version"
       failOnStderr: true
 
   # push new version
@@ -75,8 +75,8 @@ steps:
 
   - script: |
       HEAD_SHA=$(git rev-parse HEAD)
-      TAG="$(pomversion.next)"
-      TITLE="Release $(pomversion.next)"
+      TAG="$(next_version.value)"
+      TITLE="Release $(next_version.value)"
       echo "##vso[task.setvariable variable=title]$TITLE"
       echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
       echo "##vso[task.setvariable variable=tag]$TAG"
