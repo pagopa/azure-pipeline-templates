@@ -1,0 +1,95 @@
+# Node Github Relase steps
+# Mark a release on the project repository, with version bump and tag,
+# and publish a release on Github
+
+parameters:
+
+  # Versioning parameters
+  - name: 'semver'
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+      - buildNumber
+
+  # This is the branch in which we will push the release tag.
+  # It'll be master, but it can be overridden
+  # Basically, this variable is used to enforce the fact that we use the very same branch in different steps
+  - name: 'release_branch'
+    type: string
+    default: master
+
+  # Github parameters
+  - name: 'gitUsername'
+    type: string
+  - name: 'gitEmail'
+    type: string
+  - name: 'gitHubConnection'
+    type: string
+
+steps:
+  # setup git author
+  - script: |
+      git config --global user.email "${{ parameters.gitEmail }}" && git config --global user.name "${{ parameters.gitUsername }}"
+    displayName: 'Git setup'
+
+  # Without this step, changes would be applied to a detached head
+  - script: |
+      git checkout ${{ parameters.release_branch }}
+    displayName: 'Checkout release branch'
+
+  # bump version
+  - task: Maven@3
+    displayName: 'Bump version'
+    inputs:
+      mavenPomFile: "pom.xml"
+      goals: 'build-helper:parse-version versions:set'
+      ${{ if eq(parameters.semver, 'patch') }}:
+        options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
+      ${{ if eq(parameters.semver, 'minor') }}:
+        options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
+      ${{ if eq(parameters.semver, 'major') }}:
+        options: '-DnewVersion=${parsedVersion.nextMajorVersion}.0.0'
+      ${{ if eq(parameters.semver, 'buildNumber') }}:
+        options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${parsedVersion.nextBuildNumber}'
+
+
+
+  - task: Bash@3
+    name: pomversion
+    displayName: 'Set release variables'
+    inputs:
+      targetType: "inline"
+      script: |
+        version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "##vso[task.setvariable variable=next;isOutput=true]$version"
+      failOnStderr: true
+
+  # push new version
+  - script: |
+      git add pom.xml
+      git commit -m "Bump version [skip ci]"
+      git push origin ${{ parameters.release_branch }}
+    displayName: 'Push to the release branch'
+
+  - script: |
+      HEAD_SHA=$(git rev-parse HEAD)
+      TAG="$(pomversion.next)"
+      TITLE="Release $(pomversion.next)"
+      echo "##vso[task.setvariable variable=title]$TITLE"
+      echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
+      echo "##vso[task.setvariable variable=tag]$TAG"
+    displayName: 'Set release variables'
+
+  # create new releae
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: ${{ parameters.gitHubConnection }}
+      repositoryName: $(Build.Repository.Name)
+      action: create
+      target: $(sha)
+      tagSource: manual
+      tag: $(tag)
+      title: $(title)
+      addChangelog: true

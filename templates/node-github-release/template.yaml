@@ -11,6 +11,7 @@ parameters:
   - major
   - minor
   - patch
+  - prerelease
 
 # This is the branch in which we will push the release tag.
 # It'll be master, but it can be overridden
@@ -32,13 +33,13 @@ steps:
 # setup git author
 - script: |
     git config --global user.email "${{ parameters.gitEmail }}" && git config --global user.name "${{ parameters.gitUsername }}"
-  displayName: 'Git setup' 
+  displayName: 'Git setup'
 
 # Without this step, changes would be applied to a detached head
 - script: |
     git checkout ${{ parameters.release_branch }}
   displayName: 'Checkout release branch'
-  
+
 # bump version
 - script: |
     npm version ${{ parameters.semver }} -m "Bump version to %s [skip ci]"
