@@ -85,6 +85,7 @@ steps:
         for i in openapi/*.json; do
           [ -f "$i" ] || break
           cat <<< "$(jq ".info.version = \"$(next_version.value)\"" "$i")" > "$i"
+          git add $i
         done
 
   # push new version
