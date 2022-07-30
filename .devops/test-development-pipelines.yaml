@@ -34,6 +34,19 @@ pr:
   branches:
     exclude:
     - lockfile-auto-upgrade-*
+  paths:
+    exclude:
+    - ../templates/yarn-lock-upgrade
+    - ../templates/terragrunt-setup
+    - ../templates/terraform-setup
+    - ../templates/terraform-plan
+    - ../templates/terraform-custom-azurerm
+    - ../templates/terraform-aws-plan
+    - ../templates/terraform-aws-apply
+    - ../templates/terraform-apply
+    - ../templates/rest-healthcheck
+    - ../templates/node-github-release
+    - ../templates/maven-github-release
 
 stages:
   # Stages are applied on every VM we support, to ensure templates work well on each
@@ -119,7 +132,6 @@ stages:
               node index.js
             workingDirectory: '.devops/__tests__/sample-node-app'
             displayName: 'Test sample app is working'
-
 
   - stage: Test_ClientSDKGeneration
     dependsOn: []
