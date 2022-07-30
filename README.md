@@ -43,4 +43,3 @@ Tests are configured to run on every Pull Request and there's no way ton run tes
 ### Release a new version
 
 New versions are created automatically on each merge on master branch. In the need of creating a release manually, use the pipeline [`azure-pipeline-templates.release`](https://dev.azure.com/pagopa-io/azure-pipeline-templates/_build?definitionId=134)
-

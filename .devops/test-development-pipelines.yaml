@@ -35,9 +35,18 @@ pr:
     exclude:
     - lockfile-auto-upgrade-*
   paths:
-    include:
-    - ../templates/node-job-setup
-    - ../templates/client-sdk-publish
+    exclude:
+    - ../templates/yarn-lock-upgrade
+    - ../templates/terragrunt-setup
+    - ../templates/terraform-setup
+    - ../templates/terraform-plan
+    - ../templates/terraform-custom-azurerm
+    - ../templates/terraform-aws-plan
+    - ../templates/terraform-aws-apply
+    - ../templates/terraform-apply
+    - ../templates/rest-healthcheck
+    - ../templates/node-github-release
+    - ../templates/maven-github-release
 
 stages:
   # Stages are applied on every VM we support, to ensure templates work well on each
