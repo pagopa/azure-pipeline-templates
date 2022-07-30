@@ -34,10 +34,10 @@ pr:
   branches:
     exclude:
     - lockfile-auto-upgrade-*
-  # paths:
-  #   include:
-  #   - ../templates/node-job-setup/*
-  #   - ../templates/client-sdk-publish/*
+  paths:
+    include:
+    - ../templates/node-job-setup/*
+    - ../templates/client-sdk-publish/*
   #   exclude:
   #   - ../templates/yarn-lock-upgrade/*
   #   - ../templates/terragrunt-setup/*
