@@ -14,7 +14,7 @@ resources:
     - repository: templates
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v5
+      ref: refs/tags/v19
 
 jobs:
 - template: templates/node-job-setup/template.yaml@templates 
