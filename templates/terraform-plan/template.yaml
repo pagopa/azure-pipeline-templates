@@ -1,4 +1,4 @@
-# Run terraform init and terraform plan
+# Run terraform init and terraform plan 
 parameters:
   - name: 'SUBSCRIPTION'
     displayName: 'Azure service connection name.'
