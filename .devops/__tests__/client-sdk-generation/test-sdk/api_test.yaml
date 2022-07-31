@@ -28,8 +28,8 @@ paths:
 
   "/test-response/{testinput}":
     get:
-      summary: Test return value. 
-                If 1 - return 200 
+      summary: Test return value.
+                If 1 - return 200
                 if 2 - return 400
                 otherwise - return 404
       operationId: testResponseValues

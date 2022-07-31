@@ -1,6 +1,6 @@
 # Yarn.lock file upgrade template
 
-A sequence of steps to upgrade yarn.lock file and make a PR to github. 
+A sequence of steps to upgrade yarn.lock file and make a PR to github.
 
 It does the following:
 
@@ -39,12 +39,12 @@ resources:
 
 stages:
 
-  # Publish client SDK to 
+  # Publish client SDK to
   - stage: UpgradeYarnLockFile
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
-      - job: do_yarn_lock_upgrade   
+      - job: do_yarn_lock_upgrade  
         steps:
         - template: templates/yarn-lock-upgrade/template.yaml@templates
 

@@ -15,7 +15,7 @@ parameters:
   type: string
   default: false
 
-# optional sub path where the project to be initialized is located. To be used on repository with multiple projects. 
+# optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
 - name: 'projectDir'
   type: string
   default: '.' # current folder is default
@@ -24,7 +24,7 @@ parameters:
 - name: 'nodeVersion'
   type: string
   default: 'none'
-  
+
 steps:
 - checkout: self
   displayName: 'Checkout'
@@ -35,12 +35,12 @@ steps:
 - ${{ if ne(parameters.gitReference, 'none') }}:
   - bash: |
       git fetch && git checkout ${{ parameters.gitReference }}
-    displayName: 'Checkout reference'  
+    displayName: 'Checkout reference'
 
 - bash: |
     cd ${{ parameters.projectDir }}
     echo "current folder: $(pwd)"
-  displayName: 'Move to project folder'  
+  displayName: 'Move to project folder'
 
 # If a Node version is defined explicitly by parameter, such version is used
 # Else, version is red from .node-version file
@@ -57,11 +57,11 @@ steps:
   - bash: |
       echo "current folder: $(pwd)"
       FROM_SOURCE=$(cat .node-version || cat .nvmrc)
-      ls .node-version && echo ".node-version found, value: '$(cat .node-version)'" || echo ".node-version not found" 
-      ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found" 
+      ls .node-version && echo ".node-version found, value: '$(cat .node-version)'" || echo ".node-version not found"
+      ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found"
       echo "set FROM_SOURCE='$FROM_SOURCE'"
       echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_SOURCE"
-    workingDirectory: ${{ parameters.projectDir }} 
+    workingDirectory: ${{ parameters.projectDir }}
     displayName: 'Determine Node.js version from source'
 
 - task: UseNode@1
@@ -72,5 +72,5 @@ steps:
 - bash: |
     echo "current folder: $(pwd)"
     yarn install --frozen-lockfile --no-progress --non-interactive
-  workingDirectory: ${{ parameters.projectDir }}    
+  workingDirectory: ${{ parameters.projectDir }}
   displayName: 'Install node modules'
