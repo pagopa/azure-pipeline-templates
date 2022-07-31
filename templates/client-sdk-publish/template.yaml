@@ -29,24 +29,24 @@ parameters:
     default: Bundle_SDK
 
 # ------------------
-# Steps 
+# Steps
 
 steps:
 
 #Setting variables:
 # codegenPackageNameParameter : string to setup generated package name
 # generatedCodeDir: generated package directory
-# 
+#
 # If test:
 # setNpmRegistryValue: string to setup npm registry
 - bash: |
     # Set SDK package name, if needed
-    [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{ parameters.sdkPackageName }}'     
-    echo "setting codegenPackageNameParameter=$PKG_NAME_PARAM" 
+    [ "${{parameters.sdkPackageName}}" == "" ] && PKG_NAME_PARAM='' || PKG_NAME_PARAM='--package-name ${{ parameters.sdkPackageName }}'
+    echo "setting codegenPackageNameParameter=$PKG_NAME_PARAM"
     echo "##vso[task.setvariable variable=codegenPackageNameParameter;]$PKG_NAME_PARAM"
-    
+
     #Set generated code base directory
-    echo "setting generatedCodeDir=$(Agent.TempDirectory)/generated_${{ parameters.artifactName }}" 
+    echo "setting generatedCodeDir=$(Agent.TempDirectory)/generated_${{ parameters.artifactName }}"
     echo "##vso[task.setvariable variable=generatedCodeDir;]$(Agent.TempDirectory)/generated_${{ parameters.artifactName }}"
 
   name: setvarStep
@@ -78,11 +78,9 @@ steps:
 
 
 - task: Npm@1
-  inputs: 
+  inputs:
     command: custom
     customCommand: publish --access public --registry ${{ parameters.npmRegistry }}
     customEndpoint: $(NPM_CONNECTION)
     verbose: true
     workingDir: ' $(generatedCodeDir)'
-  
-

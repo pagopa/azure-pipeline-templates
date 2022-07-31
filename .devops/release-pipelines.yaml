@@ -5,7 +5,7 @@
 # GIT_EMAIL         - when bumping the package version, is the email we author the commit with
 # GIT_USERNAME      - when bumping the package version, is the name we author the commit with
 # GITHUB_CONNECTION - name of the Github service connection used to create a new release; be sure that the related user has appopriate right
-# 
+#
 
 # Activated on every push on master, one at a time, only when files in /templates folder are modified
 trigger:
@@ -37,13 +37,13 @@ stages:
           # setup git author
           - script: |
               git config --global user.email "$(GIT_EMAIL)" && git config --global user.name "$(GIT_USERNAME)"
-            displayName: 'Git setup' 
-            
+            displayName: 'Git setup'
+
           # bump version and push
           - script: |
               set -euo pipefail
               IFS=$'\n\t'
-              
+
               git checkout master
 
               oldversion=$(cut -d ',' -f2 .version)

@@ -83,7 +83,7 @@ steps:
         if [ '${{ parameters.endpointType }}' = "private" ]; then
           # define a temporary container instance name
           CONTAINER_INSTANCE_NAME="${{ parameters.appName }}-deploy"
-          
+
           # check if vnet exists in target resource group (containerInstanceResourceGroup)
           OUTPUT_VNET=$(az network vnet list --resource-group '${{ parameters.containerInstanceResourceGroup }}' --query "[?contains(name, '${{ parameters.containerInstanceVNet }}')].name" --output tsv)
           if [ "$OUTPUT_VNET" = '${{ parameters.containerInstanceVNet }}' ]; then
@@ -115,7 +115,7 @@ steps:
                           --command-line "az rest --skip-authorization-header --method get --url '${{ parameters.endpoint }}' ${HEADERS}" \
                           --output tsv \
                           --query containers[].instanceView.currentState.exitCode)
-          
+
           # print container instance logs
           OUTPUT_REST=$(az container logs --resource-group '${{ parameters.containerInstanceResourceGroup }}' --name ${CONTAINER_INSTANCE_NAME})
           # delete container instance

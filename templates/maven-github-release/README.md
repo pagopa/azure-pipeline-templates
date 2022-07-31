@@ -25,7 +25,7 @@ jobs:
 - checkout: self
   persistCredentials: true
 
-- template: templates/maven-github-release/template.yaml@templates 
+- template: templates/maven-github-release/template.yaml@templates
   parameters:
     semver: 'minor' # or major or patch
     gitEmail: 'janedoe@company.com'

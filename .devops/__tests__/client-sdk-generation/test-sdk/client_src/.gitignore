@@ -41,7 +41,7 @@ npm-debug.log
 local.*
 
 # Exclude .npmrc file
-.npmrc 
+.npmrc
 
 # Exclude Codetour plugin folder
 .tours

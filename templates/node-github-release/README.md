@@ -30,7 +30,7 @@ jobs:
     version: '12.8.0'
   displayName: 'Set up Node.js'  
 
-- template: templates/node-github-release/template.yaml@templates 
+- template: templates/node-github-release/template.yaml@templates
   parameters:
     semver: 'minor' # or major or patch
     gitEmail: 'janedoe@company.com'

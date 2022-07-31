@@ -2,7 +2,7 @@
  * The following code has the only purpose to test we can intall dependency and execute a node application
  */
 
-const stringz = require('stringz'); 
+const stringz = require('stringz');
 const pkg = require('./package.json');
 
 if(typeof stringz === "object") {

@@ -17,7 +17,7 @@ resources:
       ref: refs/tags/v19
 
 jobs:
-- template: templates/node-job-setup/template.yaml@templates 
+- template: templates/node-job-setup/template.yaml@templates
 ```
 
 ## Parameters
@@ -28,4 +28,3 @@ jobs:
 |gitReference|(optional) The branch, tag or commit to checkout. This is needed when the job must point to a different commit than the one which triggered the pipeline. The common case is when a previous stage pushed another commit on the source repo. |`none`|
 |nodeVersion|(optional) Specific Node.js version to be used. Usually there's no need to use this parameter as version can be inferred reading `.node-version` or `.nvmrc` files from the project root. |`none`|
 |projectDir|(optional) Sub folder on which the project os located in respect of the repository file organization. Useful for repositories with multiple projects. If not provided, root folder is intended. |`none`|
-
