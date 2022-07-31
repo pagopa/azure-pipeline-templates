@@ -1,0 +1,20 @@
+name: Static Analysis
+
+on:
+  push:
+
+jobs:
+  static_analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: run_init
+        run: |
+          bash .utils/terraform_run_all.sh init docker
+
+      - name: run_test
+        run: |
+          TAG=v1.71.0
+          docker run -v $(pwd):/lint -w /lint ghcr.io/antonbabenko/pre-commit-terraform:$TAG run -a
