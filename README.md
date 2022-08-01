@@ -13,6 +13,18 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 
 ## Available templates
 
+### Devops
+
+- [Terraform Setup](templates/terraform-setup)
+- [Terraform Apply](templates/terraform-apply)
+- [Terraform Plan](templates/terraform-plan)
+- [Terraform Setup](templates/terraform-setup)
+- [Terraform AWS Apply](templates/terraform-aws-apply)
+- [Terraform AWS Plan](templates/terraform-aws-plan)
+- [Terraform Install Azure RM Custom Provider](templates/terraform-custom-azurerm)
+
+### Development
+
 - [Rest Healthcheck](templates/rest-healthcheck)
 - [Node Github Release](templates/node-github-release)
 - [Maven Github Release](templates/maven-github-release)
@@ -42,5 +54,11 @@ Tests are configured to run on every Pull Request and there's no way ton run tes
 
 ### Release a new version
 
-New versions are created automatically on each merge on master branch. In the need of creating a release manually, use the pipeline [`azure-pipeline-templates.release`](https://dev.azure.com/pagopa-io/azure-pipeline-templates/_build?definitionId=134)
+New versions are created automatically on each merge on master branch. It's done automatically using Github Action `.github/workflows/release.yml`
 
+## Pipelines & Infra
+
+To allow execute the azure devops pipeline `.devops/test-development-pipelines.yaml` we use this repos:
+
+- <https://github.com/pagopa/devopsautomation-azure-devops>: this repo contains the pipelines
+- <https://github.com/pagopa/devopsautomation-infra>: this repo help to build the infrastructure (agent nodes) for the pipelines
