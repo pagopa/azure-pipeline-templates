@@ -1,36 +1,34 @@
----
-name: "release"
+name: Release
 
 on:
+  # Trigger the workflow on push or pull request,
+  # but only for the main branch
   push:
     branches:
-      - "master"
+      - main
+      - master
+    paths-ignore:
+      - "CODEOWNERS"
+      - "**.md"
+      - ".**"
 
 jobs:
-  generate-tag:
-    name: "Generate TAG"
-    runs-on: "ubuntu-latest"
-
+  release:
+    name: Release
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 0
 
-      - name: Conventional Changelog Action
-        id: changelog
-        uses: TriPSs/conventional-changelog-action@v3
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v2
         with:
-          skip-on-empty: "false"
-          skip-commit: "true"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          output-file: "false"  
-
-      - name: Create Release
-        uses: actions/create-release@v1
-        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+          semantic_version: 18.0.0
+          extra_plugins: |
+            @semantic-release/release-notes-generator@10.0.3
+            @semantic-release/git@10.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.changelog.outputs.tag }}
-          release_name: ${{ steps.changelog.outputs.tag }}
-          body: ${{ steps.changelog.outputs.clean_changelog }}
