@@ -32,3 +32,4 @@ steps:
       cd '${{ parameters.WORKINGDIR }}'
       ./terraform.sh init ${{ parameters.ENVIRONMENT }}
       ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+
