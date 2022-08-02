@@ -45,6 +45,7 @@ steps:
     npm version ${{ parameters.semver }} --no-git-tag-version
     NEXT_VERSION=$(node -p "require('./package.json').version")
     RELEASE_TAG="v$NEXT_VERSION-RELEASE"
+    git add package.json
     git tag $RELEASE_TAG
   displayName: 'Version bump and tag'
 - script: |
