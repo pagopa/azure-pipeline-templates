@@ -42,7 +42,7 @@ steps:
 
 # bump version
 - script: |
-    npm version ${{ parameters.semver }} -m "Bump version to %s [skip ci]"
+    npm version ${{ parameters.semver }} --no-git-tag-version
     NEXT_VERSION=$(node -p "require('./package.json').version")
     RELEASE_TAG="v$NEXT_VERSION-RELEASE"
     git tag $RELEASE_TAG
@@ -65,9 +65,7 @@ steps:
   continueOnError: true
   inputs:
     targetType: 'inline'
-    script: |
-      echo $(next_version.value)
-      
+    script: |      
       for i in helm/values-*.yaml; do
         [ -f "$i" ] || break
         yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
@@ -89,6 +87,8 @@ steps:
 
 # push new version
 - script: |
+    git tag $(next_version.value)
+    git commit -m "Bump version to $(next_version.value) [skip ci]"
     git push origin ${{ parameters.release_branch }} && git push --tags
   displayName: 'Push to the release branch'
 
