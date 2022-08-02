@@ -52,7 +52,7 @@ steps:
     echo "##vso[task.setvariable variable=value;isOutput=true]$version"
     HEAD_SHA=$(git rev-parse HEAD)
     TITLE="Release $NEXT_VERSION"
-    TAG="v$NEXT_VERSION-RELEASE"
+    TAG="v$version-RELEASE"
     echo "##vso[task.setvariable variable=title]$TITLE"
     echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
     echo "##vso[task.setvariable variable=tag]$TAG"
