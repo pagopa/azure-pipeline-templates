@@ -49,12 +49,14 @@ steps:
   displayName: 'Version bump and tag'
 - script: |
     NEXT_VERSION=$(node -p "require('./package.json').version")
+    echo "##vso[task.setvariable variable=value;isOutput=true]$NEXT_VERSION"
     HEAD_SHA=$(git rev-parse HEAD)
     TITLE="Release $NEXT_VERSION"
     TAG="v$NEXT_VERSION-RELEASE"
     echo "##vso[task.setvariable variable=title]$TITLE"
     echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
     echo "##vso[task.setvariable variable=tag]$TAG"
+  name: getVersion
   displayName: 'Set release variables'
 
 - task: Bash@3
@@ -66,7 +68,7 @@ steps:
     script: |
       for i in helm/values-*.yaml; do
         [ -f "$i" ] || break
-        yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
+        yq -i ".microservice-chart.image.tag = \"$(getVersion.value)\"" "$i"
         git add $i
       done
 
@@ -79,7 +81,7 @@ steps:
     script: |
       for i in openapi/*.json; do
         [ -f "$i" ] || break
-        cat <<< "$(jq ".info.version = \"$(next_version.value)\"" "$i")" > "$i"
+        cat <<< "$(jq ".info.version = \"$(getVersion.value)\"" "$i")" > "$i"
         git add $i
       done
 
