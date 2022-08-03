@@ -42,19 +42,22 @@ steps:
 
 # bump version
 - script: |
-    npm version ${{ parameters.semver }} -m "Bump version to %s [skip ci]"
+    npm version ${{ parameters.semver }} --no-git-tag-version
     NEXT_VERSION=$(node -p "require('./package.json').version")
     RELEASE_TAG="v$NEXT_VERSION-RELEASE"
+    git add package.json
     git tag $RELEASE_TAG
   displayName: 'Version bump and tag'
 - script: |
-    NEXT_VERSION=$(node -p "require('./package.json').version")
+    version=$(node -p "require('./package.json').version")
+    echo "##vso[task.setvariable variable=value;isOutput=true]$version"
     HEAD_SHA=$(git rev-parse HEAD)
     TITLE="Release $NEXT_VERSION"
-    TAG="v$NEXT_VERSION-RELEASE"
+    TAG="v$version-RELEASE"
     echo "##vso[task.setvariable variable=title]$TITLE"
     echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
     echo "##vso[task.setvariable variable=tag]$TAG"
+  name: next_version
   displayName: 'Set release variables'
 
 - task: Bash@3
@@ -63,7 +66,7 @@ steps:
   continueOnError: true
   inputs:
     targetType: 'inline'
-    script: |
+    script: |      
       for i in helm/values-*.yaml; do
         [ -f "$i" ] || break
         yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
@@ -85,6 +88,8 @@ steps:
 
 # push new version
 - script: |
+    git tag $(next_version.value)
+    git commit -m "Bump version to $(next_version.value) [skip ci]"
     git push origin ${{ parameters.release_branch }} && git push --tags
   displayName: 'Push to the release branch'
 
