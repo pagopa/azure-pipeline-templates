@@ -44,6 +44,9 @@ steps:
       if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
         echo "${{ parameters.AKS_NAME }}"
         echo "${{ parameters.AKS_RG_NAME }}"
+        az aks get-credentials --resource-group "${{ parameters.AKS_RG_NAME }}" --name "${{ parameters.AKS_NAME }}" --file "config-${{ parameters.AKS_NAME }}"
+
+        ls -la ~/.kube
       fi
 
 
