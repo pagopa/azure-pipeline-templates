@@ -66,7 +66,7 @@ steps:
   continueOnError: true
   inputs:
     targetType: 'inline'
-    script: |      
+    script: |
       for i in helm/values-*.yaml; do
         [ -f "$i" ] || break
         yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
