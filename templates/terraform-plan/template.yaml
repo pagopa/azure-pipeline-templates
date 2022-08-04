@@ -12,6 +12,15 @@ parameters:
     displayName: 'Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
+  - name: 'AKS_NAME'
+    displayName: ''
+    type: string
+    default: ""
+  - name: 'AKS_RG_NAME'
+    displayName: ''
+    type: string
+    default: ""
+
 
 steps:
 
@@ -32,4 +41,10 @@ steps:
       export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
       export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-      ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+      if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
+        echo "${{ parameters.AKS_NAME }}"
+        echo "${{ parameters.AKS_RG_NAME }}"
+      fi
+
+
+      #./terraform.sh plan ${{ parameters.ENVIRONMENT }}
