@@ -1,6 +1,6 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'SUBSCRIPTION'
+  - name: 'AZURE_SERVICE_CONNECTION_NAME'
     displayName: 'Azure service connection name.'
     type: string
     default: "none"
@@ -18,7 +18,7 @@ steps:
 - task: AzureCLI@2
   displayName: Terraform plan
   inputs:
-    azureSubscription: '${{ parameters.SUBSCRIPTION }}'
+    azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
     addSpnToEnvironment: true
     scriptType: 'bash'
     scriptLocation: 'inlineScript'

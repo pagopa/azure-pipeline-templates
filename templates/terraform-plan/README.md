@@ -22,7 +22,7 @@ resources:
 jobs:
 - template: templates/terraform-plan/template.yaml@terraform
   parameters:
-    SUBSCRIPTION: "CSTAR-DEV-CONN"
     ENVIRONMENT: "dev"
     WORKINGDIR: 'src/core'
+    AZURE_SERVICE_CONNECTION_NAME: "CSTAR-DEV-CONN"
 ```
