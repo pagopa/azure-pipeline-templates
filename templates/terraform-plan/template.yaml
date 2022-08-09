@@ -47,7 +47,7 @@ steps:
         az aks get-credentials --resource-group "${{ parameters.AKS_RG_NAME }}" --name "${{ parameters.AKS_NAME }}" --file "~/.kube/config-${{ parameters.AKS_NAME }}" --verbose
 
         ls -la
-        kubectl get nodes
+        kubectl get nodes --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
       fi
 
 
