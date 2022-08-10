@@ -79,7 +79,7 @@ steps:
 
         echo "[INFO] kubectl set-credentials" 
         kubectl config set-credentials azure-devops \
-          --token=${{ parameters.AKS_API_SERVER_URL }} \
+          --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
           --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
 
         echo "[INFO] kubectl set-context" 
