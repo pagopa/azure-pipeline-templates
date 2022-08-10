@@ -13,14 +13,21 @@ parameters:
     type: string
     default: "src"
   - name: 'AKS_NAME'
-    displayName: ''
+    displayName: 'AKS Name'
     type: string
     default: ""
-  - name: 'AKS_RG_NAME'
-    displayName: ''
+  - name: 'AKS_API_SERVER_URL'
+    displayName: 'AKS api server url like (e.g. https://my-url.com:443)'
     type: string
     default: ""
-
+  - name: 'AKS_AZURE_DEVOPS_SA_CA_CRT'
+    displayName: 'AKS service account CA cert, used by azure devops account'
+    type: string
+    default: ""
+  - name: 'AKS_AZURE_DEVOPS_SA_TOKEN'
+    displayName: 'AKS service account token, used by azure devops account'
+    type: string
+    default: ""
 
 steps:
 
@@ -41,13 +48,52 @@ steps:
       export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
       export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-      if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-        echo "${{ parameters.AKS_NAME }}"
-        echo "${{ parameters.AKS_RG_NAME }}"
-        az aks get-credentials --resource-group "${{ parameters.AKS_RG_NAME }}" --name "${{ parameters.AKS_NAME }}" --file "~/.kube/config-${{ parameters.AKS_NAME }}" --verbose
 
-        ls -la
-        kubectl get nodes --kubeconfig="/home/AzDevOps/.kube/config-${{ parameters.AKS_NAME }}"
+      if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
+
+        if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
+          echo "AKS_NAME is empty"
+          exit 1
+        fi
+
+        if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
+          echo "AKS_API_SERVER_URL is empty"
+          exit 1
+        fi
+
+        if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
+          echo "AKS_AZURE_DEVOPS_SA_TOKEN is empty"
+          exit 1
+        fi
+
+        echo "[INFO] Create cacrt file" 
+        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" > cacrt
+        cat cacrt
+
+        echo "[INFO] kubectl set-cluster" 
+        kubectl config set-cluster aks-azure-devops \
+          --certificate-authority=cacrt \
+          --embed-certs=true \
+          --server=${{ parameters.AKS_API_SERVER_URL }} \
+          --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+
+        echo "[INFO] kubectl set-credentials" 
+        kubectl config set-credentials azure-devops \
+          --token=${{ parameters.AKS_API_SERVER_URL }} \
+          --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+
+        echo "[INFO] kubectl set-context" 
+        kubectl config set-context iac \
+          --cluster=aks-azure-devops \
+          --user=azure-devops \
+          --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+
+        echo "[INFO] kubectl use-context" 
+        kubectl config use-context iac --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+
+        echo "[INFO] Run kubectl"
+        kubectl get deploy --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}" -n idpay
+
       fi
 
 
