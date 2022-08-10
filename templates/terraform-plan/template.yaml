@@ -67,7 +67,7 @@ steps:
         fi
 
         echo "[INFO] Create cacrt file" 
-        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" > cacrt
+        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
         cat cacrt
 
         echo "[INFO] kubectl set-cluster" 
