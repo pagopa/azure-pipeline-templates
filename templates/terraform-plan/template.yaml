@@ -99,4 +99,4 @@ steps:
       fi
 
 
-      #./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+      sh terraform.sh plan ${{ parameters.ENVIRONMENT }}
