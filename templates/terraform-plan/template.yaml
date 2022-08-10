@@ -98,5 +98,8 @@ steps:
 
       fi
 
+      pwd
 
-      sh terraform.sh plan ${{ parameters.ENVIRONMENT }}
+      ls -la
+
+      ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
