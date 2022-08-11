@@ -117,4 +117,9 @@ steps:
         fi
 
         echo "##[command] Run terraform plan"
-        # ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+        
+        ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+
+        echo "[INFO] Clean project"
+        rm -rf .kube
+        rm -rf .azure
