@@ -41,11 +41,6 @@ steps:
       inlineScript: |
         e=0
 
-        if [[ "${{ parameters.ENVIRONMENT }}" == "" ]]; then
-          echo "ENVIRONMENT is empty but is mandatory"
-          exit 1
-        fi
-
         if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
            [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
            [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
@@ -74,6 +69,11 @@ steps:
           if [[ e > 0 ]]; then
             exit 1
           fi
+        else
+          echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"
+          echo "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}"
+          echo "${{ parameters.AKS_API_SERVER_URL }}"
+          echo "${{ parameters.AKS_NAME }}"
         fi
 
   - task: AzureCLI@2
