@@ -126,4 +126,5 @@ steps:
 
         ls -la
 
-        ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+        echo "[INFO] Run terraform plan"
+        # ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
