@@ -75,31 +75,30 @@ steps:
           --certificate-authority=cacrt \
           --embed-certs=true \
           --server=${{ parameters.AKS_API_SERVER_URL }} \
-          --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+          --kubeconfig="config-${{ parameters.AKS_NAME }}"
 
         echo "[INFO] kubectl set-credentials" 
         kubectl config set-credentials azure-devops \
           --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
-          --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+          --kubeconfig="config-${{ parameters.AKS_NAME }}"
 
         echo "[INFO] kubectl set-context" 
         kubectl config set-context iac \
           --cluster=aks-azure-devops \
           --user=azure-devops \
-          --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+          --kubeconfig="config-${{ parameters.AKS_NAME }}"
 
         echo "[INFO] kubectl use-context" 
-        kubectl config use-context iac --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}"
+        kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
 
-        cat "~/.kube/config-${{ parameters.AKS_NAME }}"
+        cat "config-${{ parameters.AKS_NAME }}"
 
         echo "[INFO] Run kubectl"
-        kubectl get deploy --kubeconfig="~/.kube/config-${{ parameters.AKS_NAME }}" -n idpay
-
+        kubectl get deploy --kubeconfig="config-${{ parameters.AKS_NAME }}" -n idpay
       fi
 
       pwd
 
       ls -la
 
-      ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+      sh terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
