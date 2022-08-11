@@ -39,6 +39,7 @@ steps:
       scriptLocation: 'inlineScript'
       failOnStandardError: true
       inlineScript: |
+        e=0
 
         if [[ "${{ parameters.ENVIRONMENT }}" == "" ]]; then
           echo "ENVIRONMENT is empty but is mandatory"
@@ -52,21 +53,25 @@ steps:
 
           if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
             echo "[INFO] AKS_NAME is empty"
-            exit 1
+            ((e=e+1))
           fi
 
           if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
             echo "[INFO] AKS_API_SERVER_URL is empty"
-            exit 1
+            ((e=e+1))
           fi
 
           if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
             echo "[INFO] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
-            exit 1
+            ((e=e+1))
           fi
 
           if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" == "" ]]; then
             echo "[INFO] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
+            ((e=e+1))
+          fi
+
+          if [[ e > 0 ]]; then
             exit 1
           fi
         fi
