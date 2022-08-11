@@ -1,104 +1,129 @@
 # Run terraform init and terraform plan
 parameters:
   - name: 'AZURE_SERVICE_CONNECTION_NAME'
-    displayName: 'Azure service connection name.'
+    displayName: '(Required) Azure service connection name.'
     type: string
     default: "none"
   - name: 'ENVIRONMENT'
-    displayName: 'Environment to apply to. Possible values are [dev|uat|prod] etc.'
+    displayName: '(Required) Environment to apply to. Possible values are [dev|uat|prod] etc.'
     type: string
     default: "dev"
   - name: 'WORKINGDIR'
-    displayName: 'Working direcory containing terraform templates and the terraform.sh helper.'
+    displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
   - name: 'AKS_NAME'
-    displayName: 'AKS Name'
+    displayName: '(Optional) AKS Name'
     type: string
     default: ""
   - name: 'AKS_API_SERVER_URL'
-    displayName: 'AKS api server url like (e.g. https://my-url.com:443)'
+    displayName: '(Optional) AKS api server url like (e.g. https://my-url.com:443)'
     type: string
     default: ""
   - name: 'AKS_AZURE_DEVOPS_SA_CA_CRT'
-    displayName: 'AKS service account CA cert, used by azure devops account'
+    displayName: '(Optional) AKS service account CA cert, used by azure devops account'
     type: string
     default: ""
   - name: 'AKS_AZURE_DEVOPS_SA_TOKEN'
-    displayName: 'AKS service account token, used by azure devops account'
+    displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
 
 steps:
+  - task: AzureCLI@2
+    displayName: Check parameters
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      inlineScript: |
 
-- task: AzureCLI@2
-  displayName: Terraform plan
-  inputs:
-    azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
-    addSpnToEnvironment: true
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    failOnStandardError: true
-    workingDirectory: '${{ parameters.WORKINGDIR }}'
-    inlineScript: |
-      echo "##[section]Start terraform plan for env=${{ parameters.ENVIRONMENT }}"
-
-      export ARM_CLIENT_ID="${servicePrincipalId}"
-      export ARM_CLIENT_SECRET="${servicePrincipalKey}"
-      export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-      export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-
-
-      if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
-
-        if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
-          echo "AKS_NAME is empty"
+        if [[ "${{ parameters.ENVIRONMENT }}" == "" ]]; then
+          echo "ENVIRONMENT is empty but is mandatory"
           exit 1
         fi
 
-        if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
-          echo "AKS_API_SERVER_URL is empty"
-          exit 1
+        if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
+           [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
+           [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
+           [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
+
+          if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
+            echo "[INFO] AKS_NAME is empty"
+            exit 1
+          fi
+
+          if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
+            echo "[INFO] AKS_API_SERVER_URL is empty"
+            exit 1
+          fi
+
+          if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
+            echo "[INFO] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
+            exit 1
+          fi
+
+          if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" == "" ]]; then
+            echo "[INFO] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
+            exit 1
+          fi
         fi
 
-        if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
-          echo "AKS_AZURE_DEVOPS_SA_TOKEN is empty"
-          exit 1
+  - task: AzureCLI@2
+    displayName: Terraform plan
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##[section]Start terraform plan for env=${{ parameters.ENVIRONMENT }}"
+
+        export ARM_CLIENT_ID="${servicePrincipalId}"
+        export ARM_CLIENT_SECRET="${servicePrincipalKey}"
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+
+
+        if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
+
+          echo "[INFO] Create cacrt file" 
+          echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
+          cat cacrt
+
+          echo "[INFO] kubectl set-cluster" 
+          kubectl config set-cluster aks-azure-devops \
+            --certificate-authority=cacrt \
+            --embed-certs=true \
+            --server=${{ parameters.AKS_API_SERVER_URL }} \
+            --kubeconfig="config-${{ parameters.AKS_NAME }}"
+
+          echo "[INFO] kubectl set-credentials" 
+          kubectl config set-credentials azure-devops \
+            --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
+            --kubeconfig="config-${{ parameters.AKS_NAME }}"
+
+          echo "[INFO] kubectl set-context" 
+          kubectl config set-context iac \
+            --cluster=aks-azure-devops \
+            --user=azure-devops \
+            --kubeconfig="config-${{ parameters.AKS_NAME }}"
+
+          echo "[INFO] kubectl use-context" 
+          kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
+
+          cat "config-${{ parameters.AKS_NAME }}"
+
+          echo "[INFO] Run kubectl"
+          kubectl get deploy --kubeconfig="config-${{ parameters.AKS_NAME }}" -n idpay
         fi
 
-        echo "[INFO] Create cacrt file" 
-        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
-        cat cacrt
+        pwd
 
-        echo "[INFO] kubectl set-cluster" 
-        kubectl config set-cluster aks-azure-devops \
-          --certificate-authority=cacrt \
-          --embed-certs=true \
-          --server=${{ parameters.AKS_API_SERVER_URL }} \
-          --kubeconfig="config-${{ parameters.AKS_NAME }}"
+        ls -la
 
-        echo "[INFO] kubectl set-credentials" 
-        kubectl config set-credentials azure-devops \
-          --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
-          --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-        echo "[INFO] kubectl set-context" 
-        kubectl config set-context iac \
-          --cluster=aks-azure-devops \
-          --user=azure-devops \
-          --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-        echo "[INFO] kubectl use-context" 
-        kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-        cat "config-${{ parameters.AKS_NAME }}"
-
-        echo "[INFO] Run kubectl"
-        kubectl get deploy --kubeconfig="config-${{ parameters.AKS_NAME }}" -n idpay
-      fi
-
-      pwd
-
-      ls -la
-
-      ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+        ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
