@@ -116,9 +116,13 @@ steps:
           echo "##[endgroup]"
         fi
 
-        echo "##[command] Run terraform plan"
-        
-        ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
+          echo "[INFO] Run terraform plan + kubernetes"
+          ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+        else
+          echo "[INFO] Run terraform plan"
+          ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+        fi
 
         echo "[INFO] Clean project"
         rm -rf .kube
