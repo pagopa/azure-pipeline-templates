@@ -55,22 +55,26 @@ steps:
             ((e=e+1))
           fi
 
+          echo "2"
           if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
             echo "##[error] AKS_API_SERVER_URL is empty"
             ((e=e+1))
           fi
+          echo "3"
 
           if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
             echo "##[error] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
             ((e=e+1))
           fi
+          echo "4"
 
           if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" == "" ]]; then
             echo "##[error] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
             ((e=e+1))
           fi
+          echo "5"
 
-          if [[ e > 0 ]]; then
+          if [[ $e > 0 ]]; then
             exit 1
           fi
         fi
