@@ -30,22 +30,25 @@ parameters:
     default: ""
 
 steps:
-  - task: AzureCLI@2
+  - task: Bash@3
     displayName: Check parameters
     inputs:
-      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
-      addSpnToEnvironment: true
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      failOnStandardError: true
-      inlineScript: |
+      targetType: inline
+      failOnStderr: true
+      script: |
+        echo "start"
+
         set -e
+        echo "set"
         e=0
+        echo "variable"
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
            [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
            [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
            [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
+
+           echo "first check passed"
 
           if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
             echo "##[error] AKS_NAME is empty"
