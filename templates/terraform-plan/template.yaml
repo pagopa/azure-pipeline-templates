@@ -39,6 +39,7 @@ steps:
       scriptLocation: 'inlineScript'
       failOnStandardError: true
       inlineScript: |
+        set -e
         e=0
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
@@ -47,33 +48,28 @@ steps:
            [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
 
           if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
-            echo "[INFO] AKS_NAME is empty"
+            echo "##[error] AKS_NAME is empty"
             ((e=e+1))
           fi
 
           if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
-            echo "[INFO] AKS_API_SERVER_URL is empty"
+            echo "##[error] AKS_API_SERVER_URL is empty"
             ((e=e+1))
           fi
 
           if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
-            echo "[INFO] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
+            echo "##[error] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
             ((e=e+1))
           fi
 
           if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" == "" ]]; then
-            echo "[INFO] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
+            echo "##[error] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
             ((e=e+1))
           fi
 
           if [[ e > 0 ]]; then
             exit 1
           fi
-        else
-          echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"
-          echo "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}"
-          echo "${{ parameters.AKS_API_SERVER_URL }}"
-          echo "${{ parameters.AKS_NAME }}"
         fi
 
   - task: AzureCLI@2
@@ -96,6 +92,7 @@ steps:
 
         if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
 
+          echo "##[group]Kubernetes kubeconfig setup"
           echo "[INFO] Create cacrt file" 
           echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
           cat cacrt
@@ -125,11 +122,9 @@ steps:
 
           echo "[INFO] Run kubectl"
           kubectl get deploy --kubeconfig="config-${{ parameters.AKS_NAME }}" -n idpay
+
+          echo "##[endgroup]"
         fi
 
-        pwd
-
-        ls -la
-
-        echo "[INFO] Run terraform plan"
+        echo "##[command] Run terraform plan"
         # ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
