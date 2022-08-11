@@ -32,39 +32,35 @@ stages:
     pool:
       name: cstar-dev-linux
     jobs:
-      - job: terraform_install
-        steps:
-          # 1. Install terraform and terragrunt
-          - template: templates/terraform-setup/template.yaml@terraform
-
       - job: terraform_plan_idpay_common
         strategy:
           parallel: 1
-        dependsOn: terraform_install
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
+          # 1. Install terraform and terragrunt
+          - template: templates/terraform-setup/template.yaml@terraform
           # 2. Run terraform plan idpay-common
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
               ENVIRONMENT: "dev"
               WORKINGDIR: 'src/domains/idpay-common'
               AZURE_SERVICE_CONNECTION_NAME: DEV-CSTAR-SERVICE-CONN
-
       - job: terraform_plan_idpay_app
-        dependsOn: terraform_install
         timeoutInMinutes: $[variables.TIME_OUT]
         strategy:
           parallel: 1
         steps:
           - checkout: self
+          # 1. Install terraform and terragrunt
+          - template: templates/terraform-setup/template.yaml@terraform
           # Run terraform plan idpay-app
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
               ENVIRONMENT: "dev"
               WORKINGDIR: 'src/domains/idpay-app'
               AZURE_SERVICE_CONNECTION_NAME: DEV-CSTAR-SERVICE-CONN
-              AKS_NAME: 'cstar-d-weu-dev01-aks'
+              AKS_NAME: ${{ variables.aksDevName }}
               AKS_API_SERVER_URL: ${{ variables.dev01AksApiServerUrl }}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.dev01AksAzureDevopsSACacrt }}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.dev01AksAzureDevopsSAToken }}

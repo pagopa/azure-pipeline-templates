@@ -3,11 +3,9 @@ parameters:
   - name: 'AZURE_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
-    default: "none"
   - name: 'ENVIRONMENT'
     displayName: '(Required) Environment to apply to. Possible values are [dev|uat|prod] etc.'
     type: string
-    default: "dev"
   - name: 'WORKINGDIR'
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
@@ -127,3 +125,4 @@ steps:
         echo "[INFO] Clean project"
         rm -rf .kube
         rm -rf .azure
+        rm -rf config-${{ parameters.AKS_NAME }}
