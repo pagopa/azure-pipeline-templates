@@ -24,7 +24,9 @@ resources:
       name: pagopa/azure-pipeline-templates
       ref: refs/heads/main
       endpoint: 'io-azure-devops-github-ro'
+```
 
+```yaml
 stages:
   - stage: DEV
     dependsOn: []

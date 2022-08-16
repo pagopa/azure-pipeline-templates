@@ -29,7 +29,7 @@ parameters:
 
 steps:
   - task: Bash@3
-    displayName: Apply Check Parameters
+    displayName: Apply(Check Parameters)
     inputs:
       targetType: inline
       failOnStderr: true

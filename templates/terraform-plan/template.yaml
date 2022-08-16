@@ -29,7 +29,7 @@ parameters:
 
 steps:
   - task: Bash@3
-    displayName: Plan Check Parameters
+    displayName: Plan(Check Parameters)
     inputs:
       targetType: inline
       failOnStderr: true
