@@ -29,7 +29,7 @@ parameters:
 
 steps:
   - task: Bash@3
-    displayName: Check parameters
+    displayName: Plan(Check Parameters)
     inputs:
       targetType: inline
       failOnStderr: true
@@ -68,7 +68,7 @@ steps:
         fi
 
   - task: AzureCLI@2
-    displayName: Terraform plan
+    displayName: Plan Terraform
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
