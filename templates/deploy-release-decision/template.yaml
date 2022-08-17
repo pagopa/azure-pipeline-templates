@@ -29,19 +29,23 @@ steps:
         echo "[INFO] current_version_branch: ${{ parameters.CURRENT_VERSION_TAG }}"
         echo "[INFO] build_id: ${{ parameters.BUILD_ID }}"
         if [ ! -z "${{ parameters.NEXT_VERSION }}" ];
-          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.NEXT_VERSION }}"
+          version="${{ parameters.NEXT_VERSION }}"
+          echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
         if [ ! -z "${{ parameters.CURRENT_VERSION_TAG }}" ];
-          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.CURRENT_VERSION_TAG }}"
+          version="${{ parameters.CURRENT_VERSION_TAG }}"
+          echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
         if [ ! -z "${{ parameters.CURRENT_VERSION }}" ];
-          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_ID }}"
+          version="${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_ID }}"
+          echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
         if [ ! -z "${{ parameters.CURRENT_VERSION_BRANCH }}" ];
-          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_ID }}"
+          version="${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_ID }}"
+          echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
         echo "[ERROR] All parameters are unset"
