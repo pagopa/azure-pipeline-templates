@@ -13,7 +13,8 @@ parameters:
     default: "none"
   - name: 'BUILD_ID'
     type: string
-    default: "none"
+  - name: 'BUILD_BRANCH'
+    type: string
 
 steps:
   - task: Bash@3
@@ -49,7 +50,7 @@ steps:
 
         # deploy version from current version without create a new release
         if [ -n "${{ parameters.CURRENT_VERSION }}" ]; then
-          version="${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_ID }}"
+          version="${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_BRANCH }}${{ parameters.BUILD_ID }}"
           echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
@@ -57,7 +58,7 @@ steps:
 
         # deploy version from a branch without create a new release
         if [ -n "${{ parameters.CURRENT_VERSION_BRANCH }}" ]; then
-          version="${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_ID }}"
+          version="${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_BRANCH }}${{ parameters.BUILD_ID }}"
           echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
