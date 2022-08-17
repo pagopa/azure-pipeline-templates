@@ -1,14 +1,17 @@
 parameters:
-  - name: 'next_version'
+  - name: 'NEXT_VERSION'
     type: string
     default: "none"
-  - name: 'current_version'
+  - name: 'CURRENT_VERSION'
     type: string
     default: "none"
-  - name: 'current_version_branch'
+  - name: 'CURRENT_VERSION_BRANCH'
     type: string
     default: "none"
-  - name: 'build_id'
+  - name: 'CURRENT_VERSION_TAG'
+    type: string
+    default: "none"
+  - name: 'BUILD_ID'
     type: string
     default: "none"
 
@@ -20,10 +23,27 @@ steps:
       targetType: "inline"
       script: |
         echo "[INFO] Decision"
-        echo "[INFO] next_version: ${{ parameters.next_version }}"
-        echo "[INFO] current_version: ${{ parameters.current_version }}"
-        echo "[INFO] current_version_branch: ${{ parameters.current_version }}"
-        echo "[INFO] build_id: ${{ parameters.build_id }}"
-        # version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
-        # echo "##vso[task.setvariable variable=value;isOutput=true]$version"
+        echo "[INFO] next_version: ${{ parameters.NEXT_VERSION }}"
+        echo "[INFO] current_version: ${{ parameters.CURRENT_VERSION }}"
+        echo "[INFO] current_version_branch: ${{ parameters.CURRENT_VERSION_BRANCH }}"
+        echo "[INFO] current_version_branch: ${{ parameters.CURRENT_VERSION_TAG }}"
+        echo "[INFO] build_id: ${{ parameters.BUILD_ID }}"
+        if [ ! -z "${{ parameters.NEXT_VERSION }}" ];
+          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.NEXT_VERSION }}"
+          exit 0
+        fi
+        if [ ! -z "${{ parameters.CURRENT_VERSION_TAG }}" ];
+          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.CURRENT_VERSION_TAG }}"
+          exit 0
+        fi
+        if [ ! -z "${{ parameters.CURRENT_VERSION }}" ];
+          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_ID }}"
+          exit 0
+        fi
+        if [ ! -z "${{ parameters.CURRENT_VERSION_BRANCH }}" ];
+          echo "##vso[task.setvariable variable=value;isOutput=true]${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_ID }}"
+          exit 0
+        fi
+        echo "[ERROR] All parameters are unset"
+        exit 1
       failOnStderr: true
