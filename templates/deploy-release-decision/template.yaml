@@ -1,0 +1,29 @@
+parameters:
+  - name: 'next_version'
+    type: string
+    default: "none"
+  - name: 'current_version'
+    type: string
+    default: "none"
+  - name: 'current_version_branch'
+    type: string
+    default: "none"
+  - name: 'build_id'
+    type: string
+    default: "none"
+
+steps:
+  - task: Bash@3
+    name: decision
+    displayName: 'Decision'
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "[INFO] Decision"
+        echo "[INFO] next_version: ${{ parameters.next_version }}"
+        echo "[INFO] current_version: ${{ parameters.current_version }}"
+        echo "[INFO] current_version_branch: ${{ parameters.current_version }}"
+        echo "[INFO] build_id: ${{ parameters.build_id }}"
+        # version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        # echo "##vso[task.setvariable variable=value;isOutput=true]$version"
+      failOnStderr: true
