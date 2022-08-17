@@ -70,8 +70,14 @@ steps:
       for i in helm/values-*.yaml; do
         [ -f "$i" ] || break
         yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
-        git add $i
+        git add "$i"
       done
+      CHART_FILE="helm/Chart.yaml"
+      if [[ -f "$CHART_FILE" ]]; then
+        yq -i ".version = \"$(next_version.value)\"" "$CHART_FILE"
+        yq -i ".appVersion = \"$(next_version.value)\"" "$CHART_FILE"
+        git add "$CHART_FILE"
+      fi
 
 - task: Bash@3
   displayName: Update Openapi/Swagger Version
