@@ -17,37 +17,52 @@ parameters:
 
 steps:
   - task: Bash@3
-    name: decision
-    displayName: 'Decision'
+    name: deploy_version_decision
+    displayName: 'Deploy version decision'
     inputs:
       targetType: "inline"
       script: |
-        echo "[INFO] Decision"
-        echo "[INFO] next_version: ${{ parameters.NEXT_VERSION }}"
-        echo "[INFO] current_version: ${{ parameters.CURRENT_VERSION }}"
-        echo "[INFO] current_version_branch: ${{ parameters.CURRENT_VERSION_BRANCH }}"
-        echo "[INFO] current_version_branch: ${{ parameters.CURRENT_VERSION_TAG }}"
-        echo "[INFO] build_id: ${{ parameters.BUILD_ID }}"
+        echo "[INFO] Deploy version decision"
+        echo "[INFO] NEXT_VERSION: ${{ parameters.NEXT_VERSION }}"
+        echo "[INFO] CURRENT_VERSION: ${{ parameters.CURRENT_VERSION }}"
+        echo "[INFO] CURRENT_VERSION_BRANCH: ${{ parameters.CURRENT_VERSION_BRANCH }}"
+        echo "[INFO] CURRENT_VERSION_TAG: ${{ parameters.CURRENT_VERSION_TAG }}"
+        echo "[INFO] BUILD_ID: ${{ parameters.BUILD_ID }}"
+        
+        # deploy new version released
         if [ -n "${{ parameters.NEXT_VERSION }}" ]; then
           version="${{ parameters.NEXT_VERSION }}"
+          echo "[INFO] next_version is not empty"
+          echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
+        
+        # deploy version from existing tag
         if [ -n "${{ parameters.CURRENT_VERSION_TAG }}" ]; then
           version="${{ parameters.CURRENT_VERSION_TAG }}"
+          echo "[INFO] next_version is not empty"
+          echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
+
+        # deploy version from current version without create a new release
         if [ -n "${{ parameters.CURRENT_VERSION }}" ]; then
           version="${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_ID }}"
+          echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
+
+        # deploy version from a branch without create a new release
         if [ -n "${{ parameters.CURRENT_VERSION_BRANCH }}" ]; then
           version="${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_ID }}"
+          echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
         fi
+
         echo "[ERROR] All parameters are unset"
         exit 1
       failOnStderr: true
