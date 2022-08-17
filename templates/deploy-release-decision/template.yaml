@@ -29,6 +29,7 @@ steps:
         echo "[INFO] CURRENT_VERSION_BRANCH: ${{ parameters.CURRENT_VERSION_BRANCH }}"
         echo "[INFO] CURRENT_VERSION_TAG: ${{ parameters.CURRENT_VERSION_TAG }}"
         echo "[INFO] BUILD_ID: ${{ parameters.BUILD_ID }}"
+        echo "[INFO] BUILD_ID: ${{ parameters.BUILD_BRANCH }}"
         
         # deploy new version released
         if [ -n "${{ parameters.NEXT_VERSION }}" ]; then
