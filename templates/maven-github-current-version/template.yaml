@@ -1,0 +1,12 @@
+steps:
+  - task: Bash@3
+    name: current_version
+    displayName: 'Get current release variables'
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "[INFO] Get current release"
+        version=$(mvn -f pom.xml help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "##vso[task.setvariable variable=value;isOutput=true]$version"
+        echo "[INFO] Current release $version"
+      failOnStderr: true
