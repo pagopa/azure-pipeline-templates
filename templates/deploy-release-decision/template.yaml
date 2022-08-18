@@ -11,9 +11,9 @@ parameters:
   - name: "CURRENT_VERSION_TAG"
     type: string
     default: "none"
-  - name: "BUILD_NUMBER"
+  - name: "BUILD_SOURCE_VERSION"
     type: string
-  - name: "SOURCE_BRANCH_NAME"
+  - name: "BUILD_SOURCE_BRANCH_NAME"
     type: string
 
 steps:
@@ -28,8 +28,8 @@ steps:
         echo "[INFO] CURRENT_VERSION: ${{ parameters.CURRENT_VERSION }}"
         echo "[INFO] CURRENT_VERSION_BRANCH: ${{ parameters.CURRENT_VERSION_BRANCH }}"
         echo "[INFO] CURRENT_VERSION_TAG: ${{ parameters.CURRENT_VERSION_TAG }}"
-        echo "[INFO] BUILD_NUMBER: ${{ parameters.BUILD_NUMBER }}"
-        echo "[INFO] SOURCE_BRANCH_NAME: ${{ parameters.SOURCE_BRANCH_NAME }}"
+        echo "[INFO] BUILD_SOURCE_VERSION: ${{ parameters.BUILD_SOURCE_VERSION }}"
+        echo "[INFO] BUILD_SOURCE_BRANCH_NAME: ${{ parameters.BUILD_SOURCE_BRANCH_NAME }}"
 
         # deploy new version released
         if [ -n "${{ parameters.NEXT_VERSION }}" ]; then
@@ -51,7 +51,7 @@ steps:
 
         # deploy version from current version without create a new release
         if [ -n "${{ parameters.CURRENT_VERSION }}" ]; then
-          version="${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_NUMBER }}-${{ parameters.SOURCE_BRANCH_NAME }}"
+          version="${{ parameters.CURRENT_VERSION }}-${{ parameters.BUILD_SOURCE_VERSION }}-${{ parameters.BUILD_SOURCE_BRANCH_NAME }}"
           echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
@@ -59,7 +59,7 @@ steps:
 
         # deploy version from a branch without create a new release
         if [ -n "${{ parameters.CURRENT_VERSION_BRANCH }}" ]; then
-          version="${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_NUMBER }}-${{ parameters.SOURCE_BRANCH_NAME }}"
+          version="${{ parameters.CURRENT_VERSION_BRANCH }}-${{ parameters.BUILD_SOURCE_VERSION }}-${{ parameters.BUILD_SOURCE_BRANCH_NAME }}"
           echo "[INFO] deploy version: $version"
           echo "##vso[task.setvariable variable=value;isOutput=true]$version"
           exit 0
