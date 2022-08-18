@@ -1,15 +1,10 @@
-# Node Github Release template
+# Docker Github Release template
 
-Opinionated sequence of steps to mark a new release of a Nodejs project hosted on a Github repository. It does the following:
+Opinionated sequence of steps to build and push a docker image into a registry
 
-1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor`, `patch` or `prerelease`)
-1. tag the repository with the new version number
-1. push changes and tags to the repository
-1. creates a Github release from the release tag
-
-Be sure that code is checked-out using `persistCredentials: true` in the `checkout` step. Also be aware that the template commits **every** change on the release branch, thus be sure you only edit file you intend to include in the commit.
-
-The template does not make any assumption on any specific node version nor dependency to be installed. Please perform setup **before** including the template.
+1. login to docker container registry
+1. if `FORCE_REPLACE_DOCKER_IMAGE` is false and docker image with `DOCKER_IMAGE_TAG` not exists, build and push the image into the registry
+1. if `FORCE_REPLACE_DOCKER_IMAGE` is true, build and push the image into the registry
 
 ## Usage
 
@@ -22,27 +17,21 @@ resources:
       ref: refs/tags/v1
 
 jobs:
-- checkout: self
-  persistCredentials: true
-
-- task: UseNode@1
-  inputs:
-    version: '12.8.0'
-  displayName: 'Set up Node.js'  
-
-- template: templates/node-github-release/template.yaml@templates
-  parameters:
-    semver: 'minor' # or major or patch
-    gitEmail: 'janedoe@company.com'
-    gitUsername: 'JaneDoe'
-    gitHubConnection: 'company_gh_connection'
+  - template: templates/docker-release/template.yaml@templates
+    parameters:
+      CONTAINER_REGISTRY_SERVICE_CONN: $(CONTAINER_REGISTRY_SERVICE_CONN)
+      CONTAINER_REGISTRY_FQDN: $(CONTAINER_REGISTRY_FQDN)
+      DOCKER_IMAGE_NAME: $(DOCKER_IMAGE_NAME)
+      DOCKER_IMAGE_TAG: $(deploy_version_decision.value)
+      FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
 ```
 
 ## Parameters
 
-|param|description|default|
-|-|-|-|
-|semver|The rule to bump the version with||
-|gitEmail|The email of the Github user which authors the version bump commit ||
-|gitUsername|The username of the Github user which authors the version bump commit ||
-|gitHubConnection|The service connection used by the Azure Pipeline to connect to Github||
+| param                           | description                                    | default |
+| ------------------------------- | ---------------------------------------------- | ------- |
+| CONTAINER_REGISTRY_SERVICE_CONN | Container registry service connection name     |         |
+| CONTAINER_REGISTRY_FQDN         | Container registry FQDN                        |         |
+| DOCKER_IMAGE_NAME               | Docker image name                              |         |
+| DOCKER_IMAGE_TAG                | Docker image tag                               |         |
+| FORCE_REPLACE_DOCKER_IMAGE      | Parameter to replace an existing the image tag |         |

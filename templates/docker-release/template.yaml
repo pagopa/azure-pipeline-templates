@@ -4,15 +4,12 @@ parameters:
   type: string
 
 - name: 'CONTAINER_REGISTRY_FQDN'
-  # displayName: "Force the existing docker image to be replaced"
   type: string
 
 - name: 'DOCKER_IMAGE_NAME'
-  # displayName: "Force the existing docker image to be replaced"
   type: string
 
 - name: 'DOCKER_IMAGE_TAG'
-  # displayName: "Force the existing docker image to be replaced"
   type: string
 
 - name: 'FORCE_REPLACE_DOCKER_IMAGE'
