@@ -95,6 +95,16 @@ steps:
           cat <<< "$(jq ".info.version = \"$(next_version.value)\"" "$i")" > "$i"
           git add $i
         done
+        for i in openapi/*.yaml; do
+          [ -f "$i" ] || break
+          yq -i ".info.version = \"$(next_version.value)\"" "$i"
+          git add "$i"
+        done
+        for i in openapi/*.yml; do
+          [ -f "$i" ] || break
+          yq -i ".info.version = \"$(next_version.value)\"" "$i"
+          git add "$i"
+        done
 
   # push new version
   - script: |
