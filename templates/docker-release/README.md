@@ -1,0 +1,48 @@
+# Node Github Release template
+
+Opinionated sequence of steps to mark a new release of a Nodejs project hosted on a Github repository. It does the following:
+
+1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor`, `patch` or `prerelease`)
+1. tag the repository with the new version number
+1. push changes and tags to the repository
+1. creates a Github release from the release tag
+
+Be sure that code is checked-out using `persistCredentials: true` in the `checkout` step. Also be aware that the template commits **every** change on the release branch, thus be sure you only edit file you intend to include in the commit.
+
+The template does not make any assumption on any specific node version nor dependency to be installed. Please perform setup **before** including the template.
+
+## Usage
+
+```yaml
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: pagopa/azure-devops-templates
+      ref: refs/tags/v1
+
+jobs:
+- checkout: self
+  persistCredentials: true
+
+- task: UseNode@1
+  inputs:
+    version: '12.8.0'
+  displayName: 'Set up Node.js'  
+
+- template: templates/node-github-release/template.yaml@templates
+  parameters:
+    semver: 'minor' # or major or patch
+    gitEmail: 'janedoe@company.com'
+    gitUsername: 'JaneDoe'
+    gitHubConnection: 'company_gh_connection'
+```
+
+## Parameters
+
+|param|description|default|
+|-|-|-|
+|semver|The rule to bump the version with||
+|gitEmail|The email of the Github user which authors the version bump commit ||
+|gitUsername|The username of the Github user which authors the version bump commit ||
+|gitHubConnection|The service connection used by the Azure Pipeline to connect to Github||
