@@ -1,0 +1,26 @@
+# Azure DevOps pipeline template used to setup the Node project:
+# 1. checkout code
+# 2. setup correct node version
+# 3. install node dependencies
+
+parameters:
+
+- name: 'DEPLOY_VERSION'
+  type: string
+
+steps:
+  - task: Bash@3
+    name: setup_helm_microservice_chart
+    displayName: 'Setup helm microservice chart'
+    inputs:
+      targetType: "inline"
+      script: |
+        DEPLOY_VERSION=${{ parameters.DEPLOY_VERSION }}
+        CHART_FILE="helm/Chart.yaml"
+        if [[ -f "$CHART_FILE" ]]; then
+          yq -i ".version = \"$(DEPLOY_VERSION)\"" "$CHART_FILE"
+          yq -i ".appVersion = \"$(DEPLOY_VERSION)\"" "$CHART_FILE"
+        fi
+        helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+        helm dep build helm
+      failOnStderr: true
