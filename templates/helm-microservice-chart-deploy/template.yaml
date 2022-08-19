@@ -52,7 +52,7 @@ steps:
       arguments: ${{ parameters.ARGUMENTS }}
       overrideValues: microservice-chart.image.tag=${{ parameters.DEPLOY_VERSION }}
   
-  - ${{ if ne(parameters['APPINSIGHTS_SERVICE_CONN'], none) }}:
+  - ${{ if ne(parameters['APPINSIGHTS_SERVICE_CONN'], 'none') }}:
       - task: AzureCLI@2
         displayName: Release annotations
         #condition: and(succeeded(), ne(${{ parameters.APPINSIGHTS_SERVICE_CONN }}, "none"))
