@@ -52,33 +52,34 @@ steps:
       arguments: ${{ parameters.ARGUMENTS }}
       overrideValues: microservice-chart.image.tag=${{ parameters.DEPLOY_VERSION }}
   
-  - task: AzureCLI@2
-    displayName: Release annotations
-    condition: and(succeeded(), ne(${{ parameters.APPINSIGHTS_SERVICE_CONN }}, "none"))
-    inputs:
-      azureSubscription: '${{ parameters.APPINSIGHTS_SERVICE_CONN }}'
-      addSpnToEnvironment: true
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      failOnStandardError: true
-      inlineScript: |
-        echo "[INFO] Creating release annotation in Application Insights"
-
-        APPINSIGHTS_ID=${{ parameters.APPINSIGHTS_RESOURCE_ID }}
-        UUID=$(uuidgen)
-        releaseName="releaseName_value"
-        releaseDescription="releaseDescription_value"
-        triggerBy="triggerBy_value"
-        eventTime=$(date -u '+%Y-%m-%dT%H:%M:%S')
-        category="Deployment"
-        label="Success"
-        buildNumber=$UUID
-        buildRepositoryName="buildRepositoryName_value"
-        buildRepositoryProvider="buildRepositoryProvider_value"
-        sourceBranch="sourceBranch_value"
-
-        body='{ "Id": "'$UUID'", "AnnotationName": "'$releaseName'", "EventTime":"'$eventTime'", "Category":"'$category'", "Properties":"{ \"ReleaseName\":\"'$releaseName'\", \"ReleaseDescription\" : \"'$releaseDescription'\", \"TriggerBy\": \"'$triggerBy'\" }"}'
-        
-        echo "[INFO] $body"
-
-        az rest --method put --uri "$APPINSIGHTS_ID/Annotations?api-version=2015-05-01" --body "$body" -o none
+  - ${{ if ne(parameters['APPINSIGHTS_SERVICE_CONN'], "none") }}:
+      - task: AzureCLI@2
+        displayName: Release annotations
+        condition: and(succeeded(), ne(${{ parameters.APPINSIGHTS_SERVICE_CONN }}, "none"))
+        inputs:
+          azureSubscription: '${{ parameters.APPINSIGHTS_SERVICE_CONN }}'
+          addSpnToEnvironment: true
+          scriptType: 'bash'
+          scriptLocation: 'inlineScript'
+          failOnStandardError: true
+          inlineScript: |
+            echo "[INFO] Creating release annotation in Application Insights"
+    
+            APPINSIGHTS_ID=${{ parameters.APPINSIGHTS_RESOURCE_ID }}
+            UUID=$(uuidgen)
+            releaseName="releaseName_value"
+            releaseDescription="releaseDescription_value"
+            triggerBy="triggerBy_value"
+            eventTime=$(date -u '+%Y-%m-%dT%H:%M:%S')
+            category="Deployment"
+            label="Success"
+            buildNumber=$UUID
+            buildRepositoryName="buildRepositoryName_value"
+            buildRepositoryProvider="buildRepositoryProvider_value"
+            sourceBranch="sourceBranch_value"
+    
+            body='{ "Id": "'$UUID'", "AnnotationName": "'$releaseName'", "EventTime":"'$eventTime'", "Category":"'$category'", "Properties":"{ \"ReleaseName\":\"'$releaseName'\", \"ReleaseDescription\" : \"'$releaseDescription'\", \"TriggerBy\": \"'$triggerBy'\" }"}'
+            
+            echo "[INFO] $body"
+    
+            az rest --method put --uri "$APPINSIGHTS_ID/Annotations?api-version=2015-05-01" --body "$body" -o none
