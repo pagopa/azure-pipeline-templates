@@ -67,16 +67,12 @@ steps:
     
             APPINSIGHTS_ID=${{ parameters.APPINSIGHTS_RESOURCE_ID }}
             UUID=$(uuidgen)
-            releaseName="releaseName_value"
-            releaseDescription="releaseDescription_value"
-            triggerBy="triggerBy_value"
+            releaseName="${{ parameters.APP_NAME }}-${{ parameters.ENV }}"
+            releaseDescription="${{ parameters.DEPLOY_VERSION }}"
+            triggerBy="Azure DevOps"
             eventTime=$(date -u '+%Y-%m-%dT%H:%M:%S')
             category="Deployment"
             label="Success"
-            buildNumber=$UUID
-            buildRepositoryName="buildRepositoryName_value"
-            buildRepositoryProvider="buildRepositoryProvider_value"
-            sourceBranch="sourceBranch_value"
     
             body='{ "Id": "'$UUID'", "AnnotationName": "'$releaseName'", "EventTime":"'$eventTime'", "Category":"'$category'", "Properties":"{ \"ReleaseName\":\"'$releaseName'\", \"ReleaseDescription\" : \"'$releaseDescription'\", \"TriggerBy\": \"'$triggerBy'\" }"}'
             
