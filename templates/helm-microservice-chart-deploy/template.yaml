@@ -1,0 +1,44 @@
+parameters:
+  # Required
+  - name: "ENV"
+    type: string
+  - name: "KUBERNETES_SERVICE_CONN"
+    type: string
+  - name: "NAMESPACE"
+    type: string
+  - name: "APP_NAME"
+    type: string
+  - name: "VALUE_FILE"
+    type: string
+  - name: "DEPLOY_VERSION"
+    type: string
+  # Optional
+  - name: "CHART_TYPE"
+    type: string
+    default: "filepath"
+  - name: "CHART_PATH"
+    type: string
+    default: "helm"
+  - name: "WAIT_FOR_EXECUTION"
+    type: boolean
+    default: true
+  - name: "ARGUMENTS"
+    type: string
+    default: "--timeout 5m0s"
+
+steps:
+  - task: HelmDeploy@0
+    displayName: Deploy on ${{ parameters.ENV }}
+    inputs:
+      kubernetesServiceEndpoint: ${{ parameters.KUBERNETES_SERVICE_CONN }}
+      namespace: ${{ parameters.NAMESPACE }}
+      command: upgrade
+      chartType: ${{ parameters.CHART_TYPE }}
+      chartPath: ${{ parameters.CHART_PATH }}
+      chartName: ${{ parameters.APP_NAME }}
+      releaseName: ${{ parameters.APP_NAME }}
+      valueFile: ${{ parameters.VALUE_FILE }}
+      install: true
+      waitForExecution: ${{ parameters.WAIT_FOR_EXECUTION }}
+      arguments: ${{ parameters.ARGUMENTS }}
+      overrideValues: microservice-chart.image.tag=${{ parameters.DEPLOY_VERSION }}
