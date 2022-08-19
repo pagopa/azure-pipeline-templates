@@ -1,13 +1,6 @@
-# Hekm microservice-chart setup
+# Hekm microservice-chart deploy
 
-Ideally all the steps needed before deploy a helm microservice-chart
-
-1. update `.version` and `.appVersion` in `helm/Chart.yaml` file using `DEPLOY_VERSION` parameter.
-1. add helm repo microservice-chart
-1. build helm
-
-The first step is useful for pipeline that runs from a branch without a new release.
-When a pipeline create a new release or runs from a release tag the values `.version` and `.appVersion` already contains `DEPLOY_VERSION` value.
+Deploy helm miceoservice chart with release annotations in application insights
 
 ## Usage
 
@@ -17,16 +10,39 @@ resources:
     - repository: templates
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v2.9.0
+      ref: refs/tags/v2.10.0
 
-jobs:
-  - template: templates/helm-microservice-chart-setup/template.yaml@templates
-    parameters:
-      DEPLOY_VERSION: $(deploy_version)
+- stage: "Deploy"
+  dependsOn: "Build"
+  variables:
+    deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
+  jobs:
+    - deployment: "deploy"
+      pool:
+        name: io-prod-linux
+      environment: PROD
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+                displayName: "Checkout"
+              - template: templates/helm-microservice-chart-setup/template.yaml@templates
+                parameters:
+                  DEPLOY_VERSION: $(deploy_version)
+              - template: templates/helm-microservice-chart-deploy/template.yaml@templates
+                parameters:
+                  DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_BETA }}
+                  ENV: BETA
+                  KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
+                  NAMESPACE: $(NAMESPACE)
+                  APP_NAME: $(DOCKER_IMAGE_NAME)
+                  VALUE_FILE: "helm/values-beta.yaml"
+                  DEPLOY_VERSION: $(deploy_version)
+                  APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
+                  APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
 ```
 
 ## Parameters
 
-| param          | description                         | default |
-| -------------- | ----------------------------------- | ------- |
-| DEPLOY_VERSION | Current microservice deploy version |         |
+TODO
