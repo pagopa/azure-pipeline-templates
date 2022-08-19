@@ -56,7 +56,7 @@ steps:
     displayName: Release annotations
     condition: and(succeeded(), ne(${{ parameters.APPINSIGHTS_SERVICE_CONN }}, "none"))
     inputs:
-      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      azureSubscription: '${{ parameters.APPINSIGHTS_SERVICE_CONN }}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
