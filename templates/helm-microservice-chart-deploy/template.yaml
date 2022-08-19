@@ -1,5 +1,7 @@
 parameters:
   # Required
+  - name: "DO_DEPLOY"
+    type: boolean
   - name: "ENV"
     type: string
   - name: "KUBERNETES_SERVICE_CONN"
@@ -29,6 +31,7 @@ parameters:
 steps:
   - task: HelmDeploy@0
     displayName: Deploy on ${{ parameters.ENV }}
+    condition: and(succeeded(), eq(${{ parameters.KUBERNETES_SERVICE_CONN_WEU_BETA }}, True))
     inputs:
       kubernetesServiceEndpoint: ${{ parameters.KUBERNETES_SERVICE_CONN }}
       namespace: ${{ parameters.NAMESPACE }}
