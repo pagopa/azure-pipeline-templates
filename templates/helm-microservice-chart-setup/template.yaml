@@ -18,7 +18,6 @@ steps:
         DEPLOY_VERSION=${{ parameters.DEPLOY_VERSION }}
         CHART_FILE="helm/Chart.yaml"
         if [[ -f "$CHART_FILE" ]]; then
-          # yq -i ".version = \"$(DEPLOY_VERSION)\"" "$CHART_FILE"
           yq -i ".appVersion = \"$(DEPLOY_VERSION)\"" "$CHART_FILE"
         fi
         helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
