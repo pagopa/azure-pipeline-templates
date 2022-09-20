@@ -50,12 +50,12 @@ stages:
           - checkout: self
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
-          # # 2. Run terraform plan
-          # - template: templates/terraform-plan/template.yaml@terraform
-          #   parameters:
-          #     ENVIRONMENT: ${{parameters.ENVIRONMENT}}
-          #     WORKINGDIR: 'src/domains/rtd-common'
-          #     AZURE_SERVICE_CONNECTION_NAME: DEV-CSTAR-SERVICE-CONN
+          # 2. Run terraform plan
+          - template: templates/terraform-plan/template.yaml@terraform
+            parameters:
+              ENVIRONMENT: ${{parameters.ENVIRONMENT}}
+              WORKINGDIR: ${{parameters.WORKINGDIR}}
+              AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
 
   - stage: ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
     dependsOn: ['${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}']
@@ -73,9 +73,13 @@ stages:
                 - checkout: self
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
-                # # 2. Run terraform apply
-                # - template: templates/terraform-apply/template.yaml@terraform
-                #   parameters:
-                #     ENVIRONMENT: "dev"
-                #     WORKINGDIR: 'src/domains/rtd-common'
-                #     AZURE_SERVICE_CONNECTION_NAME: DEV-CSTAR-SERVICE-CONN
+                # 2. Run terraform apply
+                - template: templates/terraform-apply/template.yaml@terraform
+                  parameters:
+                    ENVIRONMENT: ${{parameters.ENVIRONMENT}}
+                    WORKINGDIR: ${{parameters.WORKINGDIR}}
+                    AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
+                    AKS_NAME: ${{parameters.AKS_NAME}}
+                    AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
+                    AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
+                    AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
