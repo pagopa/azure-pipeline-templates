@@ -27,6 +27,13 @@ parameters:
     type: string
     default: ""
 
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/heads/DEVOPS-549-pipelines-fix-deploy-iac-la-richiesta-di-autorizzazione-non-e-piu-presente
+      endpoint: 'io-azure-devops-github-ro'
 
 stages:
   - stage: dev_tf_plan_rtd_common
