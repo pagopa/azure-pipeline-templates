@@ -31,7 +31,7 @@ parameters:
 stages:
   - stage: dev_tf_plan_rtd_common
     dependsOn: []
-    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, 'DEV'))
+    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, 'dev'))
     pool:
       name: cstar-dev-linux
     jobs:
@@ -53,7 +53,7 @@ stages:
 
   - stage: dev_tf_apply_rtd_common
     dependsOn: [tf_plan_rtd_common]
-    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, 'DEV'))
+    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, 'dev'))
     pool:
       name: cstar-dev-linux
     jobs:
