@@ -51,7 +51,7 @@ stages:
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
           # 2. Run terraform plan
-          - template: templates/terraform-plan/template.yaml@terraform
+          - template: ../terraform-plan/template.yaml@terraform
             parameters:
               ENVIRONMENT: ${{parameters.ENVIRONMENT}}
               WORKINGDIR: ${{parameters.WORKINGDIR}}
@@ -74,7 +74,7 @@ stages:
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
                 # 2. Run terraform apply
-                - template: templates/terraform-apply/template.yaml@terraform
+                - template: ../terraform-apply/template.yaml@terraform
                   parameters:
                     ENVIRONMENT: ${{parameters.ENVIRONMENT}}
                     WORKINGDIR: ${{parameters.WORKINGDIR}}
