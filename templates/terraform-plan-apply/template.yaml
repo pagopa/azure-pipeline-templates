@@ -37,14 +37,14 @@ parameters:
 stages:
   - stage: ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
     dependsOn: []
-    condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'dev'))
+    condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
       #
       # rtd_common
       #
-      - job: tf_plan_rtd_common
+      - job: tf_plan
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -58,12 +58,12 @@ stages:
           #     AZURE_SERVICE_CONNECTION_NAME: DEV-CSTAR-SERVICE-CONN
 
   - stage: ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
-    dependsOn: [dev_tf_plan_rtd_common]
-    condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'dev'))
+    dependsOn: ['${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}']
+    condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      - deployment: tf_apply_rtd_common
+      - deployment: tf_apply
         continueOnError: false
         environment: ${{parameters.ENVIRONMENT}}
         strategy:
