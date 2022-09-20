@@ -1,5 +1,8 @@
 # Run terraform init and terraform plan
 parameters:
+  - name: 'AZURE_DEVOPS_POOL_AGENT_NAME'
+    displayName: '(Required) Azure devops agent name.'
+    type: string
   - name: 'AZURE_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
@@ -33,7 +36,7 @@ stages:
     dependsOn: []
     condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'dev'))
     pool:
-      name: cstar-dev-linux
+      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
       #
       # rtd_common
@@ -47,7 +50,7 @@ stages:
           # # 2. Run terraform plan
           # - template: templates/terraform-plan/template.yaml@terraform
           #   parameters:
-          #     ENVIRONMENT: "dev"
+          #     ENVIRONMENT: ${{parameters.ENVIRONMENT}}
           #     WORKINGDIR: 'src/domains/rtd-common'
           #     AZURE_SERVICE_CONNECTION_NAME: DEV-CSTAR-SERVICE-CONN
 
@@ -55,11 +58,11 @@ stages:
     dependsOn: [dev_tf_plan_rtd_common]
     condition: and(succeeded(), eq('${{parameters.ENVIRONMENT}}', 'dev'))
     pool:
-      name: cstar-dev-linux
+      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
       - deployment: tf_apply_rtd_common
         continueOnError: false
-        environment: 'DEV'
+        environment: ${{parameters.ENVIRONMENT}}
         strategy:
           runOnce:
             deploy:
