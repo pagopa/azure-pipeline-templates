@@ -41,10 +41,7 @@ stages:
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      #
-      # rtd_common
-      #
-      - job: tf_plan
+      - job: ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -67,7 +64,7 @@ stages:
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      - deployment: tf_apply
+      - deployment: ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
         continueOnError: false
         environment: ${{parameters.ENVIRONMENT}}
         strategy:
