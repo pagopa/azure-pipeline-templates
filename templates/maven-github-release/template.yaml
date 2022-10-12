@@ -108,7 +108,7 @@ steps:
 
   # push new version
   - script: |
-      git add **/pom.xml
+      git ls-files . | grep 'pom.xml'  | xargs git add
       git commit -m "Bump version [skip ci]"
       git push origin ${{ parameters.release_branch }}
     displayName: 'Push to the release branch'
