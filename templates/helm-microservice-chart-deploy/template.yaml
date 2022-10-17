@@ -1,19 +1,26 @@
 parameters:
   # Required
   - name: "DO_DEPLOY"
+    displayName: '(Required) Launch helm deploy.'
     type: boolean
   - name: "ENV"
     type: string
+    displayName: '(Required) Which environment is involved into deploy.'
   - name: "KUBERNETES_SERVICE_CONN"
     type: string
+    displayName: '(Required) Azure devops service connection name.'
   - name: "NAMESPACE"
     type: string
+    displayName: '(Required) Kubernetes namespace.'
   - name: "APP_NAME"
     type: string
+    displayName: '(Required) Helm deploy name.'
   - name: "VALUE_FILE"
     type: string
+    displayName: '(Required) Path name.'
   - name: "DEPLOY_VERSION"
     type: string
+    displayName: '(Required) Deploy image tag version.'
   # Optional
   - name: "CHART_TYPE"
     type: string
