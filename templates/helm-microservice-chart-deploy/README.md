@@ -1,4 +1,4 @@
-# Hekm microservice-chart deploy
+# Helm microservice-chart deploy
 
 Deploy helm miceoservice chart with release annotations in application insights
 
@@ -45,4 +45,6 @@ resources:
 
 ## Parameters
 
-TODO
+### APPINSIGHTS_SERVICE_CONN
+
+Allow to put a log into app insight to understand when a deploy is done. If `APPINSIGHTS_SERVICE_CONN` is null no operations are executed
