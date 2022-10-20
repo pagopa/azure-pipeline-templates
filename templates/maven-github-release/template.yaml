@@ -54,7 +54,7 @@ steps:
           ${{ if eq(parameters.semver, 'major') }}:
             options: '-DnewVersion=${parsedVersion.nextMajorVersion}.0.0'
           ${{ if eq(parameters.semver, 'buildNumber') }}:
-            options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${parsedVersion.nextBuildNumber}+$(Build.SourceBranchName)'
+            options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${parsedVersion.nextBuildNumber}-$(Build.SourceBranchName)'
 
   - task: Bash@3
     name: next_version
@@ -124,7 +124,7 @@ steps:
     displayName: 'Set release variables'
 
   # create new release
-  - ${{ if ne(parameters.semver, 'skip') }}:
+  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber')) }}:
       - task: GitHubRelease@0
         inputs:
           gitHubConnection: ${{ parameters.gitHubConnection }}
