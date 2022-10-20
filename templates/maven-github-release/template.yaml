@@ -124,7 +124,7 @@ steps:
     displayName: 'Set release variables'
 
   # create new release
-  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber')) }}:
+  - ${{ if ne(parameters.semver, 'skip') }}:
       - task: GitHubRelease@0
         inputs:
           gitHubConnection: ${{ parameters.gitHubConnection }}
