@@ -17,12 +17,12 @@ echo "[INFO] kubectl set-cluster"
 kubectl config set-cluster aks-azure-devops \
   --certificate-authority=cacrt \
   --embed-certs=true \
-  --server=$AKS_API_SERVER_URL \
+  --server="$AKS_API_SERVER_URL" \
   --kubeconfig="config-$AKS_NAME"
 
 echo "[INFO] kubectl set-credentials"
 kubectl config set-credentials azure-devops \
-  --token=$AKS_AZURE_DEVOPS_SA_TOKEN \
+  --token="$AKS_AZURE_DEVOPS_SA_TOKEN" \
   --kubeconfig="config-$AKS_NAME"
 
 echo "[INFO] kubectl set-context"
