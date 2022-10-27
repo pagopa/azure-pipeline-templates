@@ -91,7 +91,7 @@ stages:
     pool:
       name: "pagopa-dev-linux"
     jobs:
-      - job: tfplan_shared_common
+      - job: 🔦 plan_shared_common
         strategy:
           parallel: 1
         timeoutInMinutes: $[variables.TIME_OUT]
@@ -105,7 +105,7 @@ stages:
               TF_ENVIRONMENT_FOLDER: "weu-dev"
               WORKINGDIR: 'src/domains/shared-common'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.DEV_AZURE_SERVICE_CONNECTION }}
-      - job: tfplan_shared_app
+      - job: 🔦 plan_shared_app
         timeoutInMinutes: $[variables.TIME_OUT]
         strategy:
           parallel: 1
@@ -133,7 +133,7 @@ stages:
     pool:
       name: "pagopa-uat-linux"
     jobs:
-      - job: tfplan_shared_common
+      - job: 🔦 plan_shared_common
         strategy:
           parallel: 1
         timeoutInMinutes: $[variables.TIME_OUT]
@@ -147,7 +147,7 @@ stages:
               TF_ENVIRONMENT_FOLDER: "weu-uat"
               WORKINGDIR: 'src/domains/shared-common'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.UAT_AZURE_SERVICE_CONNECTION }}
-      - job: tfplan_shared_app
+      - job: 🔦 plan_shared_app
         timeoutInMinutes: $[variables.TIME_OUT]
         strategy:
           parallel: 1
@@ -175,7 +175,7 @@ stages:
     pool:
       name: "pagopa-prod-linux"
     jobs:
-      - job: tfplan_shared_common
+      - job: 🔦 plan_shared_common
         strategy:
           parallel: 1
         timeoutInMinutes: $[variables.TIME_OUT]
@@ -189,7 +189,7 @@ stages:
               TF_ENVIRONMENT_FOLDER: "weu-prod"
               WORKINGDIR: 'src/domains/shared-common'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.PROD_AZURE_SERVICE_CONNECTION }}
-      - job: tfplan_shared_app
+      - job: 🔦 plan_shared_app
         timeoutInMinutes: $[variables.TIME_OUT]
         strategy:
           parallel: 1
@@ -207,5 +207,4 @@ stages:
               AKS_API_SERVER_URL: ${{ variables.PROD_AKS_APISERVER_URL }}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.PROD_AKS_AZURE_DEVOPS_SA_CACRT }}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.PROD_AKS_AZURE_DEVOPS_SA_TOKEN }}
-
 ```
