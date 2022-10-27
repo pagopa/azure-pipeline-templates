@@ -38,7 +38,8 @@ parameters:
 
 
 stages:
-  - stage: 🔦 ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
+  - stage: ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
+    displayName: 🔦 ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
     pool:
@@ -61,7 +62,8 @@ stages:
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
 
-  - stage: 🚀 ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
+  - stage: ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
+    displayName: 🚀 ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
     dependsOn: ['${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}']
     condition: succeeded()
     pool:
