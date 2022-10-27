@@ -10,7 +10,10 @@ parameters:
     displayName: '(Required) Azure service connection name.'
     type: string
   - name: 'ENVIRONMENT'
-    displayName: '(Required) Terraform environment folder to apply to. For example [dev|weudev|uat|weuuat|prod|weuprod] etc.'
+    displayName: '(Required) Azure devops ENV name. For example [dev|uat|prod] etc.'
+    type: string
+  - name: 'TF_ENVIRONMENT_FOLDER'
+    displayName: '(Required) Terraform environment folder name to apply to. For example [dev|weudev|uat|weuuat|prod|weuprod] etc.'
     type: string
   - name: 'WORKINGDIR'
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
