@@ -102,7 +102,7 @@ stages:
           # 2. Run terraform plan shared-common
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              ENVIRONMENT: "weu-dev"
+              TF_ENVIRONMENT_FOLDER: "weu-dev"
               WORKINGDIR: 'src/domains/shared-common'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.DEV_AZURE_SERVICE_CONNECTION }}
       - job: tfplan_shared_app
@@ -116,7 +116,7 @@ stages:
           # Run terraform plan shared-app
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              ENVIRONMENT: "weu-dev"
+              TF_ENVIRONMENT_FOLDER: "weu-dev"
               WORKINGDIR: 'src/domains/shared-app'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.DEV_AZURE_SERVICE_CONNECTION }}
               AKS_NAME: ${{ variables.AKS_DEV_NAME }}
@@ -144,7 +144,7 @@ stages:
           # 2. Run terraform plan shared-common
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              ENVIRONMENT: "weu-uat"
+              TF_ENVIRONMENT_FOLDER: "weu-uat"
               WORKINGDIR: 'src/domains/shared-common'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.UAT_AZURE_SERVICE_CONNECTION }}
       - job: tfplan_shared_app
@@ -158,7 +158,7 @@ stages:
           # Run terraform plan shared-app
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              ENVIRONMENT: "weu-uat"
+              TF_ENVIRONMENT_FOLDER: "weu-uat"
               WORKINGDIR: 'src/domains/shared-app'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.UAT_AZURE_SERVICE_CONNECTION }}
               AKS_NAME: ${{ variables.AKS_UAT_NAME }}
@@ -186,7 +186,7 @@ stages:
           # 2. Run terraform plan shared-common
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              ENVIRONMENT: "weu-prod"
+              TF_ENVIRONMENT_FOLDER: "weu-prod"
               WORKINGDIR: 'src/domains/shared-common'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.PROD_AZURE_SERVICE_CONNECTION }}
       - job: tfplan_shared_app
@@ -200,7 +200,7 @@ stages:
           # Run terraform plan shared-app
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              ENVIRONMENT: "weu-prod"
+              TF_ENVIRONMENT_FOLDER: "weu-prod"
               WORKINGDIR: 'src/domains/shared-app'
               AZURE_SERVICE_CONNECTION_NAME: ${{ variables.PROD_AZURE_SERVICE_CONNECTION }}
               AKS_NAME: ${{ variables.AKS_PROD_NAME }}

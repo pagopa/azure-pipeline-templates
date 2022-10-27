@@ -38,7 +38,7 @@ parameters:
 
 
 stages:
-  - stage: ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
+  - stage: 🔦 ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
     pool:
@@ -50,18 +50,18 @@ stages:
           - checkout: self
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
-          # # 2. Run terraform plan
-          # - template: ../terraform-plan/template.yaml@terraform
-          #   parameters:
-          #     ENVIRONMENT: ${{parameters.ENVIRONMENT}}
-          #     WORKINGDIR: ${{parameters.WORKINGDIR}}
-          #     AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
-          #     AKS_NAME: ${{parameters.AKS_NAME}}
-          #     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
-          #     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
-          #     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+          # 2. Run terraform plan
+          - template: ../terraform-plan/template.yaml@terraform
+            parameters:
+              TF_ENVIRONMENT_FOLDER: ${{parameters.TF_ENVIRONMENT_FOLDER}}
+              WORKINGDIR: ${{parameters.WORKINGDIR}}
+              AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
+              AKS_NAME: ${{parameters.AKS_NAME}}
+              AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
+              AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
+              AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
 
-  - stage: ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
+  - stage: 🚀 ${{parameters.ENVIRONMENT}}_tf_apply_${{parameters.DOMAIN_NAME}}
     dependsOn: ['${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}']
     condition: succeeded()
     pool:
@@ -77,13 +77,13 @@ stages:
                 - checkout: self
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
-                # # 2. Run terraform apply
-                # - template: ../terraform-apply/template.yaml@terraform
-                #   parameters:
-                #     ENVIRONMENT: ${{parameters.ENVIRONMENT}}
-                #     WORKINGDIR: ${{parameters.WORKINGDIR}}
-                #     AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
-                #     AKS_NAME: ${{parameters.AKS_NAME}}
-                #     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
-                #     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
-                #     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+                # 2. Run terraform apply
+                - template: ../terraform-apply/template.yaml@terraform
+                  parameters:
+                    WORKINGDIR: ${{parameters.WORKINGDIR}}
+                    TF_ENVIRONMENT_FOLDER: ${{parameters.TF_ENVIRONMENT_FOLDER}}
+                    AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
+                    AKS_NAME: ${{parameters.AKS_NAME}}
+                    AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
+                    AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
+                    AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
