@@ -36,8 +36,6 @@ parameters:
     type: string
     default: ""
 
-#https://learn.microsoft.com/en-us/azure/devops/release-notes/2021/sprint-190-update#support-for-sequential-deployments-rather-than-latest-only-when-using-exclusive-lock-checks
-lockBehavior: sequential
 stages:
   - stage: ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
     displayName: 🔦 ${{parameters.ENVIRONMENT}}_tf_plan_${{parameters.DOMAIN_NAME}}
