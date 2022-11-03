@@ -3,8 +3,8 @@ parameters:
   - name: 'AZURE_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
-  - name: 'ENVIRONMENT'
-    displayName: '(Required) Environment to apply to. Possible values are [dev|uat|prod] etc.'
+  - name: 'TF_ENVIRONMENT_FOLDER'
+    displayName: '(Required) Terraform environment folder name to apply to. For example [dev|weudev|uat|weuuat|prod|weuprod] etc.'
     type: string
   - name: 'WORKINGDIR'
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
@@ -77,7 +77,7 @@ steps:
       failOnStandardError: true
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
-        echo "##[section]Start terraform plan for env=${{ parameters.ENVIRONMENT }}"
+        echo "##[section] 💈 Start terraform plan for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
         export ARM_CLIENT_ID="${servicePrincipalId}"
         export ARM_CLIENT_SECRET="${servicePrincipalKey}"
@@ -115,11 +115,11 @@ steps:
         fi
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-          echo "[INFO] Run terraform plan + kubernetes"
-          ./terraform.sh plan ${{ parameters.ENVIRONMENT }} -var k8s_kube_config_path_prefix="$(pwd)"
+          echo "[INFO] 🚀 Run terraform plan + kubernetes"
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)"
         else
-          echo "[INFO] Run terraform plan"
-          ./terraform.sh plan ${{ parameters.ENVIRONMENT }}
+          echo "[INFO] 🚀 Run terraform plan"
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }}
         fi
 
         echo "[INFO] Clean project"
