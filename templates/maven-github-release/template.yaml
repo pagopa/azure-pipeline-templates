@@ -1,6 +1,6 @@
-# Node Github Relase steps
+# Node GitHub Relase steps
 # Mark a release on the project repository, with version bump and tag,
-# and publish a release on Github
+# and publish a release on GitHub
 
 parameters:
 
@@ -12,6 +12,7 @@ parameters:
       - minor
       - patch
       - buildNumber
+      - skip
 
   # This is the branch in which we will push the release tag.
   # It'll be master, but it can be overridden
@@ -20,7 +21,7 @@ parameters:
     type: string
     default: master
 
-  # Github parameters
+  # GitHub parameters
   - name: 'gitUsername'
     type: string
   - name: 'gitEmail'
@@ -40,20 +41,20 @@ steps:
     displayName: 'Checkout release branch'
 
   # bump version
-  - task: Maven@3
-    displayName: 'Bump version'
-    inputs:
-      mavenPomFile: "pom.xml"
-      goals: 'build-helper:parse-version versions:set'
-      ${{ if eq(parameters.semver, 'patch') }}:
-        options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
-      ${{ if eq(parameters.semver, 'minor') }}:
-        options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
-      ${{ if eq(parameters.semver, 'major') }}:
-        options: '-DnewVersion=${parsedVersion.nextMajorVersion}.0.0'
-      ${{ if eq(parameters.semver, 'buildNumber') }}:
-        options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${parsedVersion.nextBuildNumber}'
-
+  - ${{ if ne(parameters.semver, 'skip') }}:
+      - task: Maven@3
+        displayName: 'Bump version'
+        inputs:
+          mavenPomFile: "pom.xml"
+          goals: 'build-helper:parse-version versions:set'
+          ${{ if eq(parameters.semver, 'patch') }}:
+            options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'
+          ${{ if eq(parameters.semver, 'minor') }}:
+            options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
+          ${{ if eq(parameters.semver, 'major') }}:
+            options: '-DnewVersion=${parsedVersion.nextMajorVersion}.0.0'
+          ${{ if eq(parameters.semver, 'buildNumber') }}:
+            options: '-DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${parsedVersion.nextBuildNumber}-$(Build.SourceBranchName)'
 
   - task: Bash@3
     name: next_version
@@ -122,14 +123,15 @@ steps:
       echo "##vso[task.setvariable variable=tag]$TAG"
     displayName: 'Set release variables'
 
-  # create new releae
-  - task: GitHubRelease@0
-    inputs:
-      gitHubConnection: ${{ parameters.gitHubConnection }}
-      repositoryName: $(Build.Repository.Name)
-      action: create
-      target: $(sha)
-      tagSource: manual
-      tag: $(tag)
-      title: $(title)
-      addChangelog: true
+  # create new release
+  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber'))}}:
+      - task: GitHubRelease@0
+        inputs:
+          gitHubConnection: ${{ parameters.gitHubConnection }}
+          repositoryName: $(Build.Repository.Name)
+          action: create
+          target: $(sha)
+          tagSource: manual
+          tag: $(tag)
+          title: $(title)
+          addChangelog: true
