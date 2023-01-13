@@ -40,6 +40,9 @@ parameters:
   - name: "APPINSIGHTS_RESOURCE_ID"
     type: string
     default: "none"
+  - name: "OVERRIDE_DEPLOY_KEY_TAG_NAME"
+    type: string
+    default: "microservice-chart.image.tag="
 
 steps:
   - task: HelmDeploy@0
@@ -57,8 +60,8 @@ steps:
       install: true
       waitForExecution: ${{ parameters.WAIT_FOR_EXECUTION }}
       arguments: ${{ parameters.ARGUMENTS }}
-      overrideValues: microservice-chart.image.tag=${{ parameters.DEPLOY_VERSION }}
-  
+      overrideValues: ${{ parameters.OVERRIDE_DEPLOY_KEY_TAG_NAME }}=${{ parameters.DEPLOY_VERSION }}
+
   - ${{ if ne(parameters['APPINSIGHTS_SERVICE_CONN'], 'none') }}:
       - task: AzureCLI@2
         displayName: Release annotations
@@ -71,7 +74,7 @@ steps:
           failOnStandardError: true
           inlineScript: |
             echo "[INFO] Creating release annotation in Application Insights"
-    
+
             APPINSIGHTS_ID=${{ parameters.APPINSIGHTS_RESOURCE_ID }}
             UUID=$(uuidgen)
             releaseName="${{ parameters.APP_NAME }}-${{ parameters.ENV }}"
@@ -80,10 +83,10 @@ steps:
             eventTime=$(date -u '+%Y-%m-%dT%H:%M:%S')
             category="Deployment"
             label="Success"
-    
+
             body='{ "Id": "'$UUID'", "AnnotationName": "'$releaseName'", "EventTime":"'$eventTime'", "Category":"'$category'", "Properties":"{ \"ReleaseName\":\"'$releaseName'\", \"ReleaseDescription\" : \"'$releaseDescription'\", \"TriggerBy\": \"'$triggerBy'\" }"}'
-            
+
             # echo "[INFO] body: $body"
             # echo "[INFO] APPINSIGHTS_ID: $APPINSIGHTS_ID"
-    
+
             az rest --method put --uri "$APPINSIGHTS_ID/Annotations?api-version=2015-05-01" --body "$body" -o none
