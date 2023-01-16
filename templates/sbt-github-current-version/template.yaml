@@ -1,0 +1,22 @@
+steps:
+  - task: Bash@3
+    name: current_version
+    displayName: 'Get current release variables'
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "[INFO] Get current release"
+        
+        if [ ! -f "version.sbt" ]; then
+          echo "File 'version.sbt' does not exists"
+          exit 1
+        fi
+
+        IFS='"'
+        arrIN=($(cat version.sbt))
+        SBT_VERSION="${arrIN[1]}"
+        IFS=' '
+
+        echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=true]$SBT_VERSION"
+        echo "[INFO] Current release $SBT_VERSION"
+      failOnStderr: true

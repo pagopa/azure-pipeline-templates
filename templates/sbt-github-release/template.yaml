@@ -55,15 +55,6 @@ steps:
       echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=false]$SBT_VERSION"
     displayName: "Set var SBT_VERSION"
 
-#  - script: |
-#      OVERRIDE_SBT_VERSION=$(SBT_VERSION)-$(Build.SourceBranchName)
-#
-#      echo "ThisBuild / version := \"$OVERRIDE_SBT_VERSION\"" > version.sbt
-#
-#      echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=false]$OVERRIDE_SBT_VERSION"
-#    displayName: "Override SBT_VERSION if not principal branch"
-#    condition: or(eq(variables.isFeature, 'True'), eq(variables.isBugfix, 'True'), eq(variables.isHotfix, 'True'))
-
   - script: |
       echo "SBT_VERSION: $(SBT_VERSION)"
 
@@ -100,7 +91,7 @@ steps:
       if [ "${{ parameters.semver }}" == "skip" ]; then
         echo "version on project: $SBT_VERSION"
         echo "##vso[task.setvariable variable=OVERRIDE_SBT_VERSION;isOutput=true]$SBT_VERSION"
-      elif [ "${{ parameters.semver }}" == "buildNumber" ];then
+      elif [ "${{ parameters.semver }}" == "buildNumber" ]; then
         PRE_RELEASE_VERSION=$(getVar.PRE_RELEASE_VERSION)
         PRE_RELEASE_VERSION_WITHOUT_BETA=${PRE_RELEASE_VERSION/-beta/""}
         
@@ -148,199 +139,49 @@ steps:
     name: getVar
     displayName: "Split SBT_VERSION and set vars"
 
-#  - ${{ if ne(parameters['SEMVER'], 'skip' ) }}:
-#    - script: |
-#        echo "Checkout new branch $(BRANCH_RELEASE)"
-#        git checkout -b $(BRANCH_RELEASE)
-#      displayName: "Checkout new release branch"
-#
-#  - script: |
-#      echo "ThisBuild / version := \"$(RELEASE_VERSION)\"" > version.sbt
-#      git add version.sbt
-#      git commit -m "Setting version $(RELEASE_VERSION)"
-#    displayName: "Set new rc version and commit"
-#
-#  - script: |
-#      echo "Tag $(RELEASE_VERSION)"
-#      git tag -a v$(RELEASE_VERSION) -m "Tag version $(RELEASE_VERSION)"
-#      git push origin v$(RELEASE_VERSION)
-#
-#      HEAD_SHA=$(git rev-parse HEAD)
-#      echo "##vso[task.setvariable variable=shaTarget;isOutput=false]$HEAD_SHA"
-#    displayName: "Tag new rc"
-#
-#  - task: GitHubRelease@1
-#    displayName: "GitHub release"
-#    inputs:
-#      gitHubConnection: $(github-service-connection)
-#      tag: v$(RELEASE_VERSION)
-#      title: 'Release v$(RELEASE_VERSION)'
-#      target: $(shaTarget)
-#      isPreRelease: true
-#
-#  - script: |
-#      echo "ThisBuild / version := \"$(RELEASE_BETA_VERSION)\"" > version.sbt
-#      git add version.sbt
-#      git commit -m "Setting version $(RELEASE_BETA_VERSION)"
-#    displayName: "Set new rc beta version and commit"
-#
-#  - script: |
-#      git push --set-upstream origin $(BRANCH_RELEASE)
-#    displayName: "Push new rc branch"
-#
-#  - script: |
-#      echo "Checkout branch $(branchName)"
-#      git checkout $(branchName)
-#    displayName: "Checkout develop branch"
-#
-#  - script: |
-#      echo "ThisBuild / version := \"$(NEXT_DEVELOP_VERSION)\"" > version.sbt
-#      git add version.sbt
-#      git commit -m "Setting version $(NEXT_DEVELOP_VERSION)"
-#    displayName: "Set new develop version and commit"
-#
-#  - script: |
-#      git push origin $(branchName)
-#    displayName: "Push develop branch"
+  - task: Bash@3
+    displayName: Update version Helm
+    name: update_version_helm
+    inputs:
+      targetType: 'inline'
+      script: |
+        for i in helm/nodo/values-${{ parameters['ENV'] }}.yaml; do
+          [ -f "$i" ] || break
+          yq -i ".nodo.image.tag = \"$(OVERRIDE_SBT_VERSION)\"" "$i"
+          git add "$i"
+        done
+        CHART_FILE="helm/nodo/Chart.yaml"
+        if [[ -f "$CHART_FILE" ]]; then
+          yq -i ".version = \"$(OVERRIDE_SBT_VERSION)\"" "$CHART_FILE"
+          yq -i ".appVersion = \"$(OVERRIDE_SBT_VERSION)\"" "$CHART_FILE"
+          git add "$CHART_FILE"
+        fi
 
+    # push new version
+  - script: |
+      git ls-files . | grep 'pom.xml'  | xargs git add
+      git commit -m "Bump version [skip ci]"
+      git push origin ${{ parameters.release_branch }}
+    displayName: 'Push to the release branch'
 
-  ## PROMOTE HOTFIX
-#  - ${{ if eq(parameters.semver, 'patch') }}:
-#  - stage: promote_hotfix
-#    displayName: "Promote hotfix"
-#    jobs:
-#      - job: promote_hotfix
-#        condition: ${{ if eq(parameters.semver, 'patch') }}
-#        steps:
-#          - checkout: self
-#            clean: true
-#            persistCredentials: true
-#
-#          - script: |
-#              NEXT_MAIN_SBT_VERSION=$(getVar.MAJOR).$(getVar.MINOR).$(($(getVar.PATCH)+1))
-#
-#              echo "##vso[task.setvariable variable=NEXT_MAIN_SBT_VERSION]$NEXT_MAIN_SBT_VERSION"
-#            displayName: "Set var of main SBT_VERSION"
-#
-#          - script: |
-#              echo "Checkout branch $(branchName)"
-#              git checkout $(branchName)
-#            displayName: "Checkout branch $(branchName)"
-#
-#          - script: |
-#              echo "Checkout new branch 'tmp/pr-hotfix-main-$(NEXT_MAIN_SBT_VERSION)'"
-#              git checkout -b 'tmp/pr-hotfix-main-$(NEXT_MAIN_SBT_VERSION)'
-#            displayName: "Checkout new PR branch hotfix to main"
-#
-#          - script: |
-#              echo "ThisBuild / version := \"$(NEXT_MAIN_SBT_VERSION)\"" > version.sbt
-#              git add version.sbt
-#              git commit -m "Setting version $(NEXT_MAIN_SBT_VERSION)"
-#            displayName: "Set main version and commit"
-#
-#          - script: |
-#              git push --set-upstream origin 'tmp/pr-hotfix-main-$(NEXT_MAIN_SBT_VERSION)'
-#            displayName: "Push new PR branch hotfix to main"
-#
-#          - script: |
-#              echo "Open new PR from 'tmp/pr-hotfix-main-$(NEXT_MAIN_SBT_VERSION)' to branch main"
-#
-##              curl -i -X POST \
-##                -u "$(git-username):$(git-user-pat)" \
-##                -H "Accept: application/vnd.github.v3+json" \
-##                https://api.github.com/repos/$(git-repo)/pulls \
-##                -d '{"title":"Merge hotfix to main","body":"Automatic PR for merge hoyfix to main. Please verify diff before to approve","head":"tmp/pr-hotfix-main-$(NEXT_MAIN_SBT_VERSION)","base":"main"}'
-#            displayName: "Open PR branch hotfix to main"
-#
-#          - script: |
-#              echo "Checkout branch develop"
-#              git checkout develop
-#            displayName: "Checkout develop branch"
-#
-#          - script: |
-#              if [ ! -f "version.sbt" ]
-#              then
-#                echo "File 'version.sbt' does not exists"
-#                exit 1
-#              fi
-#
-#              IFS='"'
-#              arrIN=($(cat version.sbt))
-#              DEVELOP_SBT_VERSION="${arrIN[1]}"
-#              IFS=' '
-#
-#              echo "##vso[task.setvariable variable=DEVELOP_SBT_VERSION;isOutput=false]$DEVELOP_SBT_VERSION"
-#            displayName: "Set var of develop SBT_VERSION"
-#
-#          - script: |
-#              echo "Checkout branch $(branchName)"
-#              git checkout $(branchName)
-#            displayName: "Checkout branch $(branchName)"
-#
-#          - script: |
-#              echo "Checkout new branch 'tmp/pr-hotfix-develop-$(DEVELOP_SBT_VERSION)'"
-#              git checkout -b 'tmp/pr-hotfix-develop-$(DEVELOP_SBT_VERSION)'
-#            displayName: "Checkout new PR branch hotfix to develop"
-#
-#          - script: |
-#              echo "ThisBuild / version := \"$(DEVELOP_SBT_VERSION)\"" > version.sbt
-##              git add version.sbt
-##              git commit -m "Setting version $(DEVELOP_SBT_VERSION)"
-#            displayName: "Set develop version and commit"
-#
-#          - script: |
-#              echo "tmp/pr-hotfix-develop-$(DEVELOP_SBT_VERSION)"
-##              git push --set-upstream origin 'tmp/pr-hotfix-develop-$(DEVELOP_SBT_VERSION)'
-#            displayName: "Push new PR branch hotfix to develop"
-#
-#          - script: |
-#              echo "Open new PR from 'tmp/pr-hotfix-develop-$(DEVELOP_SBT_VERSION)' to branch develop"
-#
-##              curl -i -X POST \
-##                -u "$(git-username):$(git-user-pat)" \
-##                -H "Accept: application/vnd.github.v3+json" \
-##                https://api.github.com/repos/$(git-repo)/pulls \
-##                -d '{"title":"Back-Merge hotfix to develop","body":"Automatic PR for back merge hoyfix to develop. Please verify diff before to approve","head":"tmp/pr-hotfix-develop-$(DEVELOP_SBT_VERSION)","base":"develop"}'
-#            displayName: "Open PR branch hotfix to develop"
+  - script: |
+      HEAD_SHA=$(git rev-parse HEAD)
+      TAG="$(next_version.value)"
+      TITLE="Release $(next_version.value)"
+      echo "##vso[task.setvariable variable=title]$TITLE"
+      echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
+      echo "##vso[task.setvariable variable=tag]$TAG"
+    displayName: 'Set release variables'
 
-#          - script: |
-#              RELEASE_BRANCHES=$(git --no-pager branch -r | grep -i origin/release)
-#              for releaseBranch in $RELEASE_BRANCHES
-#              do
-#                  releaseBranchName=$(basename $releaseBranch)
-#                  echo "Found release/$releaseBranchName"
-#
-#                  echo "Checkout release/$releaseBranchName"
-#                  git checkout release/$releaseBranchName
-#
-#                  if [ ! -f "version.sbt" ]; then
-#                    echo "File 'version.sbt' does not exists"
-#                    exit 1
-#                  fi
-#                  IFS='"'
-#                  arrIN=($(cat version.sbt))
-#                  REL_SBT_VERSION="${arrIN[1]}"
-#                  IFS=' '
-#
-#                  git checkout $(branchName)
-#
-#                  echo "Checkout new branch 'tmp/pr-hotfix-release-$REL_SBT_VERSION'"
-#                  git checkout -b "tmp/pr-hotfix-release-$REL_SBT_VERSION"
-#
-#                  echo "ThisBuild / version := \"$REL_SBT_VERSION\"" > version.sbt
-#                  git add version.sbt
-#                  git commit -m "Setting version $REL_SBT_VERSION"
-#
-#                  git push --set-upstream origin "tmp/pr-hotfix-release-$REL_SBT_VERSION"
-#
-#                  echo "Open new PR from 'tmp/pr-hotfix-release-$REL_SBT_VERSION' to branch release/$releaseBranchName"
-#
-#                  curl -i -X POST \
-#                     -u "$(git-username):$(git-user-pat)" \
-#                     -H "Accept: application/vnd.github.v3+json" \
-#                     https://api.github.com/repos/$(git-repo)/pulls \
-#                     -d '{"title":"Back-Merge hotfix to other opened release","body":"Automatic PR for back merge hotfix to other opened release.","head":"tmp/pr-hotfix-release-$REL_SBT_VERSION","base":"release/$releaseBranchName"}'
-#              done
-#            displayName: "Create branch and open PR for all branch release opened"
-
-
+  # create new release
+  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber'))}}:
+      - task: GitHubRelease@0
+        inputs:
+          gitHubConnection: ${{ parameters.gitHubConnection }}
+          repositoryName: $(Build.Repository.Name)
+          action: create
+          target: $(sha)
+          tagSource: manual
+          tag: $(tag)
+          title: $(title)
+          addChangelog: true
