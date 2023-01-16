@@ -1,6 +1,6 @@
 # Maven GitHub Release template
 
-Opinionated sequence of steps to mark a new release of a Maven project hosted on a Github repository. It does the following:
+Opinionated sequence of steps to mark a new release of a sbt project hosted on a Github repository. It does the following:
 
 1. bump the version according to a given [SemVer](https://semver.org/) option (`major`, `minor`, `patch`, `buildNumber` or `skip`).
 1. tag the repository with the new version number
