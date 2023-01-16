@@ -13,10 +13,10 @@ steps:
         fi
 
         IFS='"'
-        arrIN=($(cat version.sbt))
-        SBT_VERSION="${arrIN[1]}"
+        arrVers=($(cat version.sbt))
+        version="${arrVers[1]}"
         IFS=' '
 
-        echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=true]$SBT_VERSION"
-        echo "[INFO] Current release $SBT_VERSION"
+        echo "##vso[task.setvariable variable=value;isOutput=true]$version"
+        echo "[INFO] Current release $version"
       failOnStderr: true
