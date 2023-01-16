@@ -48,8 +48,8 @@ steps:
       fi
 
       IFS='"'
-      arrIN=($(cat version.sbt))
-      SBT_VERSION="${arrIN[1]}"
+      arrVers=($(cat version.sbt))
+      SBT_VERSION="${arrVers[1]}"
       IFS=' '
 
       echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=false]$SBT_VERSION"
