@@ -145,7 +145,7 @@ steps:
         echo "new version is ${OVERRIDE_SBT_VERSION}"
         echo "##vso[task.setvariable variable=BRANCH_RELEASE;isOutput=true]$BRANCH_RELEASE"
       fi
-      echo "##vso[task.setvariable variable=OVERRIDE_SBT_VERSION;isOutput=true]$OVERRIDE_SBT_VERSION"
+      echo "##vso[task.setvariable variable=RELEASE_VERSION;isOutput=true]$OVERRIDE_SBT_VERSION"
     name: getOverrideSbtVar
     displayName: "Override sbtVersion"
 
@@ -157,13 +157,13 @@ steps:
       script: |
         for i in helm/nodo/values-${{ parameters['env'] }}.yaml; do
           [ -f "$i" ] || break
-          yq -i ".nodo.image.tag = \"$(OVERRIDE_SBT_VERSION)\"" "$i"
+          yq -i ".nodo.image.tag = \"$(RELEASE_VERSION)\"" "$i"
           git add "$i"
         done
         CHART_FILE="helm/nodo/Chart.yaml"
         if [[ -f "$CHART_FILE" ]]; then
-          yq -i ".version = \"$(OVERRIDE_SBT_VERSION)\"" "$CHART_FILE"
-          yq -i ".appVersion = \"$(OVERRIDE_SBT_VERSION)\"" "$CHART_FILE"
+          yq -i ".version = \"$(RELEASE_VERSION)\"" "$CHART_FILE"
+          yq -i ".appVersion = \"$(RELEASE_VERSION)\"" "$CHART_FILE"
           git add "$CHART_FILE"
         fi
         
