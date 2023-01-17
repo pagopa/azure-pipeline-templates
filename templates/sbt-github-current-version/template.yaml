@@ -13,7 +13,10 @@ steps:
         fi
 
         IFS='"'
+        cat version.sbt
         arrVers=($(cat version.sbt))
+        cat arrVers
+        
         SBT_VERSION="${arrVers[1]}"
         IFS=' '
 
