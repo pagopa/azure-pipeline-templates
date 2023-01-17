@@ -3,7 +3,8 @@
 # and publish a release on GitHub
 
 parameters:
-  - name: env
+  # Environment parameters
+  - name: 'env'
     displayName: Target Environment
     type: string
     default: dev
@@ -11,7 +12,6 @@ parameters:
       - dev
       - uat
       - prd
-
   # Versioning parameters
   - name: 'semver'
     type: string
@@ -21,14 +21,12 @@ parameters:
       - patch
       - buildNumber
       - skip
-
   # This is the branch in which we will push the release tag.
   # It'll be master, but it can be overridden
   # Basically, this variable is used to enforce the fact that we use the very same branch in different steps
   - name: 'release_branch'
     type: string
     default: ' '
-
   # GitHub parameters
   - name: 'gitUsername'
     type: string
@@ -47,7 +45,7 @@ steps:
   # Without this step, changes would be applied to a detached head
   - script: |
       git checkout ${{ parameters.release_branch }}
-    displayName: 'Checkout release branch'
+    displayName: 'Checkout branch'
 
   - script: |
       if [ ! -f "version.sbt" ]
@@ -62,7 +60,7 @@ steps:
       IFS=' '
 
       echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=false]$SBT_VERSION"
-    displayName: "Set var SBT_VERSION"
+    displayName: "retrieve sbt version"
 
   - script: |
       echo "SBT_VERSION: $(SBT_VERSION)"
