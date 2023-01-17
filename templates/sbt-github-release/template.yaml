@@ -108,7 +108,7 @@ steps:
         echo "new PRE_RELEASE_VERSION is: $PRE_RELEASE_VERSION"
         #PRE_RELEASE_VERSION_WITHOUT_BETA=${PRE_RELEASE_VERSION/-beta/""}
         
-        RELEASE_VERSION=$(getSbtVar.MAJOR).$(getSbtVar.MINOR).$(getSbtVar.PATCH)-rc.($PRE_RELEASE_VERSION+1)
+        RELEASE_VERSION=$(getSbtVar.MAJOR).$(getSbtVar.MINOR).$(getSbtVar.PATCH)-rc.$(($PRE_RELEASE_VERSION)+1))
         #RELEASE_BETA_VERSION=$(getSbtVar.MAJOR).$(getSbtVar.MINOR).$(getSbtVar.PATCH)-rc.$(($(getSbtVar.PRE_RELEASE_VERSION)+1))-beta
       
         #        echo "##vso[task.setvariable variable=RELEASE_VERSION]$RELEASE_VERSION"
