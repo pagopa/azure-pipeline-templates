@@ -15,7 +15,7 @@ steps:
         IFS='"'
         cat version.sbt
         arrVers=($(cat version.sbt))
-        cat arrVers
+        echo arrVers
         
         SBT_VERSION="${arrVers[1]}"
         IFS=' '
