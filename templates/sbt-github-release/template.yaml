@@ -62,7 +62,7 @@ steps:
 #  - template: ../sbt-github-current-version/template.yaml
 
   - task: Bash@3
-    name: current_version
+    name: current_version2
     displayName: 'Get current release variables'
     inputs:
       targetType: "inline"
@@ -114,15 +114,15 @@ steps:
   # bump version
   - script: |
       if [ "${{ parameters.semver }}" == "skip" ]; then
-        OVERRIDE_SBT_VERSION=$(current_version.SBT_VERSION)
+        OVERRIDE_SBT_VERSION=$(current_version2.SBT_VERSION)
       elif [ "${{ parameters.semver }}" == "buildNumber" ]; then
-        OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(current_version.MINOR).$(current_version.PATCH)-$(Build.SourceBranchName)
+        OVERRIDE_SBT_VERSION=$(current_version2.MAJOR).$(current_version2.MINOR).$(current_version2.PATCH)-$(Build.SourceBranchName)
       elif [[ "${{ parameters.semver }}" == "patch" ]]; then
-        OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(current_version.MINOR).$(($(current_version.PATCH)+1))
+        OVERRIDE_SBT_VERSION=$(current_version2.MAJOR).$(current_version2.MINOR).$(($(current_version2.PATCH)+1))
       elif [[ "${{ parameters.semver }}" == "minor" ]]; then
-        OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(($(current_version.MINOR)+1)).0
+        OVERRIDE_SBT_VERSION=$(current_version2.MAJOR).$(($(current_version2.MINOR)+1)).0
       else
-        OVERRIDE_SBT_VERSION=$(($(current_version.MAJOR)+1)).0.0
+        OVERRIDE_SBT_VERSION=$(($(current_version2.MAJOR)+1)).0.0
       fi
       
       echo "version is ${OVERRIDE_SBT_VERSION}"
