@@ -146,7 +146,7 @@ steps:
         echo "##vso[task.setvariable variable=BRANCH_RELEASE]$BRANCH_RELEASE"
       fi
     name: getOverrideSbtVar
-    displayName: "Split SBT_VERSION and set vars"
+    displayName: "Override sbtVersion"
 
   - task: Bash@3
     displayName: Update version Helm
