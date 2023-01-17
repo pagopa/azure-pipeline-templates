@@ -16,6 +16,10 @@ parameters:
   displayName: "Force the existing docker image to be replaced"
   type: boolean
 
+- name: 'DOCKERFILE'
+  type: string
+  default: "Dockerfile"
+
 steps:
 
 - task: Docker@2
@@ -32,8 +36,8 @@ steps:
     script: |
       echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
       echo "[INFO] Image version: ${{ parameters.DOCKER_IMAGE_TAG }}"
-      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} .
-      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest .
+      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} -f ${{ parameters.DOCKERFILE }} .
+      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest -f ${{ parameters.DOCKERFILE }} .
       docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }}
       docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest
 
@@ -50,8 +54,8 @@ steps:
         echo "[INFO] docker image already exists in the registry, skip build and push"
       else
         echo "[INFO] docker image does not exist in the registry, start build and push"
-        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} .
-        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest .
+        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} -f ${{ parameters.DOCKERFILE }} .
+        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest -f ${{ parameters.DOCKERFILE }} .
         docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }}
         docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest
       fi
