@@ -1,52 +1,54 @@
 steps:
-#  - task: Bash@3
-#    name: current_version
-#    displayName: 'Get current release variables'
-#    inputs:
-#      targetType: "inline"
-  - script: |
-      echo "[INFO] Get current release"
-      
-      if [ ! -f "version.sbt" ]; then
-        echo "File 'version.sbt' does not exists"
-        exit 1
-      fi
+  - checkout: self
+    persistCredentials: true
+  - task: Bash@3
+    name: current_version
+    displayName: 'Get current release variables'
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "[INFO] Get current release"
+        
+        if [ ! -f "version.sbt" ]; then
+          echo "File 'version.sbt' does not exists"
+          exit 1
+        fi
+
+        IFS='"'
+        arrVers=($(cat version.sbt))
+        echo arrVers
+        
+        SBT_VERSION="${arrVers[1]}"
+        IFS=' '
+
+        echo "SBT_VERSION: $(SBT_VERSION)"
+
+        IFS="-" read VERSION PRE_RELEASE <<< $(SBT_VERSION); IFS="\n"
+        IFS="." read MAJOR MINOR PATCH <<< $VERSION; IFS="\n"
+        IFS="." read PRE_RELEASE_NAME PRE_RELEASE_VERSION <<< $PRE_RELEASE; IFS="\n"
   
-      IFS='"'
-      arrVers=($(cat version.sbt))
-      echo arrVers
-      
-      SBT_VERSION="${arrVers[1]}"
-      IFS=' '
+        echo "VERSION: $VERSION"
+        echo "PRE_RELEASE: $PRE_RELEASE"
+        echo "MAJOR: $MAJOR"
+        echo "MINOR: $MINOR"
+        echo "PATCH: $PATCH"
+        echo "PRE_RELEASE_NAME: $PRE_RELEASE_NAME"
+        echo "PRE_RELEASE_VERSION: $PRE_RELEASE_VERSION"
   
-      echo "SBT_VERSION: $(SBT_VERSION)"
+        IS_HOTFIX_VERSION=false
+        if [[ "$PATCH" != "0" ]]; then
+          IS_HOTFIX_VERSION=true
+        fi
   
-      IFS="-" read VERSION PRE_RELEASE <<< $(SBT_VERSION); IFS="\n"
-      IFS="." read MAJOR MINOR PATCH <<< $VERSION; IFS="\n"
-      IFS="." read PRE_RELEASE_NAME PRE_RELEASE_VERSION <<< $PRE_RELEASE; IFS="\n"
-  
-      echo "VERSION: $VERSION"
-      echo "PRE_RELEASE: $PRE_RELEASE"
-      echo "MAJOR: $MAJOR"
-      echo "MINOR: $MINOR"
-      echo "PATCH: $PATCH"
-      echo "PRE_RELEASE_NAME: $PRE_RELEASE_NAME"
-      echo "PRE_RELEASE_VERSION: $PRE_RELEASE_VERSION"
-  
-      IS_HOTFIX_VERSION=false
-      if [[ "$PATCH" != "0" ]]; then
-        IS_HOTFIX_VERSION=true
-      fi
-  
-      echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=true]$SBT_VERSION"
-      echo "##vso[task.setvariable variable=VERSION;isOutput=true]$VERSION"
-      echo "##vso[task.setvariable variable=PRE_RELEASE;isOutput=true]$PRE_RELEASE"
-      echo "##vso[task.setvariable variable=MAJOR;isOutput=true]$MAJOR"
-      echo "##vso[task.setvariable variable=MINOR;isOutput=true]$MINOR"
-      echo "##vso[task.setvariable variable=PATCH;isOutput=true]$PATCH"
-      echo "##vso[task.setvariable variable=PRE_RELEASE_NAME;isOutput=true]$PRE_RELEASE_NAME"
-      echo "##vso[task.setvariable variable=PRE_RELEASE_VERSION;isOutput=true]$PRE_RELEASE_VERSION"
-      echo "##vso[task.setvariable variable=IS_HOTFIX_VERSION;isOutput=true]$IS_HOTFIX_VERSION"
-      
-      echo "[INFO] Current release $SBT_VERSION"
-    failOnStderr: true
+        echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=true]$SBT_VERSION"
+        echo "##vso[task.setvariable variable=VERSION;isOutput=true]$VERSION"
+        echo "##vso[task.setvariable variable=PRE_RELEASE;isOutput=true]$PRE_RELEASE"
+        echo "##vso[task.setvariable variable=MAJOR;isOutput=true]$MAJOR"
+        echo "##vso[task.setvariable variable=MINOR;isOutput=true]$MINOR"
+        echo "##vso[task.setvariable variable=PATCH;isOutput=true]$PATCH"
+        echo "##vso[task.setvariable variable=PRE_RELEASE_NAME;isOutput=true]$PRE_RELEASE_NAME"
+        echo "##vso[task.setvariable variable=PRE_RELEASE_VERSION;isOutput=true]$PRE_RELEASE_VERSION"
+        echo "##vso[task.setvariable variable=IS_HOTFIX_VERSION;isOutput=true]$IS_HOTFIX_VERSION"
+        
+        echo "[INFO] Current release $SBT_VERSION"
+      failOnStderr: true
