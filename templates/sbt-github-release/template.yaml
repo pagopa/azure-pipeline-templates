@@ -34,8 +34,8 @@ parameters:
     type: string
   - name: 'gitHubConnection'
     type: string
-  # Helm folder
-  - name: 'helmFolder'
+  # Helm path
+  - name: 'helmPath'
     type: string
     default: 'helm'
   # Chart Alias
@@ -57,17 +57,16 @@ steps:
   # Without this step, changes would be applied to a detached head
   - script: |
       git checkout ${{ parameters.release_branch }}
-    displayName: 'Checkout branch'
+    displayName: 'Checkout release branch'
 
   - template: ../sbt-github-current-version/template.yaml
 
+  # bump version
   - script: |
       if [ "${{ parameters.semver }}" == "skip" ]; then
-        echo "version on project: $(current_version.SBT_VERSION)"
         OVERRIDE_SBT_VERSION=$(current_version.SBT_VERSION)
       elif [ "${{ parameters.semver }}" == "buildNumber" ]; then
         OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(current_version.MINOR).$(current_version.PATCH)-$(Build.SourceBranchName)
-        echo "new version is: $OVERRIDE_SBT_VERSION"
       elif [[ "${{ parameters.semver }}" == "patch" ]]; then
         OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(current_version.MINOR).$(($(current_version.PATCH)+1))
       elif [[ "${{ parameters.semver }}" == "minor" ]]; then
@@ -76,30 +75,30 @@ steps:
         OVERRIDE_SBT_VERSION=$(($(current_version.MAJOR)+1)).0.0
       fi
       
-      echo "new version is ${OVERRIDE_SBT_VERSION}"
+      echo "version is ${OVERRIDE_SBT_VERSION}"
       echo "##vso[task.setvariable variable=NEXT_SBT_VERSION]$OVERRIDE_SBT_VERSION"
     name: getOverrideSbtVar
-    displayName: "Override sbtVersion"
+    displayName: "Bump version"
 
     # push new version
   - script: |
       echo "ThisBuild / version := \"$(NEXT_SBT_VERSION)\"" > version.sbt
       
-      for i in ${{ parameters['helmFolder'] }}/values-${{ parameters['env'] }}.yaml; do
+      for i in ${{ parameters['helmPath'] }}/values-${{ parameters['env'] }}.yaml; do
         [ -f "$i" ] || break
         yq -i ".${{ parameters.helmChartAlias }}.image.tag = \"$(NEXT_SBT_VERSION)\"" "$i"
         git add "$i"
       done
-      CHART_FILE="${{ parameters['helmFolder'] }}/Chart.yaml"
+      CHART_FILE="${{ parameters['helmPath'] }}/Chart.yaml"
       if [[ -f "$CHART_FILE" ]]; then
         yq -i ".version = \"$(NEXT_SBT_VERSION)\"" "$CHART_FILE"
         yq -i ".appVersion = \"$(NEXT_SBT_VERSION)\"" "$CHART_FILE"
         git add "$CHART_FILE"
       fi
-    displayName: 'Update helm and sbt version'
+    displayName: 'Update version helm and sbt'
 
   - script: ${{ parameters.customScriptsPostUpdateHelm }}
-    displayName: 'Execute custom script post update Helm'
+    displayName: 'Execute custom script post update version Helm'
 
   - task: Bash@3
     displayName: Update Openapi/Swagger Version
