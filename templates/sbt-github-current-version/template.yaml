@@ -1,6 +1,4 @@
 steps:
-  - checkout: self
-    persistCredentials: true
   - task: Bash@3
     name: current_version
 
