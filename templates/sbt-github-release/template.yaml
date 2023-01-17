@@ -3,6 +3,15 @@
 # and publish a release on GitHub
 
 parameters:
+  - name: env
+    displayName: Target Environment
+    type: string
+    default: dev
+    values:
+      - dev
+      - uat
+      - prd
+
   # Versioning parameters
   - name: 'semver'
     type: string
@@ -145,7 +154,7 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        for i in helm/nodo/values-${{ parameters['ENV'] }}.yaml; do
+        for i in helm/nodo/values-${{ parameters['env'] }}.yaml; do
           [ -f "$i" ] || break
           yq -i ".nodo.image.tag = \"$(OVERRIDE_SBT_VERSION)\"" "$i"
           git add "$i"
@@ -157,7 +166,7 @@ steps:
           git add "$CHART_FILE"
         fi
         
-        cat helm/nodo/values-${{ parameters['ENV'] }}.yaml
+        cat helm/nodo/values-${{ parameters['env'] }}.yaml
 
     # push new version
 #  - script: |
