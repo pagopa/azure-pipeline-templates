@@ -16,10 +16,6 @@ steps:
         arrIN=($(cat version.sbt))
         SBT_VERSION="${arrIN[1]}"
         IFS=' '
-        echo arrIN
-        
-        SBT_VERSION="${arrIN[1]}"
-        IFS=' '
 
         echo "SBT_VERSION: $(SBT_VERSION)"
 
