@@ -1,7 +1,6 @@
 steps:
   - task: Bash@3
     name: current_version
-
     displayName: 'Get current release variables'
     inputs:
       targetType: "inline"
