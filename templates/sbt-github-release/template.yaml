@@ -97,11 +97,11 @@ steps:
         
         RELEASE_VERSION=$(getVar.MAJOR).$(getVar.MINOR).$(getVar.PATCH)-rc.$PRE_RELEASE_VERSION_WITHOUT_BETA
         RELEASE_BETA_VERSION=$(getVar.MAJOR).$(getVar.MINOR).$(getVar.PATCH)-rc.$(($(getVar.PRE_RELEASE_VERSION)+1))-beta
-
+      
+        #        echo "##vso[task.setvariable variable=RELEASE_VERSION]$RELEASE_VERSION"
+        #        echo "##vso[task.setvariable variable=RELEASE_BETA_VERSION]$RELEASE_BETA_VERSION"
         echo "new version is: $RELEASE_VERSION"
         echo "##vso[task.setvariable variable=OVERRIDE_SBT_VERSION;isOutput=true]$RELEASE_VERSION"
-#        echo "##vso[task.setvariable variable=RELEASE_VERSION]$RELEASE_VERSION"
-#        echo "##vso[task.setvariable variable=RELEASE_BETA_VERSION]$RELEASE_BETA_VERSION"
       else
         arrVerSplit=(${SBT_VERSION//./ })
         MAJOR=${arrVerSplit[0]}
