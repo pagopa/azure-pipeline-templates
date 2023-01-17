@@ -34,6 +34,18 @@ parameters:
     type: string
   - name: 'gitHubConnection'
     type: string
+  # Helm folder
+  - name: 'helmFolder'
+    type: string
+    default: 'helm'
+  # Chart Alias
+  - name: 'helmChartAlias'
+    type: string
+    default: 'microservice-chart'
+  # Post Scripts
+  - name: 'customScriptsPostUpdateHelm'
+    type: string
+    default: 'echo Nothing to do'
 
 steps:
   # setup git author
@@ -47,149 +59,95 @@ steps:
       git checkout ${{ parameters.release_branch }}
     displayName: 'Checkout branch'
 
-  - script: |
-      if [ ! -f "version.sbt" ]
-      then
-        echo "File 'version.sbt' does not exists"
-        exit 1
-      fi
-
-      IFS='"'
-      arrVers=($(cat version.sbt))
-      SBT_VERSION="${arrVers[1]}"
-      IFS=' '
-
-      echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=false]$SBT_VERSION"
-    displayName: "retrieve sbt version"
-
-  - script: |
-      echo "SBT_VERSION: $(SBT_VERSION)"
-
-      IFS="-" read VERSION PRE_RELEASE <<< $(SBT_VERSION); IFS="\n"
-      IFS="." read MAJOR MINOR PATCH <<< $VERSION; IFS="\n"
-      IFS="." read PRE_RELEASE_NAME PRE_RELEASE_VERSION <<< $PRE_RELEASE; IFS="\n"
-
-      echo "VERSION: $VERSION"
-      echo "PRE_RELEASE: $PRE_RELEASE"
-      echo "MAJOR: $MAJOR"
-      echo "MINOR: $MINOR"
-      echo "PATCH: $PATCH"
-      echo "PRE_RELEASE_NAME: $PRE_RELEASE_NAME"
-      echo "PRE_RELEASE_VERSION: $PRE_RELEASE_VERSION"
-
-      IS_HOTFIX_VERSION=false
-      if [[ "$PATCH" != "0" ]]; then
-        IS_HOTFIX_VERSION=true
-      fi
-
-      echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=true]$SBT_VERSION"
-      echo "##vso[task.setvariable variable=VERSION;isOutput=true]$VERSION"
-      echo "##vso[task.setvariable variable=PRE_RELEASE;isOutput=true]$PRE_RELEASE"
-      echo "##vso[task.setvariable variable=MAJOR;isOutput=true]$MAJOR"
-      echo "##vso[task.setvariable variable=MINOR;isOutput=true]$MINOR"
-      echo "##vso[task.setvariable variable=PATCH;isOutput=true]$PATCH"
-      echo "##vso[task.setvariable variable=PRE_RELEASE_NAME;isOutput=true]$PRE_RELEASE_NAME"
-      echo "##vso[task.setvariable variable=PRE_RELEASE_VERSION;isOutput=true]$PRE_RELEASE_VERSION"
-      echo "##vso[task.setvariable variable=IS_HOTFIX_VERSION;isOutput=true]$IS_HOTFIX_VERSION"
-    name: getSbtVar
-    displayName: "Split SBT_VERSION and set vars"
+  - template: ../sbt-github-current-version/template.yaml
 
   - script: |
       if [ "${{ parameters.semver }}" == "skip" ]; then
-        echo "version on project: $SBT_VERSION"
-        OVERRIDE_SBT_VERSION=$SBT_VERSION
+        echo "version on project: $(current_version.SBT_VERSION)"
+        OVERRIDE_SBT_VERSION=$(current_version.SBT_VERSION)
       elif [ "${{ parameters.semver }}" == "buildNumber" ]; then
-        RELEASE_VERSION=$(getSbtVar.MAJOR).$(getSbtVar.MINOR).$(getSbtVar.PATCH)-$(Build.SourceBranchName)
-        OVERRIDE_SBT_VERSION=$RELEASE_VERSION
+        OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(current_version.MINOR).$(current_version.PATCH)-$(Build.SourceBranchName)
         echo "new version is: $OVERRIDE_SBT_VERSION"
+      elif [[ "${{ parameters.semver }}" == "patch" ]]; then
+        OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(current_version.MINOR).$(($(current_version.PATCH)+1))
+      elif [[ "${{ parameters.semver }}" == "minor" ]]; then
+        OVERRIDE_SBT_VERSION=$(current_version.MAJOR).$(($(current_version.MINOR)+1)).0
       else
-        arrVerSplit=(${SBT_VERSION//./ })
-        MAJOR=${arrVerSplit[0]}
-        MINOR=${arrVerSplit[1]}
-        arrPatchValueSplit=(${arrVerSplit[2]//-/ })
-        PATCH=${arrPatchValueSplit[0]}
-
-        # break down the version number into it's components
-        regex="([0-9]+).([0-9]+).([0-9]+)"
-        if [[ $version =~ $regex ]]; then
-          MAJOR="${BASH_REMATCH[0]}"
-          MINOR="${BASH_REMATCH[1]}"
-          PATCH="${BASH_REMATCH[2]}"
-        fi
-
-        # check paramater to see which number to increment
-        if [[ "${{ parameters.semver }}" == "patch" ]]; then
-          PATCH=$(echo $PATCH + 1 | bc)
-        elif [[ "${{ parameters.semver }}" == "minor" ]]; then
-          MINOR=$(echo $MINOR + 1 | bc)
-          PATCH=0
-        else
-          MAJOR=$(echo $MAJOR+1 | bc)
-          MINOR=0
-          PATCH=0
-        fi
-      
-        OVERRIDE_SBT_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-        BRANCH_RELEASE=release/${MAJOR}.${MINOR}
-
-        echo "new version is ${OVERRIDE_SBT_VERSION}"
-        echo "##vso[task.setvariable variable=BRANCH_RELEASE]$BRANCH_RELEASE"
+        OVERRIDE_SBT_VERSION=$(($(current_version.MAJOR)+1)).0.0
       fi
-      echo "##vso[task.setvariable variable=OVERRIDE_SBT_VERSION]$OVERRIDE_SBT_VERSION"
+      
+      echo "new version is ${OVERRIDE_SBT_VERSION}"
+      echo "##vso[task.setvariable variable=NEXT_SBT_VERSION]$OVERRIDE_SBT_VERSION"
     name: getOverrideSbtVar
     displayName: "Override sbtVersion"
 
     # push new version
   - script: |
-      echo "ThisBuild / version := \"$(OVERRIDE_SBT_VERSION)\"" > version.sbt
+      echo "ThisBuild / version := \"$(NEXT_SBT_VERSION)\"" > version.sbt
       
-      for i in helm/nodo/values-${{ parameters['env'] }}.yaml; do
+      for i in ${{ parameters['helmFolder'] }}/values-${{ parameters['env'] }}.yaml; do
         [ -f "$i" ] || break
-        yq -i ".nodo.image.tag = \"$(OVERRIDE_SBT_VERSION)\"" "$i"
+        yq -i ".${{ parameters.helmChartAlias }}.image.tag = \"$(NEXT_SBT_VERSION)\"" "$i"
         git add "$i"
       done
-      CHART_FILE="helm/nodo/Chart.yaml"
+      CHART_FILE="${{ parameters['helmFolder'] }}/Chart.yaml"
       if [[ -f "$CHART_FILE" ]]; then
-        yq -i ".version = \"$(OVERRIDE_SBT_VERSION)\"" "$CHART_FILE"
-        yq -i ".appVersion = \"$(OVERRIDE_SBT_VERSION)\"" "$CHART_FILE"
+        yq -i ".version = \"$(NEXT_SBT_VERSION)\"" "$CHART_FILE"
+        yq -i ".appVersion = \"$(NEXT_SBT_VERSION)\"" "$CHART_FILE"
         git add "$CHART_FILE"
       fi
-    
-      cat helm/nodo/values-${{ parameters['env'] }}.yaml
-      cat version.sbt
-      
-      git status
-
-#      git add version.sbt helm/nodo/values-${{ parameters['env'] }}.yaml
-#
-#      git commit -m "Bump version $(OVERRIDE_SBT_VERSION) [skip ci]"
-#
-#      git push origin ${{ parameters.release_branch }}
     displayName: 'Update helm and sbt version'
+
+  - script: ${{ parameters.customScriptsPostUpdateHelm }}
+    displayName: 'Execute custom script post update Helm'
+
+  - task: Bash@3
+    displayName: Update Openapi/Swagger Version
+    name: update_version_openapi
+    inputs:
+      targetType: 'inline'
+      script: |
+        for i in openapi/*.json; do
+          [ -f "$i" ] || break
+          cat <<< "$(jq ".info.version = \"$(NEXT_SBT_VERSION)\"" "$i")" > "$i"
+          git add $i
+        done
+        for i in openapi/*.yaml; do
+          [ -f "$i" ] || break
+          yq -i ".info.version = \"$(NEXT_SBT_VERSION)\"" "$i"
+          git add "$i"
+        done
+        for i in openapi/*.yml; do
+          [ -f "$i" ] || break
+          yq -i ".info.version = \"$(NEXT_SBT_VERSION)\"" "$i"
+          git add "$i"
+        done
+
+  # push new version
+  - script: |
+      git ls-files . | grep 'version.sbt'  | xargs git add
+      git commit -m "Bump version [skip ci]"
+      git push origin ${{ parameters.release_branch }}
+    displayName: 'Push to the release branch'
 
   - script: |
       HEAD_SHA=$(git rev-parse HEAD)
-      TAG="$(OVERRIDE_SBT_VERSION)"
-      TITLE="Release $(OVERRIDE_SBT_VERSION)"
-      
-      echo "title=$TITLE"
-      echo "sha=$HEAD_SHA"
-      echo "tag=$TAG"
-      
+      TAG="$(NEXT_SBT_VERSION)"
+      TITLE="Release $(NEXT_SBT_VERSION)"
       echo "##vso[task.setvariable variable=title]$TITLE"
       echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
       echo "##vso[task.setvariable variable=tag]$TAG"
-    displayName: 'Update version helm and version.sbt'
+    displayName: 'Set release variables'
 
   # create new release
-#  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber'))}}:
-#      - task: GitHubRelease@0
-#        inputs:
-#          gitHubConnection: ${{ parameters.gitHubConnection }}
-#          repositoryName: $(Build.Repository.Name)
-#          action: create
-#          target: $(sha)
-#          tagSource: manual
-#          tag: $(tag)
-#          title: $(title)
-#          addChangelog: true
+  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber'))}}:
+    - task: GitHubRelease@0
+      inputs:
+        gitHubConnection: ${{ parameters.gitHubConnection }}
+        repositoryName: $(Build.Repository.Name)
+        action: create
+        target: $(sha)
+        tagSource: manual
+        tag: $(tag)
+        title: $(title)
+        addChangelog: true
