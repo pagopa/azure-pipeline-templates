@@ -17,9 +17,9 @@ steps:
         SBT_VERSION="${arrIN[1]}"
         IFS=' '
 
-        echo "SBT_VERSION: $(SBT_VERSION)"
+        echo "SBT_VERSION: $SBT_VERSION"
 
-        IFS="-" read VERSION PRE_RELEASE <<< $(SBT_VERSION); IFS="\n"
+        IFS="-" read VERSION PRE_RELEASE <<< $SBT_VERSION; IFS="\n"
         IFS="." read MAJOR MINOR PATCH <<< $VERSION; IFS="\n"
         IFS="." read PRE_RELEASE_NAME PRE_RELEASE_VERSION <<< $PRE_RELEASE; IFS="\n"
   
