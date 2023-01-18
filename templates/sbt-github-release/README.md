@@ -46,3 +46,6 @@ jobs:
 |gitEmail|The email of the Github user which authors the version bump commit ||
 |gitUsername|The username of the Github user which authors the version bump commit ||
 |gitHubConnection|The service connection used by the Azure Pipeline to connect to Github||
+|helmPath|The Helm path for Chart.xml
+|helmChartAlias|The Helm alias for image
+|customScriptsPostUpdateHelm|Custom script you need to execute after Helm step
