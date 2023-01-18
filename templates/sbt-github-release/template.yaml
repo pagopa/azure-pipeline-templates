@@ -1,0 +1,202 @@
+# Node GitHub Relase steps
+# Mark a release on the project repository, with version bump and tag,
+# and publish a release on GitHub
+
+parameters:
+  # Environment parameters
+  - name: 'env'
+    displayName: Target Environment
+    type: string
+    default: dev
+    values:
+      - dev
+      - uat
+      - prd
+  # Versioning parameters
+  - name: 'semver'
+    type: string
+    values:
+      - major
+      - minor
+      - patch
+      - buildNumber
+      - skip
+  # This is the branch in which we will push the release tag.
+  # It'll be master, but it can be overridden
+  # Basically, this variable is used to enforce the fact that we use the very same branch in different steps
+  - name: 'release_branch'
+    type: string
+    default: ' '
+  # GitHub parameters
+  - name: 'gitUsername'
+    type: string
+  - name: 'gitEmail'
+    type: string
+  - name: 'gitHubConnection'
+    type: string
+  # Helm path
+  - name: 'helmPath'
+    type: string
+    default: 'helm'
+  # Chart Alias
+  - name: 'helmChartAlias'
+    type: string
+    default: 'microservice-chart'
+  # Post Scripts
+  - name: 'customScriptsPostUpdateHelm'
+    type: string
+    default: 'echo Nothing to do'
+
+steps:
+  # setup git author
+  - script: |
+      git config --global user.name "${{ parameters.gitUsername }}"
+      git config --global user.email "${{ parameters.gitEmail }}"
+    displayName: 'Git setup'
+
+  # Without this step, changes would be applied to a detached head
+  - script: |
+      git checkout ${{ parameters.release_branch }}
+    displayName: 'Checkout release branch'
+
+#  - template: ../sbt-github-current-version/template.yaml
+
+  - task: Bash@3
+    name: current_version_release
+    displayName: 'Get current release variables'
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "[INFO] Get current release"
+
+        if [ ! -f "version.sbt" ]; then
+          echo "File 'version.sbt' does not exists"
+          exit 1
+        fi
+
+        IFS='"'
+        arrIN=($(cat version.sbt))
+        SBT_VERSION="${arrIN[1]}"
+        IFS=' '
+
+        echo "SBT_VERSION: $SBT_VERSION"
+
+        IFS="-" read VERSION PRE_RELEASE <<< $SBT_VERSION; IFS="\n"
+        IFS="." read MAJOR MINOR PATCH <<< $VERSION; IFS="\n"
+        IFS="." read PRE_RELEASE_NAME PRE_RELEASE_VERSION <<< $PRE_RELEASE; IFS="\n"
+
+        echo "VERSION: $VERSION"
+        echo "PRE_RELEASE: $PRE_RELEASE"
+        echo "MAJOR: $MAJOR"
+        echo "MINOR: $MINOR"
+        echo "PATCH: $PATCH"
+        echo "PRE_RELEASE_NAME: $PRE_RELEASE_NAME"
+        echo "PRE_RELEASE_VERSION: $PRE_RELEASE_VERSION"
+
+        IS_HOTFIX_VERSION=false
+        if [[ "$PATCH" != "0" ]]; then
+          IS_HOTFIX_VERSION=true
+        fi
+
+        echo "##vso[task.setvariable variable=SBT_VERSION;isOutput=true]$SBT_VERSION"
+        echo "##vso[task.setvariable variable=VERSION;isOutput=true]$VERSION"
+        echo "##vso[task.setvariable variable=PRE_RELEASE;isOutput=true]$PRE_RELEASE"
+        echo "##vso[task.setvariable variable=MAJOR;isOutput=true]$MAJOR"
+        echo "##vso[task.setvariable variable=MINOR;isOutput=true]$MINOR"
+        echo "##vso[task.setvariable variable=PATCH;isOutput=true]$PATCH"
+        echo "##vso[task.setvariable variable=PRE_RELEASE_NAME;isOutput=true]$PRE_RELEASE_NAME"
+        echo "##vso[task.setvariable variable=PRE_RELEASE_VERSION;isOutput=true]$PRE_RELEASE_VERSION"
+        echo "##vso[task.setvariable variable=IS_HOTFIX_VERSION;isOutput=true]$IS_HOTFIX_VERSION"
+
+        echo "[INFO] Current release $SBT_VERSION"
+      failOnStderr: true
+
+  # bump version
+  - script: |
+      if [ "${{ parameters.semver }}" == "skip" ]; then
+        OVERRIDE_SBT_VERSION=$(current_version_release.SBT_VERSION)
+      elif [ "${{ parameters.semver }}" == "buildNumber" ]; then
+        OVERRIDE_SBT_VERSION=$(current_version_release.MAJOR).$(current_version_release.MINOR).$(current_version_release.PATCH)-$(Build.SourceBranchName)
+      elif [[ "${{ parameters.semver }}" == "patch" ]]; then
+        OVERRIDE_SBT_VERSION=$(current_version_release.MAJOR).$(current_version_release.MINOR).$(($(current_version_release.PATCH)+1))
+      elif [[ "${{ parameters.semver }}" == "minor" ]]; then
+        OVERRIDE_SBT_VERSION=$(current_version_release.MAJOR).$(($(current_version_release.MINOR)+1)).0
+      else
+        OVERRIDE_SBT_VERSION=$(($(current_version_release.MAJOR)+1)).0.0
+      fi
+      
+      echo "version is ${OVERRIDE_SBT_VERSION}"
+      echo "##vso[task.setvariable variable=NEXT_SBT_VERSION]$OVERRIDE_SBT_VERSION"
+    name: getOverrideSbtVar
+    displayName: "Bump version"
+
+    # push new version
+  - script: |
+      echo "ThisBuild / version := \"$(NEXT_SBT_VERSION)\"" > version.sbt
+      
+      for i in ${{ parameters['helmPath'] }}/values-${{ parameters['env'] }}.yaml; do
+        [ -f "$i" ] || break
+        yq -i ".${{ parameters.helmChartAlias }}.image.tag = \"$(NEXT_SBT_VERSION)\"" "$i"
+        git add "$i"
+      done
+      CHART_FILE="${{ parameters['helmPath'] }}/Chart.yaml"
+      if [[ -f "$CHART_FILE" ]]; then
+        yq -i ".version = \"$(NEXT_SBT_VERSION)\"" "$CHART_FILE"
+        yq -i ".appVersion = \"$(NEXT_SBT_VERSION)\"" "$CHART_FILE"
+        git add "$CHART_FILE"
+      fi
+    displayName: 'Update version helm and sbt'
+
+  - script: ${{ parameters.customScriptsPostUpdateHelm }}
+    displayName: 'Execute custom script post update version Helm'
+
+  - task: Bash@3
+    displayName: Update Openapi/Swagger Version
+    name: update_version_openapi
+    inputs:
+      targetType: 'inline'
+      script: |
+        for i in openapi/*.json; do
+          [ -f "$i" ] || break
+          cat <<< "$(jq ".info.version = \"$(NEXT_SBT_VERSION)\"" "$i")" > "$i"
+          git add $i
+        done
+        for i in openapi/*.yaml; do
+          [ -f "$i" ] || break
+          yq -i ".info.version = \"$(NEXT_SBT_VERSION)\"" "$i"
+          git add "$i"
+        done
+        for i in openapi/*.yml; do
+          [ -f "$i" ] || break
+          yq -i ".info.version = \"$(NEXT_SBT_VERSION)\"" "$i"
+          git add "$i"
+        done
+
+  # push new version
+  - script: |
+      git ls-files . | grep 'version.sbt'  | xargs git add
+      git commit -m "Bump version [skip ci]"
+      git push origin ${{ parameters.release_branch }}
+    displayName: 'Push to the release branch'
+
+  - script: |
+      HEAD_SHA=$(git rev-parse HEAD)
+      TAG="$(NEXT_SBT_VERSION)"
+      TITLE="Release $(NEXT_SBT_VERSION)"
+      echo "##vso[task.setvariable variable=title]$TITLE"
+      echo "##vso[task.setvariable variable=sha]$HEAD_SHA"
+      echo "##vso[task.setvariable variable=tag]$TAG"
+    displayName: 'Set release variables'
+
+  # create new release
+  - ${{ if and(ne(parameters.semver, 'skip'), ne(parameters.semver, 'buildNumber'))}}:
+    - task: GitHubRelease@0
+      inputs:
+        gitHubConnection: ${{ parameters.gitHubConnection }}
+        repositoryName: $(Build.Repository.Name)
+        action: create
+        target: $(sha)
+        tagSource: manual
+        tag: $(tag)
+        title: $(title)
+        addChangelog: true
