@@ -22,44 +22,27 @@ parameters:
     default: "1.24.10"
 
 steps:
-  # - task: Bash@3
-  #   displayName: Plan(Check Parameters)
-  #   inputs:
-  #     targetType: inline
-  #     failOnStderr: true
-  #     script: |
-  #       set -e
-  #       e=0
+  - task: AzureCLI@2
+    displayName: Generate kubeconfig
+    inputs:
+      connectedServiceNameARM: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##[section] 🎓 Configure kubeconfig"
 
-  #       if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
-  #          [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
-  #          [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
-  #          [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
+        echo "[INFO] Download kubectl and kubelogin"
+        sudo az aks install-cli --client-version ${{ parameters.KUBERNETES_VERSION }} --kubelogin-version latest --only-show-errors
 
-  #         if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
-  #           echo "##[error] AKS_NAME is empty"
-  #           ((e=e+1))
-  #         fi
+        echo "[INFO] Get kubernetes credentials via az aks get-credentials"
+        az aks get-credentials -g ${{ parameters.AKS_RESOURCE_GROUP }} -n ${{ parameters.AKS_NAME }} -f config-${{ parameters.AKS_NAME }} --only-show-errors
 
-  #         if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
-  #           echo "##[error] AKS_API_SERVER_URL is empty"
-  #           ((e=e+1))
-  #         fi
-
-  #         if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
-  #           echo "##[error] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
-  #           ((e=e+1))
-  #         fi
-
-  #         if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" == "" ]]; then
-  #           echo "##[error] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
-  #           ((e=e+1))
-  #         fi
-
-  #         if [[ $e > 0 ]]; then
-  #           exit 1
-  #         fi
-  #       fi
+        echo "[INFO] Convert kubeconfig via kubelogin"
+        export KUBECONFIG=config-${{ parameters.AKS_NAME }}
+        kubelogin convert-kubeconfig -l spn --client-id "${servicePrincipalId}" --client-secret "${servicePrincipalKey}"
 
   - task: AzureCLI@2
     displayName: Plan Terraform
@@ -71,46 +54,17 @@ steps:
       failOnStandardError: true
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
-        echo "##[section] 🎓 Configure kubeconfig"
+        echo "##[section] 💈 Start terraform plan for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
-        # download kubectl and kubelogin
-        sudo az aks install-cli --client-version ${{ parameters.KUBERNETES_VERSION }} --kubelogin-version latest --only-show-errors
+        export ARM_CLIENT_ID="${servicePrincipalId}"
+        export ARM_CLIENT_SECRET="${servicePrincipalKey}"
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-        az aks get-credentials -g ${{ parameters.AKS_RESOURCE_GROUP }} -n ${{ parameters.AKS_NAME }} -f config-${{ parameters.AKS_NAME }} --only-show-errors
+        echo "[INFO] 🚀 Run terraform plan + kubernetes"
+        ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)"
 
-        export KUBECONFIG=config-${{ parameters.AKS_NAME }}
-
-        kubelogin convert-kubeconfig -l spn --client-id "${servicePrincipalId}" --client-secret "${servicePrincipalKey}"
-
-        kubectl get po --namespace diego
-
-
-  # - task: AzureCLI@2
-  #   displayName: Plan Terraform
-  #   inputs:
-  #     connectedServiceNameARM: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
-  #     addSpnToEnvironment: true
-  #     scriptType: 'bash'
-  #     scriptLocation: 'inlineScript'
-  #     failOnStandardError: true
-  #     workingDirectory: '${{ parameters.WORKINGDIR }}'
-  #     inlineScript: |
-  #       echo "##[section] 💈 Start terraform plan for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
-
-  #       export ARM_CLIENT_ID="${servicePrincipalId}"
-  #       export ARM_CLIENT_SECRET="${servicePrincipalKey}"
-  #       export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-  #       export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-
-  #       if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-  #         echo "[INFO] 🚀 Run terraform plan + kubernetes"
-  #         ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)"
-  #       else
-  #         echo "[INFO] 🚀 Run terraform plan"
-  #         ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }}
-  #       fi
-
-  #       echo "[INFO] Clean project"
-  #       rm -rf .kube
-  #       rm -rf .azure
-  #       rm -rf config-${{ parameters.AKS_NAME }}
+        echo "[INFO] Clean project"
+        rm -rf .kube
+        rm -rf .azure
+        rm -rf config-${{ parameters.AKS_NAME }}
