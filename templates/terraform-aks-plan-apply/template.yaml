@@ -40,13 +40,6 @@ stages:
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
-          - task: Bash@3
-            displayName: Apply(Check Parameters)
-            inputs:
-              targetType: inline
-              failOnStderr: true
-              script: |
-                echo ${}
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
           # 2. Run terraform plan
