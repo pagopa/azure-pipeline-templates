@@ -50,7 +50,7 @@ stages:
               WORKINGDIR: ${{parameters.WORKINGDIR}}
               AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
               AKS_NAME: ${{parameters.AKS_NAME}}
-              AKS_RESOURCE_GROUP: ${{ variables.AKS_DEV_RESOURCE_GROUP }}
+              AKS_RESOURCE_GROUP: ${{ variables.AKS_RESOURCE_GROUP }}
 
   - stage: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
     displayName: 🚀 ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
@@ -77,4 +77,4 @@ stages:
                     WORKINGDIR: ${{parameters.WORKINGDIR}}
                     AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
                     AKS_NAME: ${{parameters.AKS_NAME}}
-                    AKS_RESOURCE_GROUP: ${{ variables.AKS_DEV_RESOURCE_GROUP }}
+                    AKS_RESOURCE_GROUP: ${{ variables.AKS_RESOURCE_GROUP }}
