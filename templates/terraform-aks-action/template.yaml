@@ -48,7 +48,7 @@ steps:
         kubelogin convert-kubeconfig -l spn --client-id "${servicePrincipalId}" --client-secret "${servicePrincipalKey}"
 
   - task: AzureCLI@2
-    displayName: ${{ parameters.TF_ACTION }} Terraform
+    displayName: ${{ upper(parameters.TF_ACTION) }} Terraform
     inputs:
       connectedServiceNameARM: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
