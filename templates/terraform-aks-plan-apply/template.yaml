@@ -40,6 +40,13 @@ stages:
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
+          - task: Bash@3
+            displayName: Apply(Check Parameters)
+            inputs:
+              targetType: inline
+              failOnStderr: true
+              script: |
+                echo ${}
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
           # 2. Run terraform plan
@@ -50,7 +57,7 @@ stages:
               WORKINGDIR: ${{parameters.WORKINGDIR}}
               AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
               AKS_NAME: ${{parameters.AKS_NAME}}
-              AKS_RESOURCE_GROUP: ${{ variables.AKS_RESOURCE_GROUP }}
+              AKS_RESOURCE_GROUP: ${{parameters.AKS_RESOURCE_GROUP}}
 
   - stage: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
     displayName: 🚀 ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
@@ -77,4 +84,4 @@ stages:
                     WORKINGDIR: ${{parameters.WORKINGDIR}}
                     AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_NAME}}
                     AKS_NAME: ${{parameters.AKS_NAME}}
-                    AKS_RESOURCE_GROUP: ${{ variables.AKS_RESOURCE_GROUP }}
+                    AKS_RESOURCE_GROUP: ${{parameters.AKS_RESOURCE_GROUP}}
