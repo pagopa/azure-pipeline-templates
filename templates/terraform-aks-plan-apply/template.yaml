@@ -1,7 +1,7 @@
 # Run terraform init and terraform plan
 parameters:
   - name: 'DOMAIN_NAME'
-    displayName: '(Required) Domain name.'
+    displayName: '(Required) Domain name. e.g: domain-app'
     type: string
   - name: 'AZURE_DEVOPS_POOL_AGENT_NAME'
     displayName: '(Required) Azure devops agent name.'
@@ -9,7 +9,7 @@ parameters:
   - name: 'AZURE_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
-  - name: 'ENVIRONMENT'
+  - name: 'AZURE_DEVOPS_ENVIRONMENT'
     displayName: '(Required) Azure devops ENV name. For example [dev|uat|prod] etc.'
     type: string
   - name: 'TF_ENVIRONMENT_FOLDER'
@@ -29,14 +29,14 @@ parameters:
 
 
 stages:
-  - stage: ${{parameters.ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}
-    displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}
+  - stage: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}
+    displayName: 🔦 ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}
+      - job: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -52,16 +52,16 @@ stages:
               AKS_NAME: ${{parameters.AKS_NAME}}
               AKS_RESOURCE_GROUP: ${{ variables.AKS_DEV_RESOURCE_GROUP }}
 
-  - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
-    displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
-    dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}']
+  - stage: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
+    displayName: 🚀 ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
+    dependsOn: ['${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_plan_${{parameters.DOMAIN_NAME}}']
     condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      - deployment: ${{parameters.ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
+      - deployment: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}_apply_${{parameters.DOMAIN_NAME}}
         continueOnError: false
-        environment: ${{parameters.ENVIRONMENT}}
+        environment: ${{parameters.AZURE_DEVOPS_ENVIRONMENT}}
         strategy:
           runOnce:
             deploy:
