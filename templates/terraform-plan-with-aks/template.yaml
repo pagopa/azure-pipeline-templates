@@ -19,7 +19,7 @@ parameters:
   - name: 'KUBERNETES_VERSION'
     displayName: '(Optional) Kubernetes version, default 1.24'
     type: string
-    default: "1.24"
+    default: "1.24.10"
 
 steps:
   # - task: Bash@3
@@ -76,7 +76,7 @@ steps:
         # download kubectl and kubelogin
         sudo az aks install-cli --client-version ${{ parameters.KUBERNETES_VERSION }} --kubelogin-version latest --only-show-errors
 
-        az aks get-credentials -g ${{ parameters.AKS_NAME }} -n dvopla-d-neu-dev01-aks -f config-${{ parameters.AKS_NAME }} --only-show-errors
+        az aks get-credentials -g ${{ parameters.AKS_RESOURCE_GROUP }} -n ${{ parameters.AKS_NAME }} -f config-${{ parameters.AKS_NAME }} --only-show-errors
 
         export KUBECONFIG=config-${{ parameters.AKS_NAME }}
 
