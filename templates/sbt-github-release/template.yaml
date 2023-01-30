@@ -3,17 +3,6 @@
 # and publish a release on GitHub
 
 parameters:
-  # Environment parameters
-  - name: 'env'
-    displayName: Target Environment
-    type: string
-    default: dev
-    values:
-      - dev
-      - it
-      - prf
-      - uat
-      - prd
   # Versioning parameters
   - name: 'semver'
     type: string
@@ -136,7 +125,7 @@ steps:
   - script: |
       echo "ThisBuild / version := \"$(NEXT_SBT_VERSION)\"" > version.sbt
 
-      for i in ${{ parameters['helmPath'] }}/values-${{ parameters['env'] }}.yaml; do
+      for i in ${{ parameters['helmPath'] }}/values-*.yaml; do
         [ -f "$i" ] || break
         yq -i ".${{ parameters.helmChartAlias }}.image.tag = \"$(NEXT_SBT_VERSION)\"" "$i"
         git add "$i"
