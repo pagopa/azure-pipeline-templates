@@ -3,15 +3,6 @@
 # and publish a release on GitHub
 
 parameters:
-  # Environment parameters
-  - name: 'env'
-    displayName: Target Environment
-    type: string
-    default: dev
-    values:
-      - dev
-      - uat
-      - prd
   # Versioning parameters
   - name: 'semver'
     type: string
@@ -124,7 +115,7 @@ steps:
       else
         OVERRIDE_SBT_VERSION=$(($(current_version_release.MAJOR)+1)).0.0
       fi
-      
+
       echo "version is ${OVERRIDE_SBT_VERSION}"
       echo "##vso[task.setvariable variable=NEXT_SBT_VERSION]$OVERRIDE_SBT_VERSION"
     name: getOverrideSbtVar
@@ -133,8 +124,8 @@ steps:
     # push new version
   - script: |
       echo "ThisBuild / version := \"$(NEXT_SBT_VERSION)\"" > version.sbt
-      
-      for i in ${{ parameters['helmPath'] }}/values-${{ parameters['env'] }}.yaml; do
+
+      for i in ${{ parameters['helmPath'] }}/values-*.yaml; do
         [ -f "$i" ] || break
         yq -i ".${{ parameters.helmChartAlias }}.image.tag = \"$(NEXT_SBT_VERSION)\"" "$i"
         git add "$i"
