@@ -67,10 +67,8 @@ steps:
         echo "[INFO] 🚀 Run terraform ${{ parameters.TF_ACTION }} + kubernetes"
 
         if [[ "${{ parameters.TF_ACTION }}" == "apply" ]]; then
-          echo "[INFO] 🚀 Run terraform apply + kubernetes"
           ./terraform.sh ${{ parameters.TF_ACTION }} ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -auto-approve
         else
-          echo "[INFO] 🚀 Run terraform plan"
           ./terraform.sh ${{ parameters.TF_ACTION }} ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)"
         fi
 
