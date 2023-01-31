@@ -1,0 +1,78 @@
+# Run terraform init and terraform plan
+parameters:
+  - name: 'TF_ACTION'
+    displayName: '(Required) Wich action terraform must execute.'
+    type: string
+  - name: 'AZURE_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'TF_ENVIRONMENT_FOLDER'
+    displayName: '(Required) Terraform environment folder name to apply to. For example [dev|weudev|uat|weuuat|prod|weuprod] etc.'
+    type: string
+  - name: 'WORKINGDIR'
+    displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
+    type: string
+    default: "src"
+  - name: 'AKS_NAME'
+    displayName: '(Required) AKS Name.'
+    type: string
+  - name: 'AKS_RESOURCE_GROUP'
+    displayName: '(Required) AKS resource group.'
+    type: string
+  - name: 'KUBERNETES_VERSION'
+    displayName: '(Optional) Kubernetes version, default 1.24'
+    type: string
+    default: "1.24.10"
+
+steps:
+  - task: AzureCLI@2
+    displayName: Generate kubeconfig
+    inputs:
+      connectedServiceNameARM: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##[section] 🎓 Configure kubeconfig"
+
+        echo "[INFO] Download kubectl and kubelogin"
+        sudo az aks install-cli --client-version ${{ parameters.KUBERNETES_VERSION }} --kubelogin-version latest --only-show-errors
+
+        echo "[INFO] Get kubernetes credentials via az aks get-credentials"
+        az aks get-credentials -g ${{ parameters.AKS_RESOURCE_GROUP }} -n ${{ parameters.AKS_NAME }} -f config-${{ parameters.AKS_NAME }} --only-show-errors
+
+        echo "[INFO] Convert kubeconfig via kubelogin"
+        export KUBECONFIG=config-${{ parameters.AKS_NAME }}
+        kubelogin convert-kubeconfig -l spn --client-id "${servicePrincipalId}" --client-secret "${servicePrincipalKey}"
+
+  - task: AzureCLI@2
+    displayName: ${{ upper(parameters.TF_ACTION) }} Terraform
+    inputs:
+      connectedServiceNameARM: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##[section] 💈 Start terraform ${{ parameters.TF_ACTION }} for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
+
+        export ARM_CLIENT_ID="${servicePrincipalId}"
+        export ARM_CLIENT_SECRET="${servicePrincipalKey}"
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+
+        echo "[INFO] 🚀 Run terraform ${{ parameters.TF_ACTION }} + kubernetes"
+
+        if [[ "${{ parameters.TF_ACTION }}" == "apply" ]]; then
+          ./terraform.sh ${{ parameters.TF_ACTION }} ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -auto-approve
+        else
+          ./terraform.sh ${{ parameters.TF_ACTION }} ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)"
+        fi
+
+        echo "[INFO] Clean project"
+        rm -rf .kube
+        rm -rf .azure
+        rm -rf config-${{ parameters.AKS_NAME }}
