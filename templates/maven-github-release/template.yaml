@@ -33,7 +33,7 @@ parameters:
   # It replaces the standard Helm step in order to customize it according to the developer needs.
   - name: 'customHelmStep'
     type: string
-    default: 'None'
+    default: 'none'
 
 
 steps:
@@ -73,7 +73,7 @@ steps:
         echo "##vso[task.setvariable variable=value;isOutput=true]$version"
       failOnStderr: true
 
-  - ${{ if eq(parameters.customHelmStep, 'None') }}:
+  - ${{ if eq(parameters.customHelmStep, 'none') }}:
     - task: Bash@3
       displayName: Update Version Helm
       name: update_version_helm
@@ -92,7 +92,7 @@ steps:
             git add "$CHART_FILE"
           fi
 
-  - ${{ if ne(parameters.customHelmStep, 'None') }}:
+  - ${{ if ne(parameters.customHelmStep, 'none') }}:
     - script: ${{ parameters.customHelmStep }}
       displayName: 'Execute custom Helm script'
 
