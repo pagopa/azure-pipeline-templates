@@ -75,18 +75,25 @@ steps:
 
   - script: |
       if [ "${{ parameters.customHelmStep }}" == "None" ]; then
-        USE_CUSTOM_HELM_SCRIPT='false'
+        USE_CUSTOM_HELM_SCRIPT="false"
       else
-        USE_CUSTOM_HELM_SCRIPT='true'
+        USE_CUSTOM_HELM_SCRIPT="true"
       fi
       echo "Use custom Helm scrip: ${USE_CUSTOM_HELM_SCRIPT}"
-      echo "##vso[task.setvariable variable=useCustomHelmScript]$USE_CUSTOM_HELM_SCRIPT"
-    displayName: "Set Helm step to execute"
+      echo "##vso[task.setvariable variable=useCustomHelmScript;isOutput=true]$USE_CUSTOM_HELM_SCRIPT"
+    displayName: 'Set Helm step to execute'
+    name: 'helmDefinition'
 
-  - script: ${{ variables.useCustomHelmScript }}
+  - script: $(variables.useCustomHelmScript)
     displayName: 'DEBUG evaluate helm step'
 
-  - ${{ if eq(variables.useCustomHelmScript, 'false') }}:
+  - script: $(useCustomHelmScript)
+    displayName: 'DEBUG 2 evaluate helm step'
+
+  - script: $(helmDefinition.useCustomHelmScript)
+    displayName: 'DEBUG 2 evaluate helm step'
+
+  - ${{ if eq($(useCustomHelmScript), 'false') }}:
     - task: Bash@3
       displayName: Update Version Helm
       name: update_version_helm
@@ -105,7 +112,7 @@ steps:
             git add "$CHART_FILE"
           fi
 
-  - ${{ if eq(variables.useCustomHelmScript, 'true') }}:
+  - ${{ if eq($(useCustomHelmScript), 'true') }}:
     - script: ${{ parameters.customHelmStep }}
       displayName: 'Execute custom Helm script'
 
