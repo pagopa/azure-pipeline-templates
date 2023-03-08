@@ -93,7 +93,7 @@ steps:
   - script: $(helmDefinition.useCustomHelmScript)
     displayName: 'DEBUG 2 evaluate helm step'
 
-  - ${{ if eq(useCustomHelmScript, 'false') }}:
+  - ${{ if eq(variables['useCustomHelmScript'], 'false') }}:
     - task: Bash@3
       displayName: Update Version Helm
       name: update_version_helm
@@ -112,7 +112,7 @@ steps:
             git add "$CHART_FILE"
           fi
 
-  - ${{ if eq(useCustomHelmScript, 'true') }}:
+  - ${{ if eq(variables['useCustomHelmScript'], 'true') }}:
     - script: ${{ parameters.customHelmStep }}
       displayName: 'Execute custom Helm script'
 
