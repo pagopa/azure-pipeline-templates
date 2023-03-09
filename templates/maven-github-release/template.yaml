@@ -81,28 +81,30 @@ steps:
         echo "##vso[task.setvariable variable=value;isOutput=true]$version"
       failOnStderr: true
 
-  - ${{ if and( eq(parameters.customHelmStep, 'none'), eq(parameters.skipHelmStep, 'false') ) }}:
-    - task: Bash@3
-      displayName: Update Version Helm
-      name: update_version_helm
-      inputs:
-        targetType: 'inline'
-        script: |
-          for i in helm/values-*.yaml; do
-            [ -f "$i" ] || break
-            yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
-            git add "$i"
-          done
-          CHART_FILE="helm/Chart.yaml"
-          if [[ -f "$CHART_FILE" ]]; then
-            yq -i ".version = \"$(next_version.value)\"" "$CHART_FILE"
-            yq -i ".appVersion = \"$(next_version.value)\"" "$CHART_FILE"
-            git add "$CHART_FILE"
-          fi
+  - ${{ if eq(parameters.skipHelmStep, 'false') }}:
+    - ${{ if eq(parameters.customHelmStep, 'none') }}:
+      - task: Bash@3
+        displayName: Update Version Helm
+        name: update_version_helm
+        inputs:
+          targetType: 'inline'
+          script: |
+            for i in helm/values-*.yaml; do
+              [ -f "$i" ] || break
+              yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
+              git add "$i"
+            done
+            CHART_FILE="helm/Chart.yaml"
+            if [[ -f "$CHART_FILE" ]]; then
+              yq -i ".version = \"$(next_version.value)\"" "$CHART_FILE"
+              yq -i ".appVersion = \"$(next_version.value)\"" "$CHART_FILE"
+              git add "$CHART_FILE"
+            fi
 
-  - ${{ if and ( ne(parameters.customHelmStep, 'none'), eq(parameters.skipHelmStep, 'false') ) }}:
-    - script: ${{ parameters.customHelmStep }}
-      displayName: 'Execute custom Helm script'
+#    - ${{ if ne(parameters.customHelmStep, 'none') }}:
+    - ${{ else }}:
+      - script: ${{ parameters.customHelmStep }}
+        displayName: 'Execute custom Helm script'
 
   - task: Bash@3
     displayName: Update Openapi/Swagger Version
