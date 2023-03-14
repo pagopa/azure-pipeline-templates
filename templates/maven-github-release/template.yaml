@@ -29,6 +29,21 @@ parameters:
   - name: 'gitHubConnection'
     type: string
 
+  # Skip Helm step if it is not necessary to execute
+  - name: 'skipHelmStep'
+    type: boolean
+    default: false
+    values:
+      - false
+      - true
+
+  # Customize Helm step
+  # It replaces the standard Helm step in order to customize it according to the developer needs.
+  - name: 'customHelmStep'
+    type: string
+    default: 'none'
+
+
 steps:
   # setup git author
   - script: |
@@ -66,24 +81,29 @@ steps:
         echo "##vso[task.setvariable variable=value;isOutput=true]$version"
       failOnStderr: true
 
-  - task: Bash@3
-    displayName: Update Version Helm
-    name: update_version_helm
-    inputs:
-      targetType: 'inline'
-      script: |
-        for i in helm/values-*.yaml; do
-          [ -f "$i" ] || break
-          yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
-          git add "$i"
-        done
-        CHART_FILE="helm/Chart.yaml"
-        if [[ -f "$CHART_FILE" ]]; then
-          yq -i ".version = \"$(next_version.value)\"" "$CHART_FILE"
-          yq -i ".appVersion = \"$(next_version.value)\"" "$CHART_FILE"
-          git add "$CHART_FILE"
-        fi
+  - ${{ if eq(parameters.skipHelmStep, false) }}:
+    - ${{ if eq(parameters.customHelmStep, 'none') }}:
+      - task: Bash@3
+        displayName: Update Version Helm
+        name: update_version_helm
+        inputs:
+          targetType: 'inline'
+          script: |
+            for i in helm/values-*.yaml; do
+              [ -f "$i" ] || break
+              yq -i ".microservice-chart.image.tag = \"$(next_version.value)\"" "$i"
+              git add "$i"
+            done
+            CHART_FILE="helm/Chart.yaml"
+            if [[ -f "$CHART_FILE" ]]; then
+              yq -i ".version = \"$(next_version.value)\"" "$CHART_FILE"
+              yq -i ".appVersion = \"$(next_version.value)\"" "$CHART_FILE"
+              git add "$CHART_FILE"
+            fi
 
+    - ${{ else }}:
+      - script: ${{ parameters.customHelmStep }}
+        displayName: 'Execute custom Helm script'
 
   - task: Bash@3
     displayName: Update Openapi/Swagger Version
