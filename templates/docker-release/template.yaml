@@ -25,13 +25,10 @@ parameters:
   default: "."
 
 - name: 'DOCKER_BUILD_ARGS'
-  type: object
-  default: []
+  type: string
+  default: ""
 
 steps:
-- bash: echo "##vso[task.setvariable variable=DOCKER_ARGS_FULL]--build-arg ${{ join(' --build-arg ',parameters.DOCKER_BUILD_ARGS) }}"
-  condition: not(eq('${{ join('',parameters.DOCKER_BUILD_ARGS) }}', ''))
-- bash: echo "DOCKER_ARGS_FULL:[$DOCKER_ARGS_FULL]"
 - task: Docker@2
   displayName: "docker login"
   inputs:
@@ -46,8 +43,8 @@ steps:
     script: |
       echo "[INFO] the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
       echo "[INFO] Image version: ${{ parameters.DOCKER_IMAGE_TAG }}"
-      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} -f ${{ parameters.DOCKERFILE }} $(DOCKER_ARGS_FULL) ${{ parameters.DOCKERCONTEXT }}
-      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest -f ${{ parameters.DOCKERFILE }} $(DOCKER_ARGS_FULL) ${{ parameters.DOCKERCONTEXT }}
+      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} -f ${{ parameters.DOCKERFILE }} ${{ parameters.DOCKER_BUILD_ARGS }} ${{ parameters.DOCKERCONTEXT }}
+      docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest -f ${{ parameters.DOCKERFILE }} ${{ parameters.DOCKER_BUILD_ARGS }} ${{ parameters.DOCKERCONTEXT }}
       docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }}
       docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest
 
@@ -64,8 +61,8 @@ steps:
         echo "[INFO] docker image already exists in the registry, skip build and push"
       else
         echo "[INFO] docker image does not exist in the registry, start build and push"
-        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} -f ${{ parameters.DOCKERFILE }} $(DOCKER_ARGS_FULL) ${{ parameters.DOCKERCONTEXT }}
-        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest -f ${{ parameters.DOCKERFILE }} $(DOCKER_ARGS_FULL) ${{ parameters.DOCKERCONTEXT }}
+        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }} -f ${{ parameters.DOCKERFILE }} ${{ parameters.DOCKER_BUILD_ARGS }} ${{ parameters.DOCKERCONTEXT }}
+        docker build -t ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest -f ${{ parameters.DOCKERFILE }} ${{ parameters.DOCKER_BUILD_ARGS }} ${{ parameters.DOCKERCONTEXT }}
         docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:${{ parameters.DOCKER_IMAGE_TAG }}
         docker push ${{ parameters.CONTAINER_REGISTRY_FQDN }}/${{ parameters.DOCKER_IMAGE_NAME }}:latest
       fi
