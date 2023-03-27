@@ -1,5 +1,8 @@
 parameters:
   # Required
+  - name: "COMMAND"
+    type: string
+    default: "upgrade"
   - name: "DO_DEPLOY"
     displayName: '(Required) Launch helm deploy.'
     type: boolean
@@ -52,7 +55,7 @@ steps:
     inputs:
       kubernetesServiceEndpoint: ${{ parameters.KUBERNETES_SERVICE_CONN }}
       namespace: ${{ parameters.NAMESPACE }}
-      command: upgrade
+      command: ${{ parameters.COMMAND }}
       chartType: ${{ parameters.CHART_TYPE }}
       chartPath: ${{ parameters.CHART_PATH }}
       chartName: ${{ parameters.APP_NAME }}
