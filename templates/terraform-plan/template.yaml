@@ -68,6 +68,50 @@ steps:
         fi
 
   - task: AzureCLI@2
+    displayName: Genereate Kubeconfig (if necessary)
+    condition: and(succeeded(), ne(parameters.AKS_AZURE_DEVOPS_SA_CA_CRT, ''))
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##[section] 💈 Start generation of kubeconfig"
+        
+        echo "##[group]Kubernetes kubeconfig setup"
+        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
+        echo "✅ Created cacrt file"
+        
+        kubectl config set-cluster aks-azure-devops \
+          --certificate-authority=cacrt \
+          --embed-certs=true \
+          --server=${{ parameters.AKS_API_SERVER_URL }} \
+          --kubeconfig="config-${{ parameters.AKS_NAME }}"
+        echo "[INFO] kubectl set-cluster"
+        
+        kubectl config set-credentials azure-devops \
+          --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
+          --kubeconfig="config-${{ parameters.AKS_NAME }}"
+        echo "[INFO] kubectl set-credentials"
+        
+        kubectl config set-context iac \
+          --cluster=aks-azure-devops \
+          --user=azure-devops \
+          --kubeconfig="config-${{ parameters.AKS_NAME }}"
+        echo "[INFO] kubectl set-context"
+        
+        kubelogin convert-kubeconfig -l azurecli --kubeconfig "config-${{ parameters.AKS_NAME }}"
+        echo "✅ kubelogin applied"
+        
+        kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
+        echo "✅ kubectl change context"
+        
+        echo "##[endgroup]"
+
+
+  - task: AzureCLI@2
     displayName: Plan Terraform
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
@@ -84,42 +128,12 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-        if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
-
-          echo "##[group]Kubernetes kubeconfig setup"
-          echo "[INFO] Create cacrt file"
-          echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
-
-          echo "[INFO] kubectl set-cluster"
-          kubectl config set-cluster aks-azure-devops \
-            --certificate-authority=cacrt \
-            --embed-certs=true \
-            --server=${{ parameters.AKS_API_SERVER_URL }} \
-            --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-          echo "[INFO] kubectl set-credentials"
-          kubectl config set-credentials azure-devops \
-            --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
-            --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-          echo "[INFO] kubectl set-context"
-          kubectl config set-context iac \
-            --cluster=aks-azure-devops \
-            --user=azure-devops \
-            --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-          echo "[INFO] kubectl use-context"
-          kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
-
-          echo "##[endgroup]"
-        fi
-
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)"
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -lock-timeout=300s -lock=false
         else
           echo "[INFO] 🚀 Run terraform plan"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }}
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false
         fi
 
         echo "[INFO] Clean project"
