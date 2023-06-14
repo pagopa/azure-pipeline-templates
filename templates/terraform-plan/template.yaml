@@ -69,7 +69,7 @@ steps:
 
   - task: AzureCLI@2
     displayName: Genereate Kubeconfig (if necessary)
-    condition: and(succeeded(), ne(parameters.AKS_AZURE_DEVOPS_SA_CA_CRT, ''))
+    condition: and(succeeded(), ne('${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}', ''))
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
