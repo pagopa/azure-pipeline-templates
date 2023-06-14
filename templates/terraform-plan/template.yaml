@@ -28,88 +28,14 @@ parameters:
     default: ""
 
 steps:
-  - task: Bash@3
-    displayName: Plan(Check Parameters)
-    inputs:
-      targetType: inline
-      failOnStderr: true
-      script: |
-        set -e
-        e=0
-
-        if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
-           [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
-           [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
-           [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" != "" ]]; then
-
-          if [[ "${{ parameters.AKS_NAME }}" == "" ]]; then
-            echo "##[error] AKS_NAME is empty"
-            ((e=e+1))
-          fi
-
-          if [[ "${{ parameters.AKS_API_SERVER_URL }}" == "" ]]; then
-            echo "##[error] AKS_API_SERVER_URL is empty"
-            ((e=e+1))
-          fi
-
-          if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" == "" ]]; then
-            echo "##[error] AKS_AZURE_DEVOPS_SA_TOKEN is empty"
-            ((e=e+1))
-          fi
-
-          if [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}" == "" ]]; then
-            echo "##[error] AKS_AZURE_DEVOPS_SA_CA_CRT is empty"
-            ((e=e+1))
-          fi
-
-          if [[ $e > 0 ]]; then
-            exit 1
-          fi
-        fi
-
-  - task: AzureCLI@2
-    displayName: Genereate Kubeconfig (if necessary)
-    condition: and(succeeded(), ne('${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}', ''))
-    inputs:
-      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
-      addSpnToEnvironment: true
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      failOnStandardError: true
-      workingDirectory: '${{ parameters.WORKINGDIR }}'
-      inlineScript: |
-        echo "##[section] 💈 Start generation of kubeconfig"
-        
-        echo "##[group]Kubernetes kubeconfig setup"
-        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
-        echo "✅ Created cacrt file"
-        
-        kubectl config set-cluster aks-azure-devops \
-          --certificate-authority=cacrt \
-          --embed-certs=true \
-          --server=${{ parameters.AKS_API_SERVER_URL }} \
-          --kubeconfig="config-${{ parameters.AKS_NAME }}"
-        echo "[INFO] kubectl set-cluster"
-        
-        kubectl config set-credentials azure-devops \
-          --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
-          --kubeconfig="config-${{ parameters.AKS_NAME }}"
-        echo "[INFO] kubectl set-credentials"
-        
-        kubectl config set-context iac \
-          --cluster=aks-azure-devops \
-          --user=azure-devops \
-          --kubeconfig="config-${{ parameters.AKS_NAME }}"
-        echo "[INFO] kubectl set-context"
-        
-        kubelogin convert-kubeconfig -l azurecli --kubeconfig "config-${{ parameters.AKS_NAME }}"
-        echo "✅ kubelogin applied"
-        
-        kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
-        echo "✅ kubectl change context"
-        
-        echo "##[endgroup]"
-
+  - template: ../azure-kubeconfig-generator/template.yaml
+    parameters:
+      AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      WORKINGDIR: '${{ parameters.WORKINGDIR }}'
+      AKS_NAME: '${{ parameters.AKS_NAME }}'
+      AKS_API_SERVER_URL: '${{ parameters.AKS_API_SERVER_URL }}'
+      AKS_AZURE_DEVOPS_SA_CA_CRT: '${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}'
+      AKS_AZURE_DEVOPS_SA_TOKEN: '${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}'
 
   - task: AzureCLI@2
     displayName: Plan Terraform
