@@ -33,6 +33,32 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 - [Terraform Setup](templates/terraform-setup)
 - [Terraform Install Azure RM Custom Provider](templates/terraform-custom-azurerm)
 
+## How load into pipelines
+
+### Tags
+
+```yaml
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v3.7.0
+      endpoint: 'io-azure-devops-github-ro'
+```
+
+### Branches
+
+```yaml
+resources:
+  repositories:
+    - repository: terraform
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/heads/plan-without-locks
+      endpoint: 'io-azure-devops-github-ro'
+```
+
 ## Contributing
 
 ### Create a new template
