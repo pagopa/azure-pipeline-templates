@@ -1,7 +1,7 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'DOMAIN_NAME'
-    displayName: '(Required) Domain name.'
+  - name: 'FULL_DOMAIN_NAME'
+    displayName: '(Required) Full Domain name. E.g. rtd_app || rtd_common'
     type: string
   - name: 'AZURE_DEVOPS_POOL_AGENT_NAME'
     displayName: '(Required) Azure devops agent name.'
@@ -39,18 +39,15 @@ parameters:
     type: string
     default: ""
 
-variables:
-  FULL_DOMAIN_SUFFIX_NAME: ${{replace(parameters.DOMAIN_NAME, '-', '_')}}
-
 stages:
-  - stage: ${{parameters.ENVIRONMENT}}_plan_${{variales.FULL_DOMAIN_SUFFIX_NAME}}
-    displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{variales.FULL_DOMAIN_SUFFIX_NAME}}
+  - stage: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+    displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      - job: ${{parameters.ENVIRONMENT}}_plan_${{variales.FULL_DOMAIN_SUFFIX_NAME}}
+      - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -67,14 +64,14 @@ stages:
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
 
-  - stage: ${{parameters.ENVIRONMENT}}_apply_${{variales.FULL_DOMAIN_SUFFIX_NAME}}
-    displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{variales.FULL_DOMAIN_SUFFIX_NAME}}
-    dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{variales.FULL_DOMAIN_SUFFIX_NAME}}']
+  - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+    displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+    dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
     condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
-      - deployment: ${{parameters.ENVIRONMENT}}_apply_${{variales.FULL_DOMAIN_SUFFIX_NAME}}
+      - deployment: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
         continueOnError: false
         environment: ${{parameters.ENVIRONMENT}}
         strategy:
