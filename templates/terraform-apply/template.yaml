@@ -29,7 +29,6 @@ parameters:
 
 steps:
   - template: ../azure-kubeconfig-generator/template.yaml
-    condition: and(succeeded(), ne('${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}', ''))
     parameters:
       AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       WORKINGDIR: '${{ parameters.WORKINGDIR }}'
