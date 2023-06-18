@@ -82,23 +82,19 @@ steps:
         export ARM_CLIENT_SECRET="${servicePrincipalKey}"
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-
-        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-          echo "[INFO] 🚀 Run terraform plan + kubernetes"
-          ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} \
-            -var k8s_kube_config_path_prefix="$(pwd)" \
-            -lock-timeout=3000s \
-            -auto-approve \
-            -input=false \
-            tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
-        else
-          echo "[INFO] 🚀 Run terraform plan"
-          ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} \
-            -lock-timeout=3000s \
-            -auto-approve \
-            -input=false \
-            tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
+        
+        if ! [[ -e "tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}" ]]; then
+          echo "❌ State file not exist"
+          exit 1
         fi
+        
+        ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} \
+          -lock-timeout=3000s \
+          -auto-approve \
+          -input=false \
+          tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
+
+
 
   - task: AzureCLI@2
     displayName: Clean project
