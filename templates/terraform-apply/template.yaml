@@ -55,6 +55,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
+        echo "before IF"
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes & generate state"
           ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} \
