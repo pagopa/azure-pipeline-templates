@@ -57,10 +57,10 @@ steps:
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s 
         else
           echo "[INFO] 🚀 Run terraform plan -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
         fi
 
         echo "✅ State output completed"
@@ -89,7 +89,7 @@ steps:
         fi
         
         echo "🚀 Run terraform apply"
-        ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -auto-approve -input=false tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
+        ./terraform.sh apply-state ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -auto-approve -input=false tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
 
   - task: AzureCLI@2
     displayName: Clean project
