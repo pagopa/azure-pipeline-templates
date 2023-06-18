@@ -28,6 +28,7 @@ parameters:
     default: ""
 
 steps:
+  - checkout: self
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
       AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
@@ -47,7 +48,7 @@ steps:
       failOnStandardError: true
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
-        echo "##[section] 💈 Start terraform apply with tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
+        echo "##[section] 💈 Start terraform plan to generate state with tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
         echo "[INFO] Terraform setup variables"
         export ARM_CLIENT_ID="${servicePrincipalId}"
