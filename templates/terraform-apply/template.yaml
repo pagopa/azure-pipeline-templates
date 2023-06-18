@@ -56,13 +56,13 @@ steps:
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
         echo "[INFO] before IF"
-        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-          echo "[INFO] 🚀 Run terraform plan + kubernetes -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false"
-        else
-          echo "[INFO] 🚀 Run terraform plan -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false
-        fi
+#        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
+#          echo "[INFO] 🚀 Run terraform plan + kubernetes -> generate state"
+#          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false"
+#        else
+#          echo "[INFO] 🚀 Run terraform plan -> generate state"
+#          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false
+#        fi
         echo "✅ State output generated"
 
   - task: AzureCLI@2
