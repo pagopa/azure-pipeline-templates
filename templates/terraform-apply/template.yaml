@@ -88,13 +88,8 @@ steps:
           exit 1
         fi
         
-        ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} \
-          -lock-timeout=3000s \
-          -auto-approve \
-          -input=false \
-          tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
-
-
+        echo "🚀 Run terraform apply"
+        ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=3000s -auto-approve -input=false tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
 
   - task: AzureCLI@2
     displayName: Clean project
