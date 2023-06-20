@@ -30,6 +30,12 @@ parameters:
 steps:
   - checkout: self
 
+  - task: Cache@2
+    inputs:
+      key: '"terraform_plan"'
+      path: */.terraform
+    displayName: Cache .terraform files
+
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
       AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
