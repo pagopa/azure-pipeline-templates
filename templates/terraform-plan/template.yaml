@@ -28,7 +28,6 @@ parameters:
     default: ""
 
 steps:
-  - checkout: self
 
   - task: Cache@2
     inputs:
