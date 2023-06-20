@@ -32,8 +32,8 @@ steps:
 
   - task: Cache@2
     inputs:
-      key: '"terraform_plan"'
-      path: */.terraform
+      key: 'terraform_plan'
+      path: '.terraform/'
     displayName: Cache .terraform files
 
   - template: ../azure-kubeconfig-generator/template.yaml
