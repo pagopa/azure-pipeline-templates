@@ -28,6 +28,9 @@ parameters:
     default: ""
 
 steps:
+  - checkout: self
+
+- ${{ if ne(parameters['AKS_NAME'], '') }}:
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
       AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
