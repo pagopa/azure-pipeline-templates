@@ -13,7 +13,6 @@ for kubernetes plans:
 ## Usage
 
 ```yaml
-steps:
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
       AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
