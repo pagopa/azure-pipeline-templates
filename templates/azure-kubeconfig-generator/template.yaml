@@ -27,6 +27,7 @@ parameters:
 steps:
   - task: Bash@3
     displayName: Check Parameters for kubeconfig
+    condition: and(succeeded(), ne('${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}', ''))
     inputs:
       targetType: inline
       failOnStderr: true

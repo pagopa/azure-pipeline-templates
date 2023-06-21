@@ -24,10 +24,11 @@ pr:
       - main
   paths:
     include:
-      - 'src/domains/shared-app'
-      - 'src/domains/shared-common'
+      - 'src/domains/rtd-app'
+      - 'src/domains/rtd-common'
     exclude:
       - '**/*.lock.hcl'
+      - '**/*.md'
 
 parameters:
   - name: 'DEV'
@@ -37,51 +38,28 @@ parameters:
     values:
       - False
       - True
-  - name: 'UAT'
-    displayName: 'Run on UAT environment'
-    type: boolean
-    default: True
-    values:
-      - False
-      - True
-  - name: 'PROD'
-    displayName: 'Run on PROD environment'
-    type: boolean
-    default: True
-    values:
-      - False
-      - True
+
 
 variables:
   TIME_OUT: 15
-  DEV_AKS_APISERVER_URL: '$(TF_DEV_AKS_APISERVER_URL)'
-  DEV_AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_CACRT)'
-  DEV_AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV_AKS_AZURE_DEVOPS_SA_TOKEN)'
+  #dev
+  DEV01_AKS_APISERVER_URL: '$(TF_DEV01_AKS_APISERVER_URL)'
+  DEV01_AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_DEV01_AKS_AZURE_DEVOPS_SA_CACRT)'
+  DEV01_AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV01_AKS_AZURE_DEVOPS_SA_TOKEN)'
   AKS_DEV_NAME: '$(TF_AKS_DEV_NAME)'
-  DEV_AZURE_SERVICE_CONNECTION: '$(TF_DEV_AZURE_SERVICE_CONNECTION)'
-
-  UAT_AKS_APISERVER_URL: '$(TF_UAT_AKS_APISERVER_URL)'
-  UAT_AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_CACRT)'
-  UAT_AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_UAT_AKS_AZURE_DEVOPS_SA_TOKEN)'
-  AKS_UAT_NAME: '$(TF_AKS_UAT_NAME)'
-  UAT_AZURE_SERVICE_CONNECTION: '$(TF_UAT_AZURE_SERVICE_CONNECTION)'
-
-  PROD_AKS_APISERVER_URL: '$(TF_PROD_AKS_APISERVER_URL)'
-  PROD_AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_PROD_AKS_AZURE_DEVOPS_SA_CACRT)'
-  PROD_AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_PROD_AKS_AZURE_DEVOPS_SA_TOKEN)'
-  AKS_PROD_NAME: '$(TF_AKS_PROD_NAME)'
-  PROD_AZURE_SERVICE_CONNECTION: '$(TF_PROD_AZURE_SERVICE_CONNECTION)'
+  # working dir
+  WORKING_DIR_COMMON: 'src/domains/rtd-common'
+  WORKING_DIR_APP: 'src/domains/rtd-app'
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-latest'
 
 resources:
   repositories:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      # ref: refs/tags/v2.10.3
-      ref: refs/heads/DEVOPS-549-pipelines-fix-deploy-iac-la-richiesta-di-autorizzazione-non-e-piu-presente
+      ref: refs/tags/v4.0.0
       endpoint: 'io-azure-devops-github-ro'
 
 stages:
@@ -89,9 +67,9 @@ stages:
     dependsOn: []
     condition: and(succeeded(), eq(${{parameters.DEV}}, true))
     pool:
-      name: "pagopa-dev-linux"
+      name: cstar-dev-linux-infra
     jobs:
-      - job: 🔦 plan_shared_common
+      - job: tf_plan_rtd_common
         strategy:
           parallel: 1
         timeoutInMinutes: $[variables.TIME_OUT]
@@ -99,13 +77,13 @@ stages:
           - checkout: self
           # 1. Install terraform and terragrunt
           - template: templates/terraform-setup/template.yaml@terraform
-          # 2. Run terraform plan shared-common
+          # 2. Run terraform plan rtd-common
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              TF_ENVIRONMENT_FOLDER: "weu-dev"
-              WORKINGDIR: 'src/domains/shared-common'
-              AZURE_SERVICE_CONNECTION_NAME: ${{ variables.DEV_AZURE_SERVICE_CONNECTION }}
-      - job: 🔦 plan_shared_app
+              TF_ENVIRONMENT_FOLDER: "dev"
+              WORKINGDIR: ${{ variables.WORKING_DIR_COMMON }}
+              AZURE_SERVICE_CONNECTION_NAME: CSTAR-DEV-PLAN-SERVICE-CONN
+      - job: tf_plan_rtd_app
         timeoutInMinutes: $[variables.TIME_OUT]
         strategy:
           parallel: 1
@@ -113,98 +91,14 @@ stages:
           - checkout: self
           # 1. Install terraform and terragrunt
           - template: templates/terraform-setup/template.yaml@terraform
-          # Run terraform plan shared-app
+          # Run terraform plan rtd-app
           - template: templates/terraform-plan/template.yaml@terraform
             parameters:
-              TF_ENVIRONMENT_FOLDER: "weu-dev"
-              WORKINGDIR: 'src/domains/shared-app'
-              AZURE_SERVICE_CONNECTION_NAME: ${{ variables.DEV_AZURE_SERVICE_CONNECTION }}
+              TF_ENVIRONMENT_FOLDER: "dev"
+              WORKINGDIR: ${{ variables.WORKING_DIR_APP }}
+              AZURE_SERVICE_CONNECTION_NAME: CSTAR-DEV-PLAN-SERVICE-CONN
               AKS_NAME: ${{ variables.AKS_DEV_NAME }}
-              AKS_API_SERVER_URL: ${{ variables.DEV_AKS_APISERVER_URL }}
-              AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.DEV_AKS_AZURE_DEVOPS_SA_CACRT }}
-              AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.DEV_AKS_AZURE_DEVOPS_SA_TOKEN }}
-
-#
-# UAT
-#
-  - stage: UAT
-    dependsOn: []
-    condition: and(succeeded(), eq(${{parameters.UAT}}, true))
-    pool:
-      name: "pagopa-uat-linux"
-    jobs:
-      - job: 🔦 plan_shared_common
-        strategy:
-          parallel: 1
-        timeoutInMinutes: $[variables.TIME_OUT]
-        steps:
-          - checkout: self
-          # 1. Install terraform and terragrunt
-          - template: templates/terraform-setup/template.yaml@terraform
-          # 2. Run terraform plan shared-common
-          - template: templates/terraform-plan/template.yaml@terraform
-            parameters:
-              TF_ENVIRONMENT_FOLDER: "weu-uat"
-              WORKINGDIR: 'src/domains/shared-common'
-              AZURE_SERVICE_CONNECTION_NAME: ${{ variables.UAT_AZURE_SERVICE_CONNECTION }}
-      - job: 🔦 plan_shared_app
-        timeoutInMinutes: $[variables.TIME_OUT]
-        strategy:
-          parallel: 1
-        steps:
-          - checkout: self
-          # 1. Install terraform and terragrunt
-          - template: templates/terraform-setup/template.yaml@terraform
-          # Run terraform plan shared-app
-          - template: templates/terraform-plan/template.yaml@terraform
-            parameters:
-              TF_ENVIRONMENT_FOLDER: "weu-uat"
-              WORKINGDIR: 'src/domains/shared-app'
-              AZURE_SERVICE_CONNECTION_NAME: ${{ variables.UAT_AZURE_SERVICE_CONNECTION }}
-              AKS_NAME: ${{ variables.AKS_UAT_NAME }}
-              AKS_API_SERVER_URL: ${{ variables.UAT_AKS_APISERVER_URL }}
-              AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.UAT_AKS_AZURE_DEVOPS_SA_CACRT }}
-              AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.UAT_AKS_AZURE_DEVOPS_SA_TOKEN }}
-
-#
-# PROD
-#
-  - stage: PROD
-    dependsOn: []
-    condition: and(succeeded(), eq(${{parameters.PROD}}, true))
-    pool:
-      name: "pagopa-prod-linux"
-    jobs:
-      - job: 🔦 plan_shared_common
-        strategy:
-          parallel: 1
-        timeoutInMinutes: $[variables.TIME_OUT]
-        steps:
-          - checkout: self
-          # 1. Install terraform and terragrunt
-          - template: templates/terraform-setup/template.yaml@terraform
-          # 2. Run terraform plan shared-common
-          - template: templates/terraform-plan/template.yaml@terraform
-            parameters:
-              TF_ENVIRONMENT_FOLDER: "weu-prod"
-              WORKINGDIR: 'src/domains/shared-common'
-              AZURE_SERVICE_CONNECTION_NAME: ${{ variables.PROD_AZURE_SERVICE_CONNECTION }}
-      - job: 🔦 plan_shared_app
-        timeoutInMinutes: $[variables.TIME_OUT]
-        strategy:
-          parallel: 1
-        steps:
-          - checkout: self
-          # 1. Install terraform and terragrunt
-          - template: templates/terraform-setup/template.yaml@terraform
-          # Run terraform plan shared-app
-          - template: templates/terraform-plan/template.yaml@terraform
-            parameters:
-              TF_ENVIRONMENT_FOLDER: "weu-prod"
-              WORKINGDIR: 'src/domains/shared-app'
-              AZURE_SERVICE_CONNECTION_NAME: ${{ variables.PROD_AZURE_SERVICE_CONNECTION }}
-              AKS_NAME: ${{ variables.AKS_PROD_NAME }}
-              AKS_API_SERVER_URL: ${{ variables.PROD_AKS_APISERVER_URL }}
-              AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.PROD_AKS_AZURE_DEVOPS_SA_CACRT }}
-              AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.PROD_AKS_AZURE_DEVOPS_SA_TOKEN }}
+              AKS_API_SERVER_URL: ${{ variables.DEV01_AKS_APISERVER_URL }}
+              AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.DEV01_AKS_AZURE_DEVOPS_SA_CACRT }}
+              AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.DEV01_AKS_AZURE_DEVOPS_SA_TOKEN }}
 ```

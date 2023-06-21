@@ -23,80 +23,61 @@ pr: none
 
 parameters:
   - name: 'DEV'
-    displayName: 'Plan on DEV environment'
+    displayName: 'Run on DEV environment'
     type: boolean
     default: True
     values:
       - False
       - True
-  - name: 'UAT'
-    displayName: 'Plan on UAT environment'
-    type: boolean
-    default: True
-    values:
-      - False
-      - True
-  - name: 'PROD'
-    displayName: 'Plan on PROD environment'
-    type: boolean
-    default: True
-    values:
-      - False
-      - True
+
 
 variables:
   TIME_OUT: 10
+  #dev
+  DEV01_AKS_APISERVER_URL: '$(TF_DEV01_AKS_APISERVER_URL)'
+  DEV01_AKS_AZURE_DEVOPS_SA_CACRT: '$(TF_DEV01_AKS_AZURE_DEVOPS_SA_CACRT)'
+  DEV01_AKS_AZURE_DEVOPS_SA_TOKEN: '$(TF_DEV01_AKS_AZURE_DEVOPS_SA_TOKEN)'
+  AKS_DEV_NAME: '$(TF_AKS_DEV_NAME)'
+  # working dir
+  WORKING_DIR_COMMON: 'src/domains/rtd-common'
+  WORKING_DIR_APP: 'src/domains/rtd-app'
+  DOMAIN_NAME: rtd
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-latest'
 
 resources:
   repositories:
     - repository: terraform
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/heads/DEVOPS-549-pipelines-fix-deploy-iac-la-richiesta-di-autorizzazione-non-e-piu-presente
+      ref: refs/heads/apply-with-output-state
       endpoint: 'io-azure-devops-github-ro'
 
-lockBehavior: sequential
 stages:
+#DEV
   - ${{ if eq(parameters['DEV'], true) }}:
-    # DEV CORE
     - template: templates/terraform-plan-apply/template.yaml@terraform
       parameters:
-        DOMAIN_NAME: 'core'
-        AZURE_DEVOPS_POOL_AGENT_NAME: "pagopa-dev-linux"
-        ENVIRONMENT: "dev"
+        FULL_DOMAIN_NAME: "${{variables.DOMAIN_NAME}}_common"
         TF_ENVIRONMENT_FOLDER: "dev"
-        WORKINGDIR: 'src/core'
-        AZURE_SERVICE_CONNECTION_NAME: DEV-PAGOPA-SERVICE-CONN
-
-  #
-  # UAT
-  #
-  - ${{ if eq(parameters['UAT'], true) }}:
-    # UAT CORE
+        ENVIRONMENT: "DIEGO_ENV"
+        AZURE_DEVOPS_POOL_AGENT_NAME: "cstar-dev-linux-infra"
+        WORKINGDIR: ${{ variables.WORKING_DIR_COMMON }}
+        AZURE_SERVICE_CONNECTION_PLAN_NAME: CSTAR-DEV-PLAN-SERVICE-CONN
+        AZURE_SERVICE_CONNECTION_APPLY_NAME: DEV-CSTAR-SERVICE-CONN
     - template: templates/terraform-plan-apply/template.yaml@terraform
       parameters:
-        DOMAIN_NAME: 'core'
-        AZURE_DEVOPS_POOL_AGENT_NAME: "pagopa-uat-linux"
-        ENVIRONMENT: "uat"
-        TF_ENVIRONMENT_FOLDER: "uat"
-        WORKINGDIR: 'src/core'
-        AZURE_SERVICE_CONNECTION_NAME: UAT-PAGOPA-SERVICE-CONN
-
-  #
-  # PROD
-  #
-  - ${{ if eq(parameters['PROD'], true) }}:
-    # PROD CORE
-    - template: templates/terraform-plan-apply/template.yaml@terraform
-      parameters:
-        DOMAIN_NAME: 'core'
-        AZURE_DEVOPS_POOL_AGENT_NAME: "pagopa-prod-linux"
-        ENVIRONMENT: "prod"
-        TF_ENVIRONMENT_FOLDER: "prod"
-        WORKINGDIR: 'src/core'
-        AZURE_SERVICE_CONNECTION_NAME: PROD-PAGOPA-SERVICE-CONN
+        FULL_DOMAIN_NAME: "${{variables.DOMAIN_NAME}}_app"
+        TF_ENVIRONMENT_FOLDER: "dev"
+        ENVIRONMENT: "DIEGO_ENV"
+        AZURE_DEVOPS_POOL_AGENT_NAME: "cstar-dev-linux-infra"
+        WORKINGDIR:  ${{ variables.WORKING_DIR_APP }}
+        AKS_NAME: ${{ variables.AKS_DEV_NAME }}
+        AKS_API_SERVER_URL: ${{ variables.DEV01_AKS_APISERVER_URL }}
+        AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.DEV01_AKS_AZURE_DEVOPS_SA_CACRT }}
+        AKS_AZURE_DEVOPS_SA_TOKEN: ${{ variables.DEV01_AKS_AZURE_DEVOPS_SA_TOKEN }}
+        AZURE_SERVICE_CONNECTION_PLAN_NAME: CSTAR-DEV-PLAN-SERVICE-CONN
+        AZURE_SERVICE_CONNECTION_APPLY_NAME: DEV-CSTAR-SERVICE-CONN
 
 ```

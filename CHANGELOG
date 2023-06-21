@@ -1,0 +1,8 @@
+# CHANGELOG
+
+## v5.0.0
+
+- terraform-plan: now don't lock the state, so is more fast and can be cancelled
+- terraform-apply: use an internal plan that generate the state output file and allow to apply only the changed. No more locks needed
+- azure-kubeconfig-genator: allow to generate the kubeconfig with kubelogin
+- terraform-plan-apply: allow to use a separated service connection, one for plan (with low permissions) and the other with full permissions but with and env linked
