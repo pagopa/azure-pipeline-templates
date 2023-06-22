@@ -90,9 +90,7 @@ steps:
           exit 1
         fi
         
-        cat terraform.sh
-        
-        echo "🚀 Run terraform apply-state"
+        echo "🚀 Run terraform apply output state"
         terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
 
   - task: AzureCLI@2
