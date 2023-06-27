@@ -87,6 +87,7 @@ steps:
         if [ ! -e "tfplan" ]; then
             echo "Il file non esiste."
         fi
+        ls -la
 
         echo "[info] state tree"
         tf-summarize -tree tfplan
