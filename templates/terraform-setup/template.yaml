@@ -15,6 +15,7 @@ steps:
 
 - task: Bash@3
   displayName: Install terraform
+  condition: succeeded()
   inputs:
     targetType: 'inline'
     failOnStderr: false
@@ -28,6 +29,7 @@ steps:
 
 - task: Bash@3
   displayName: Check terraform
+  condition: succeeded()
   inputs:
     targetType: 'inline'
     failOnStderr: false
