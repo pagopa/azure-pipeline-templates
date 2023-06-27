@@ -88,7 +88,7 @@ steps:
             echo "Il file non esiste."
         fi
         ls -la
-
+        tf-summarize -v
         echo "[info] state tree"
         tf-summarize -tree tfplan
 
