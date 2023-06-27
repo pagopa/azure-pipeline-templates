@@ -1,0 +1,48 @@
+parameters:
+  - name: 'TF_SUMMARIZE_VERSION'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+    default: 'v0.3.2'
+
+steps:
+
+# 1. Install terraform
+- task: Bash@3
+  displayName: Check unzip
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      if ! command -v "unzip" >/dev/null 2>&1; then
+        echo "❌ unzip NOT installed"
+        exit 1
+      fi
+
+      echo "✅ Unzip installed correctly"
+
+
+- task: Bash@3
+  displayName: Install terraform
+  condition: succeeded()
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      wget https://github.com/dineshba/tf-summarize/releases/download/${TF_SUMMARIZE_VERSION}/tf-summarize_linux_amd64.zip
+      unzip tf-summarize_linux_amd64.zip
+      sudo mv tf-summarize /usr/local/bin/
+      rm tf-summarize_linux_amd64.zip
+
+- task: Bash@3
+  displayName: Check terraform
+  condition: succeeded()
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      if ! command -v "tf-summarize" >/dev/null 2>&1; then
+        echo "❌ tf-summarize NOT installed"
+        exit 1
+      fi
+
+      echo "✅ tf-summarize installed correctly"
