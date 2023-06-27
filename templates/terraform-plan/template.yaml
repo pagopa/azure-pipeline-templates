@@ -90,7 +90,7 @@ steps:
         ls -la
         tf-summarize -v
         echo "[info] state tree"
-        tf-summarize -tree tfplan
+        sudo tf-summarize -tree tfplan
 
   - task: Bash@3
     displayName: Show draw
