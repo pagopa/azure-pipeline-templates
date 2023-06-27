@@ -79,8 +79,8 @@ steps:
   - task: Bash@3
     displayName: Show tree
     condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
-    workingDirectory: '${{ parameters.WORKINGDIR }}'
     inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
       targetType: 'inline'
       failOnStderr: false
       script: |
@@ -93,8 +93,8 @@ steps:
   - task: Bash@3
     displayName: Show draw
     condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
-    workingDirectory: '${{ parameters.WORKINGDIR }}'
     inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
       targetType: 'inline'
       failOnStderr: false
       script: |
