@@ -13,6 +13,9 @@ steps:
         exit 1
       fi
 
+      echo "✅ Unzip installed correctly"
+
+
 - task: Bash@3
   displayName: Install terraform
   condition: succeeded()
@@ -21,7 +24,7 @@ steps:
     failOnStderr: false
     script: |
       TERRAFORM_VERSION="$(cat .terraform-version)"
-      echo "⚙️ terraform version to install: ${TERRAFORM_VERSION}"
+      echo "📢 terraform version to install: ${TERRAFORM_VERSION}"
       wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
       unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
       sudo mv terraform /usr/local/bin/
@@ -38,3 +41,5 @@ steps:
         echo "❌ terraform NOT installed"
         exit 1
       fi
+
+      echo "✅ Terraform installed correctly"
