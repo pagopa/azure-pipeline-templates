@@ -22,19 +22,19 @@ steps:
 
 
 - task: Bash@3
-  displayName: Install terraform
+  displayName: Install tf-summarize
   condition: succeeded()
   inputs:
     targetType: 'inline'
     failOnStderr: false
     script: |
-      wget https://github.com/dineshba/tf-summarize/releases/download/${TF_SUMMARIZE_VERSION}/tf-summarize_linux_amd64.zip
+      wget -v https://github.com/dineshba/tf-summarize/releases/download/${{parameters.TF_SUMMARIZE_VERSION}}/tf-summarize_linux_amd64.zip
       unzip tf-summarize_linux_amd64.zip
       sudo mv tf-summarize /usr/local/bin/
       rm tf-summarize_linux_amd64.zip
 
 - task: Bash@3
-  displayName: Check terraform
+  displayName: Check tf-summarize
   condition: succeeded()
   inputs:
     targetType: 'inline'
