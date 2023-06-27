@@ -3,14 +3,43 @@ steps:
 
 # 1. Install terraform
 - task: Bash@3
+  displayName: Check unzip
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      if ! command -v "unzip" >/dev/null 2>&1; then
+        echo "❌ unzip NOT installed"
+        exit 1
+      fi
+
+      echo "✅ Unzip installed correctly"
+
+
+- task: Bash@3
   displayName: Install terraform
+  condition: succeeded()
   inputs:
     targetType: 'inline'
     failOnStderr: false
     script: |
       TERRAFORM_VERSION="$(cat .terraform-version)"
+      echo "📢 terraform version to install: ${TERRAFORM_VERSION}"
       wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
       unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
       sudo mv terraform /usr/local/bin/
-      terraform -v
       rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+- task: Bash@3
+  displayName: Check terraform
+  condition: succeeded()
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      if ! command -v "terraform" >/dev/null 2>&1; then
+        echo "❌ terraform NOT installed"
+        exit 1
+      fi
+
+      echo "✅ Terraform installed correctly"
