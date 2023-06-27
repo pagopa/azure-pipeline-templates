@@ -13,8 +13,6 @@ resources:
       ref: refs/tags/v5.0.x
 
 jobs:
-- template: templates/terraform-summarize/template.yaml@templates
-- script:|
-    terraform -version
-   displayName: 'here you can execute any terraform command'
+  - template: templates/terraform-summarize/template.yaml@terraform
+
 ```
