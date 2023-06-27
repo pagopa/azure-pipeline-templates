@@ -29,7 +29,7 @@ steps:
     failOnStderr: false
     workingDirectory: /tmp
     script: |
-      rm tf-summarize_linux_amd64.zip
+      rm tf-summarize_linux_amd64.zip LICENSE README.md tf-summarize
       wget -v https://github.com/dineshba/tf-summarize/releases/download/${{parameters.TF_SUMMARIZE_VERSION}}/tf-summarize_linux_amd64.zip
       echo "[info] unzip file"
       ls -lah
