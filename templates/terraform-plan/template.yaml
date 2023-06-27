@@ -87,10 +87,11 @@ steps:
         if [ ! -e "/tmp/tfplan" ]; then
             echo "Il file non esiste."
         fi
-        ls -la
+        ls -la /tmp
         tf-summarize -v
         echo "[info] state tree"
-        sudo tf-summarize -tree /tmp/tfplan
+        terraform show -json /tmp/tfplan
+        tf-summarize -tree /tmp/tfplan
 
   - task: Bash@3
     displayName: Show draw
