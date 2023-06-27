@@ -63,7 +63,7 @@ steps:
 
         if [[ "${{ parameters.TF_SUMMARIZE }}" == "True" ]]; then
           echo "[info] Added option to generate tfplan"
-          generate_state_output="-out=tfplan"
+          generate_state_output="-out=/tmp/tfplan"
         else
           echo "🤔 No summary: ${{ parameters.TF_SUMMARIZE }}"
         fi
@@ -84,13 +84,13 @@ steps:
       targetType: 'inline'
       failOnStderr: false
       script: |
-        if [ ! -e "tfplan" ]; then
+        if [ ! -e "/tmp/tfplan" ]; then
             echo "Il file non esiste."
         fi
         ls -la
         tf-summarize -v
         echo "[info] state tree"
-        sudo tf-summarize -tree tfplan
+        sudo tf-summarize -tree /tmp/tfplan
 
   - task: Bash@3
     displayName: Show draw
