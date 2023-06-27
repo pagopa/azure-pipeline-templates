@@ -27,6 +27,7 @@ steps:
   inputs:
     targetType: 'inline'
     failOnStderr: false
+    workingDirectory: /tmp
     script: |
       wget -v https://github.com/dineshba/tf-summarize/releases/download/${{parameters.TF_SUMMARIZE_VERSION}}/tf-summarize_linux_amd64.zip
       echo "[info] unzip file"
