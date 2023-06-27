@@ -32,7 +32,8 @@ steps:
       wget -v https://github.com/dineshba/tf-summarize/releases/download/${{parameters.TF_SUMMARIZE_VERSION}}/tf-summarize_linux_amd64.zip
       echo "[info] unzip file"
       ls -lah
-      sudo unzip tf-summarize_linux_amd64.zip
+      pwd
+      unzip tf-summarize_linux_amd64.zip
       echo "[info] move to bin"
       sudo mv tf-summarize /usr/local/bin/
       echo "[info] remove binari"
