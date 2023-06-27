@@ -78,20 +78,29 @@ steps:
 
   - task: Bash@3
     displayName: Show tree
-    condition: succeeded()
+    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
+    workingDirectory: '${{ parameters.WORKINGDIR }}'
     inputs:
       targetType: 'inline'
       failOnStderr: false
       script: |
+        if [ ! -e "tfplan" ]; then
+            echo "Il file non esiste."
+        fi
+
         tf-summarize -tree tfplan
 
   - task: Bash@3
     displayName: Show draw
-    condition: succeeded()
+    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
+    workingDirectory: '${{ parameters.WORKINGDIR }}'
     inputs:
       targetType: 'inline'
       failOnStderr: false
       script: |
+        if [ ! -e "tfplan" ]; then
+          echo "Il file non esiste."
+        fi
         tf-summarize -separate-tree -draw tfplan
 
   - task: Bash@3
