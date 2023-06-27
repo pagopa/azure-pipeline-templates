@@ -90,8 +90,8 @@ steps:
         ls -la /tmp
         tf-summarize -v
         echo "[info] state tree"
-        terraform show -json /tmp/tfplan
-        tf-summarize -tree /tmp/tfplan
+        terraform show -json /tmp/tfplan | tf-summarize
+        # tf-summarize -tree /tmp/tfplan
 
   - task: Bash@3
     displayName: Show draw
