@@ -64,6 +64,8 @@ steps:
         if [[ "${{ parameters.TF_SUMMARIZE }}" == "true" ]]; then
           echo "[info] Added option to generate tfplan"
           generate_state_output="-out=tfplan"
+        else
+          echo "🤔 No summary: ${{ parameters.TF_SUMMARIZE }}"
         fi
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
