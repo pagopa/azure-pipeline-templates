@@ -77,7 +77,7 @@ steps:
         fi
 
   - task: Bash@3
-    displayName: Show tree
+    displayName: Summ table
     condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
     inputs:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
@@ -89,6 +89,20 @@ steps:
         fi
         echo "[info] state tree"
         terraform show -json /tmp/tfplan | tf-summarize -tree
+
+  - task: Bash@3
+    displayName: Summ tree
+    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
+    inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      targetType: 'inline'
+      failOnStderr: false
+      script: |
+        if [ ! -e "/tmp/tfplan" ]; then
+            echo "Il file non esiste."
+        fi
+        echo "[info] state tree"
+        terraform show -json /tmp/tfplan | tf-summarize -separate-tree
 
   - task: Bash@3
     displayName: Show draw
@@ -103,7 +117,7 @@ steps:
         fi
 
         echo "[info] state tree"
-        terraform show -json /tmp/tfplan | tf-summarize -tree -draw
+        terraform show -json /tmp/tfplan | tf-summarize -separate-tree -draw
 
   - task: Bash@3
     displayName: Clean files
