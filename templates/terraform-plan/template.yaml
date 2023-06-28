@@ -88,7 +88,7 @@ steps:
             echo "Il file non esiste."
         fi
         echo "[info] state tree"
-        terraform show -json /tmp/tfplan | tf-summarize -tree
+        terraform show -json /tmp/tfplan | tf-summarize
 
   - task: Bash@3
     displayName: Summ tree
