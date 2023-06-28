@@ -87,10 +87,8 @@ steps:
         if [ ! -e "/tmp/tfplan" ]; then
             echo "Il file non esiste."
         fi
-        ls -la /tmp
-        tf-summarize -v
         echo "[info] state tree"
-        terraform show -json /tmp/tfplan | tf-summarize -separate-tree
+        terraform show -json /tmp/tfplan | tf-summarize -tree
 
   - task: Bash@3
     displayName: Show draw
@@ -105,10 +103,10 @@ steps:
         fi
 
         echo "[info] state tree"
-        terraform show -json /tmp/tfplan | tf-summarize -separate-tree -draw
+        terraform show -json /tmp/tfplan | tf-summarize -tree -draw
 
   - task: Bash@3
-    displayName: Install terraform
+    displayName: Clean files
     condition: succeeded()
     inputs:
       targetType: 'inline'
