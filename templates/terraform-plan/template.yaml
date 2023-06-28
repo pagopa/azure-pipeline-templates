@@ -127,6 +127,8 @@ steps:
       failOnStderr: false
       script: |
         echo "[INFO] Clean project"
+        ls -la
+        pwd
         rm -rf .kube
         rm -rf .azure
         rm -rf config-${{ parameters.AKS_NAME }}
