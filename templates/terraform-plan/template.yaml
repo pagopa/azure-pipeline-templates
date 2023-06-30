@@ -84,7 +84,7 @@ steps:
     displayName: "🔼 Saved tfplan"
     condition: and(succeeded(), eq('${{ parameters.TF_OUTPUT_STATE }}', true))
     inputs:
-      targetPath: tfplan
+      targetPath: ${{ parameters.WORKINGDIR }}/tfplan
       artifactName: tfplan
 
   - task: Bash@3
