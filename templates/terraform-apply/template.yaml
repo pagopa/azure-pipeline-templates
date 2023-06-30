@@ -33,15 +33,18 @@ parameters:
 
 steps:
   - checkout: self
+#
+# Artifacts are downloaded automatially from the pipelines run
+#
 
-  - task: Bash@3
-    displayName: "inside"
-    inputs:
-      workingDirectory: '${{ parameters.WORKINGDIR }}'
-      targetType: 'inline'
-      failOnStderr: false
-      script: |
-        ls -la
+  # - task: Bash@3
+  #   displayName: "inside"
+  #   inputs:
+  #     workingDirectory: '${{ parameters.WORKINGDIR }}'
+  #     targetType: 'inline'
+  #     failOnStderr: false
+  #     script: |
+  #       ls -la
 
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
