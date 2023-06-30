@@ -43,7 +43,7 @@ steps:
       AKS_AZURE_DEVOPS_SA_TOKEN: '${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}'
 
   - task: AzureCLI@2
-    displayName: Plan Terraform
+    displayName: "🔦 Plan Terraform"
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
@@ -77,7 +77,7 @@ steps:
         fi
 
   - task: Bash@3
-    displayName: Summ table
+    displayName: "🔎 Summarize table"
     condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
     inputs:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
@@ -91,7 +91,7 @@ steps:
         terraform show -json tfplan | tf-summarize
 
   - task: Bash@3
-    displayName: Summ tree
+    displayName: 🔎 Summarize tree
     condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
     inputs:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
@@ -105,7 +105,7 @@ steps:
         terraform show -json tfplan | tf-summarize -separate-tree
 
   - task: Bash@3
-    displayName: Show draw
+    displayName: 🔎 Summarize draw
     condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
     inputs:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
