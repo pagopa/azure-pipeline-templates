@@ -34,6 +34,15 @@ parameters:
 steps:
   - checkout: self
 
+  - task: Bash@3
+    displayName: "inside"
+    inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      targetType: 'inline'
+      failOnStderr: false
+      script: |
+        ls -la
+
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
       AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
@@ -50,13 +59,6 @@ steps:
       artifact: tfplan
       targetPath: ${{ parameters.WORKINGDIR }}/tfplan
 
-  - task: Bash@3
-    displayName: "tmp"
-    inputs:
-      targetType: 'inline'
-      failOnStderr: false
-      script: |
-        ls -la
 
   - task: AzureCLI@2
     displayName: 🔦 Plan(generate state)

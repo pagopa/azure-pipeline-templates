@@ -94,6 +94,7 @@ stages:
                 - task: Bash@3
                   displayName: "tmp"
                   inputs:
+                    workingDirectory: '${{ parameters.WORKINGDIR }}'
                     targetType: 'inline'
                     failOnStderr: false
                     script: |
