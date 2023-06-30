@@ -26,6 +26,10 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: TF_SUMMARIZE
+    displayName: Show summarize data
+    type: boolean
+    default: false
 
 steps:
 
@@ -39,7 +43,7 @@ steps:
       AKS_AZURE_DEVOPS_SA_TOKEN: '${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}'
 
   - task: AzureCLI@2
-    displayName: Plan Terraform
+    displayName: "🔦 Plan Terraform"
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
@@ -55,15 +59,77 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-          echo "[INFO] 🚀 Run terraform plan + kubernetes"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -lock-timeout=300s -lock=false
+        generate_state_output=""
+
+        if [[ "${{ parameters.TF_SUMMARIZE }}" == "True" ]]; then
+          echo "[info] Added option to generate tfplan"
+          generate_state_output="-out=tfplan"
         else
-          echo "[INFO] 🚀 Run terraform plan"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false
+          echo "📢 Summary not enabled: ${{ parameters.TF_SUMMARIZE }}"
         fi
 
+        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
+          echo "[INFO] 🚀 Run terraform plan + kubernetes"
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -lock-timeout=300s -lock=false ${generate_state_output}
+        else
+          echo "[INFO] 🚀 Run terraform plan"
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false ${generate_state_output}
+        fi
+
+  - task: Bash@3
+    displayName: "🔎 Summarize table"
+    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
+    inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      targetType: 'inline'
+      failOnStderr: false
+      script: |
+        if [ ! -e "tfplan" ]; then
+            echo "❌ Il file tfplan non esiste."
+        fi
+        echo "[info] state tree"
+        terraform show -json tfplan | tf-summarize
+
+  - task: Bash@3
+    displayName: 🔎 Summarize tree
+    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
+    inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      targetType: 'inline'
+      failOnStderr: false
+      script: |
+        if [ ! -e "tfplan" ]; then
+            echo "❌ Il file tfplan non esiste."
+        fi
+        echo "[info] state tree"
+        terraform show -json tfplan | tf-summarize -separate-tree
+
+  - task: Bash@3
+    displayName: 🔎 Summarize draw
+    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
+    inputs:
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      targetType: 'inline'
+      failOnStderr: false
+      script: |
+        if [ ! -e "tfplan" ]; then
+          echo "❌ Il file tfplan non esiste."
+        fi
+
+        echo "[info] state tree"
+        terraform show -json tfplan | tf-summarize -separate-tree -draw
+
+  - task: Bash@3
+    displayName: Clean files
+    condition: always()
+    inputs:
+      targetType: 'inline'
+      failOnStderr: false
+      script: |
         echo "[INFO] Clean project"
+        ls -la
+        pwd
         rm -rf .kube
         rm -rf .azure
         rm -rf config-${{ parameters.AKS_NAME }}
+        rm tfplan || true
