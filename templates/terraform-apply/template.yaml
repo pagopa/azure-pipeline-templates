@@ -48,6 +48,7 @@ steps:
     condition: and(succeeded(), eq('${{ parameters.TF_OUTPUT_STATE }}', true))
     inputs:
       artifact: tfplan
+      targetPath: ${{ parameters.WORKINGDIR }}/tfplan
 
   - task: Bash@3
     displayName: "tmp"
@@ -85,6 +86,7 @@ steps:
         fi
 
         echo "✅ State output completed"
+
 
   - task: AzureCLI@2
     displayName: Apply Terraform
