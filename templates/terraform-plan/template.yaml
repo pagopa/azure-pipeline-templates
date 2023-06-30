@@ -30,6 +30,10 @@ parameters:
     displayName: Show summarize data
     type: boolean
     default: false
+  - name: TF_OUTPUT_STATE
+    displayName: Share state output during pipelines
+    type: boolean
+    default: false
 
 steps:
 
@@ -61,11 +65,11 @@ steps:
 
         generate_state_output=""
 
-        if [[ "${{ parameters.TF_SUMMARIZE }}" == "True" ]]; then
-          echo "[info] Added option to generate tfplan"
+        if [[ "${{ parameters.TF_SUMMARIZE }}" == "True" ]] || [[ "${{ parameters.TF_OUTPUT_STATE }}" == "True" ]]; then
+          echo "[info] Added option to generate output state: tfplan"
           generate_state_output="-out=tfplan"
         else
-          echo "📢 Summary not enabled: ${{ parameters.TF_SUMMARIZE }}"
+          echo "📢 Output state not generated"
         fi
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
@@ -75,6 +79,13 @@ steps:
           echo "[INFO] 🚀 Run terraform plan"
           ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false ${generate_state_output}
         fi
+
+  - task: PublishPipelineArtifact@1
+    displayName: "🔼 Saved tfplan"
+    condition: and(succeeded(), eq('${{ parameters.TF_OUTPUT_STATE }}', true))
+    inputs:
+      targetPath: tfplan
+      artifactName: tfplan
 
   - task: Bash@3
     displayName: "🔎 Summarize table"
