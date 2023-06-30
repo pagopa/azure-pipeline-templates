@@ -38,6 +38,15 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: TF_SUMMARIZE
+    displayName: Show summarize data
+    type: boolean
+    default: false
+  - name: TF_OUTPUT_STATE
+    displayName: Share state output during pipelines
+    type: boolean
+    default: false
+
 
 stages:
   - stage: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
@@ -63,6 +72,9 @@ stages:
               AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+              TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
+              TF_OUTPUT_STATE: ${{parameters.TF_OUTPUT_STATE}}
+              
 
   - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
     displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
@@ -91,3 +103,4 @@ stages:
                     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
                     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
                     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+                    TF_OUTPUT_STATE: ${{parameters.TF_OUTPUT_STATE}}
