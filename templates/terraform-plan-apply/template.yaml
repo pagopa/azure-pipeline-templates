@@ -93,6 +93,7 @@ stages:
                 - checkout: self
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
+                - template: ../terraform-summarize/template.yaml@terraform
                 # 2. Run terraform apply
                 - template: ../terraform-apply/template.yaml@terraform
                   parameters:
