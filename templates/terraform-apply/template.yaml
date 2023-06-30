@@ -59,7 +59,7 @@ steps:
         ls -la
 
   - task: AzureCLI@2
-    displayName: Plan(generate state)
+    displayName: 🔦 Plan(generate state)
     condition: and(succeeded(), eq('${{ parameters.TF_OUTPUT_STATE }}', false))
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
@@ -89,7 +89,7 @@ steps:
 
 
   - task: AzureCLI@2
-    displayName: Apply Terraform
+    displayName: 🚀 Apply Terraform
     inputs:
       azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
@@ -112,7 +112,6 @@ steps:
         fi
         
         echo "🚀 Run terraform apply output state"
-        exit 11
         terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan
 
   - task: AzureCLI@2
