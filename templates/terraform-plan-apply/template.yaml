@@ -91,14 +91,6 @@ stages:
             deploy:
               steps:
                 - checkout: self
-                - task: Bash@3
-                  displayName: "tmp"
-                  inputs:
-                    workingDirectory: '${{ parameters.WORKINGDIR }}'
-                    targetType: 'inline'
-                    failOnStderr: false
-                    script: |
-                      ls -la
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
                 - template: ../terraform-summarize/template.yaml@terraform
