@@ -105,21 +105,6 @@ steps:
         terraform show -json tfplan | tf-summarize -tree
 
   - task: Bash@3
-    displayName: 🔎 Summarize draw
-    condition: and(succeeded(), eq('${{ parameters.TF_SUMMARIZE }}', true))
-    inputs:
-      workingDirectory: '${{ parameters.WORKINGDIR }}'
-      targetType: 'inline'
-      failOnStderr: false
-      script: |
-        if [ ! -e "tfplan" ]; then
-          echo "❌ Il file tfplan non esiste."
-        fi
-
-        echo "[info] state tree"
-        terraform show -json tfplan | tf-summarize -tree -draw
-
-  - task: Bash@3
     displayName: Clean files
     condition: always()
     inputs:
