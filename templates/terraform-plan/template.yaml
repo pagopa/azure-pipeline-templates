@@ -54,13 +54,14 @@ steps:
       inlineScript: |
         echo "##[section] 💈 Start terraform plan for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
-        export cliendId=$( az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
+        export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
         echo "servicePrincipalId: ${servicePrincipalId}"
         echo "cliendId: ${cliendId}"
         
-        az login --identity --username "${cliendId}"
-                      
-        echo "🔥 Azure login done"
+        export ARM_USE_MSI=true
+        export ARM_CLIENT_ID=${cliendId}
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
         generate_state_output=""
 
