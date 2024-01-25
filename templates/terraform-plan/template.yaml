@@ -59,7 +59,7 @@ steps:
         echo "cliendId: ${cliendId}"
         
         export ARM_USE_MSI=true
-        export ARM_CLIENT_ID=${cliendId}
+        export ARM_CLIENT_ID=995b7340-e158-46aa-a7aa-49f687a8eb02
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
