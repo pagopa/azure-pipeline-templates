@@ -55,6 +55,8 @@ steps:
         echo "##[section] 💈 Start terraform plan for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
         export userManagedAppId=$( az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
+        echo "servicePrincipalId: ${servicePrincipalId}"
+        echo "userManagedAppId: ${userManagedAppId}"
 
         export ARM_USE_MSI=true
         export ARM_CLIENT_ID="${userManagedAppId}"
