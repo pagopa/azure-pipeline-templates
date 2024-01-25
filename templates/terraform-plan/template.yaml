@@ -58,8 +58,7 @@ steps:
         echo "servicePrincipalId: ${servicePrincipalId}"
         echo "cliendId: ${cliendId}"
         
-        az identity federated-credential show --identity-name azdo-dev-pagopa-iac-plan   --name azdo-dev-pagopa-iac-plan  --resource-group p
-agopa-d-identity-rg --subscription dev-pagopa
+        az identity federated-credential show --identity-name azdo-dev-pagopa-iac-plan --name azdo-dev-pagopa-iac-plan  --resource-group pagopa-d-identity-rg --subscription dev-pagopa
         
         export ARM_USE_MSI=true
         export ARM_CLIENT_ID=995b7340-e158-46aa-a7aa-49f687a8eb02
