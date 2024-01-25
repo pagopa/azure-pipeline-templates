@@ -58,10 +58,6 @@ steps:
         echo "servicePrincipalId: ${servicePrincipalId}"
         echo "cliendId: ${cliendId}"
         
-#        export ARM_USE_MSI=true
-#        export ARM_CLIENT_ID="${userManagedAppId}"
-#        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-#        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
         az login --identity --username "${cliendId}"
                       
         echo "🔥 Azure login done"
