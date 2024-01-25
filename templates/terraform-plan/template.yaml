@@ -57,6 +57,8 @@ steps:
         export userManagedAppId=$( az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
         echo "servicePrincipalId: ${servicePrincipalId}"
         echo "userManagedAppId: ${userManagedAppId}"
+        
+        exit
 
         export ARM_USE_MSI=true
         export ARM_CLIENT_ID="${userManagedAppId}"
