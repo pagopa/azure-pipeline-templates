@@ -61,7 +61,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
         #export ARM_USE_AZUREAD: true
-        export ARM_STORAGE_USE_AZUREAD: true
+        #export ARM_STORAGE_USE_AZUREAD: true
         
         generate_state_output=""
 
