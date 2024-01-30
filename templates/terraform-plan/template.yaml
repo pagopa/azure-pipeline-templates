@@ -65,7 +65,7 @@ steps:
         az logout
         echo "🔥 AZ LOGOUT"
         
-        az login --identity --username ${cliendId}
+        az login --identity --username ${servicePrincipalId}
         echo "🤔 AZ LOGIN"
         
         generate_state_output=""
