@@ -61,13 +61,7 @@ steps:
         export ARM_CLIENT_ID=${cliendId}
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-        
-        az logout
-        echo "🔥 AZ LOGOUT"
-        
-        az login --identity --username ${servicePrincipalId}
-        echo "🤔 AZ LOGIN"
-        
+                
         generate_state_output=""
 
         if [[ "${{ parameters.TF_SUMMARIZE }}" == "True" ]]; then
