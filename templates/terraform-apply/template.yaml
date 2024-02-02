@@ -52,8 +52,9 @@ steps:
         echo "##[section] 💈 Start terraform plan to generate state with tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
         echo "[INFO] Terraform setup variables"
-        export ARM_CLIENT_ID="${servicePrincipalId}"
-        export ARM_CLIENT_SECRET="${servicePrincipalKey}"
+        export ARM_USE_OIDC=true
+        export ARM_OIDC_TOKEN=${idToken}
+        export ARM_CLIENT_ID=${cliendId}
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
@@ -80,8 +81,9 @@ steps:
         echo "##[section] 💈 Start terraform apply with tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
         echo "[INFO] Terraform setup variables"
-        export ARM_CLIENT_ID="${servicePrincipalId}"
-        export ARM_CLIENT_SECRET="${servicePrincipalKey}"
+        export ARM_USE_OIDC=true
+        export ARM_OIDC_TOKEN=${idToken}
+        export ARM_CLIENT_ID=${cliendId}
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
         

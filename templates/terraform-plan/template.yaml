@@ -29,7 +29,7 @@ parameters:
   - name: TF_SUMMARIZE
     displayName: Show summarize data
     type: boolean
-    default: false
+    default: true
 
 steps:
 
@@ -56,6 +56,7 @@ steps:
 
         export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
         
+        echo "[INFO] Terraform setup variables"
         export ARM_USE_OIDC=true
         export ARM_OIDC_TOKEN=${idToken}
         export ARM_CLIENT_ID=${cliendId}

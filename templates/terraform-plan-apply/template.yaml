@@ -38,8 +38,15 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: TF_SUMMARIZE
+    displayName: Show summarize data
+    type: boolean
+    default: true
 
 stages:
+#
+# PLAN
+#
   - stage: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
     displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: []
@@ -53,6 +60,7 @@ stages:
           - checkout: self
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
+          - template: ../terraform-summarize/template.yaml@terraform
           # 2. Run terraform plan
           - template: ../terraform-plan/template.yaml@terraform
             parameters:
@@ -63,7 +71,11 @@ stages:
               AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+              TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
 
+#
+# APPLY
+#
   - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
     displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
