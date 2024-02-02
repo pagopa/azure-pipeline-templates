@@ -1,12 +1,11 @@
 parameters:
   - name: 'TF_SUMMARIZE_VERSION'
-    displayName: '(Required) Azure service connection name.'
+    displayName: '(Optional) Custom version of TF Summarize.'
     type: string
-    default: 'v0.3.2'
+    default: 'v0.3.7'
 
 steps:
 
-# 1. Install terraform
 - task: Bash@3
   displayName: Check unzip
   inputs:
