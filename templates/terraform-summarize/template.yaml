@@ -7,20 +7,6 @@ parameters:
 steps:
 
 - task: Bash@3
-  displayName: Check unzip
-  inputs:
-    targetType: 'inline'
-    failOnStderr: false
-    script: |
-      if ! command -v "unzip" >/dev/null 2>&1; then
-        echo "❌ unzip NOT installed"
-        exit 1
-      fi
-
-      echo "✅ Unzip installed correctly"
-
-
-- task: Bash@3
   displayName: Install tf-summarize
   condition: succeeded()
   inputs:
@@ -28,14 +14,15 @@ steps:
     failOnStderr: false
     workingDirectory: /tmp
     script: |
-      rm tf-summarize_linux_amd64.zip
-      wget -v https://github.com/dineshba/tf-summarize/releases/download/${{parameters.TF_SUMMARIZE_VERSION}}/tf-summarize_linux_amd64.zip
-      echo "[info] unzip file"
-      sudo unzip -o tf-summarize_linux_amd64.zip
+      rm tf-summarize_linux_amd64.tar.gz
+      wget -v https://github.com/dineshba/tf-summarize/releases/download/${{parameters.TF_SUMMARIZE_VERSION}}/tf-summarize_linux_amd64.tar.gz
+      echo "[info] UnTar file"
+      sudo tar -xvzf tf-summarize_linux_amd64.tar.gz
       echo "[info] move to bin"
       sudo mv tf-summarize /usr/local/bin/
-      echo "[info] remove binary"
-      rm tf-summarize_linux_amd64.zip
+      echo "[info] removed tar gz"
+      rm tf-summarize_linux_amd64.tar.gz
+      echo "[info] complete"
 
 - task: Bash@3
   displayName: Check tf-summarize
