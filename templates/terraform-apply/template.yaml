@@ -51,6 +51,8 @@ steps:
       inlineScript: |
         echo "##[section] 💈 Start terraform plan to generate state with tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
+        export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
+
         echo "[INFO] Terraform setup variables"
         export ARM_USE_OIDC=true
         export ARM_OIDC_TOKEN=${idToken}
@@ -80,6 +82,8 @@ steps:
       inlineScript: |
         echo "##[section] 💈 Start terraform apply with tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
+        export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv) 
+        
         echo "[INFO] Terraform setup variables"
         export ARM_USE_OIDC=true
         export ARM_OIDC_TOKEN=${idToken}
