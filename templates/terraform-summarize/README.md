@@ -1,6 +1,6 @@
 # Install tf-summarize
 
-Install tf-summarize in a debian-based linux agent. 
+Install tf-summarize in a debian-based linux agent. Using Tar Gz
 
 ## Usage
 
