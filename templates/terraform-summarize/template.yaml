@@ -20,7 +20,7 @@ steps:
       sudo tar -xvzf tf-summarize_linux_amd64.tar.gz
       echo "[info] move to bin"
       sudo mv tf-summarize /usr/local/bin/
-      echo "[info] removed tar gz"
+      echo "[info] remove tar gz"
       rm tf-summarize_linux_amd64.tar.gz
       echo "[info] complete"
 
