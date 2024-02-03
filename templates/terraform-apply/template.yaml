@@ -52,7 +52,7 @@ steps:
       failOnStandardError: true
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
-        echo "##[section] 💈 Start terraform apply with tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}"
+        echo "##[section] 💈 Start terraform apply with env: ${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
         export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
 
@@ -63,13 +63,8 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-        if ! [[ -e "tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}" ]]; then
-          echo "❌ State file not exist"
-          exit 1
-        fi
-
         echo "🚀 Run terraform apply output state"
-        terraform apply -auto-approve -input=false
+        terraform apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -auto-approve -input=false
 
   - task: AzureCLI@2
     displayName: Clean project
