@@ -98,7 +98,8 @@ stages:
                   parameters:
                     WORKINGDIR: ${{parameters.WORKINGDIR}}
                     TF_ENVIRONMENT_FOLDER: ${{parameters.TF_ENVIRONMENT_FOLDER}}
-                    AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_APPLY_NAME}}
+                    AZURE_PLAN_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_APPLY_NAME}}
+                    AZURE_APPLY_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_PLAN_NAME}}
                     AKS_NAME: ${{parameters.AKS_NAME}}
                     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
                     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}

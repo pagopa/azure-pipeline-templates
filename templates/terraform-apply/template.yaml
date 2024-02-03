@@ -1,6 +1,9 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'AZURE_SERVICE_CONNECTION_NAME'
+  - name: 'AZURE_PLAN_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
   - name: 'TF_ENVIRONMENT_FOLDER'
@@ -32,7 +35,7 @@ steps:
 
   - template: ../azure-kubeconfig-generator/template.yaml
     parameters:
-      AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      AZURE_APPLY_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
       WORKINGDIR: '${{ parameters.WORKINGDIR }}'
       AKS_NAME: '${{ parameters.AKS_NAME }}'
       AKS_API_SERVER_URL: '${{ parameters.AKS_API_SERVER_URL }}'
@@ -42,7 +45,7 @@ steps:
   - task: AzureCLI@2
     displayName: Plan(generate state)
     inputs:
-      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      azureSubscription: '${{ parameters.AZURE_PLAN_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
@@ -73,7 +76,7 @@ steps:
   - task: AzureCLI@2
     displayName: Apply Terraform
     inputs:
-      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
@@ -103,7 +106,7 @@ steps:
     displayName: Clean project
     condition: always()
     inputs:
-      azureSubscription: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
