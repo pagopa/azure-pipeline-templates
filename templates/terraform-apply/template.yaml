@@ -54,6 +54,8 @@ steps:
       inlineScript: |
         echo "##[section] 💈 Start terraform apply with env: ${{ parameters.TF_ENVIRONMENT_FOLDER }}"
 
+        ls -la
+
         export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
 
         echo "[INFO] Terraform setup variables"
@@ -64,7 +66,7 @@ steps:
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
         echo "🚀 Run terraform apply output state"
-        sh terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -auto-approve
+        ./terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -auto-approve
 
   - task: AzureCLI@2
     displayName: Clean project
