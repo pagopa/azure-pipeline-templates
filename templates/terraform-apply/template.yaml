@@ -64,7 +64,7 @@ steps:
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
         echo "🚀 Run terraform apply output state"
-        terraform apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -auto-approve
+        sh terraform.sh apply ${{ parameters.TF_ENVIRONMENT_FOLDER }} -auto-approve
 
   - task: AzureCLI@2
     displayName: Clean project
