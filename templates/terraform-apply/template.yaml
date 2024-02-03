@@ -43,37 +43,6 @@ steps:
       AKS_AZURE_DEVOPS_SA_TOKEN: '${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}'
 
   - task: AzureCLI@2
-    displayName: Plan(generate state)
-    inputs:
-      azureSubscription: '${{ parameters.AZURE_PLAN_SERVICE_CONNECTION_NAME}}'
-      addSpnToEnvironment: true
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      failOnStandardError: true
-      workingDirectory: '${{ parameters.WORKINGDIR }}'
-      inlineScript: |
-        echo "##[section] 💈 Start terraform plan to generate state with tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }}"
-
-        export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
-
-        echo "[INFO] Terraform setup variables"
-        export ARM_USE_OIDC=true
-        export ARM_OIDC_TOKEN=${idToken}
-        export ARM_CLIENT_ID=${cliendId}
-        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-
-        if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
-          echo "[INFO] 🚀 Run terraform plan + kubernetes -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
-        else
-          echo "[INFO] 🚀 Run terraform plan -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
-        fi
-
-        echo "✅ State output completed"
-
-  - task: AzureCLI@2
     displayName: Apply Terraform
     inputs:
       azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
@@ -100,7 +69,7 @@ steps:
         fi
 
         echo "🚀 Run terraform apply output state"
-        terraform apply -lock-timeout=3000s -auto-approve -input=false tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
+        terraform apply -lock-timeout=3000s -auto-approve -input=false
 
   - task: AzureCLI@2
     displayName: Clean project
