@@ -69,7 +69,7 @@ steps:
         fi
 
         echo "🚀 Run terraform apply output state"
-        terraform apply -lock-timeout=3000s -auto-approve -input=false
+        terraform apply -auto-approve -input=false
 
   - task: AzureCLI@2
     displayName: Clean project
