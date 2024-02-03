@@ -11,7 +11,7 @@ Be sure that code is checked-out using `persistCredentials: true` in the `checko
 
 The template does not make any assumption on any specific maven version nor dependency to be installed. Please perform setup **before** including the template.
 
-Note: 
+Note:
 * Passing `skip` no bump is done.
 * Passing `buildNumber` the `release_branch` is appended to the version and no GitHub release is done (es: `1.0.2-1-branchName`)
 

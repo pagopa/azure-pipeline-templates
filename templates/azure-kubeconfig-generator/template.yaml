@@ -77,36 +77,36 @@ steps:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
         echo "##[section] 💈 Start generation of kubeconfig"
-        
+
         echo "##[group]Kubernetes kubeconfig setup"
         echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
         echo "✅ Created cacrt file"
-        
+
         kubectl config set-cluster aks-azure-devops \
           --certificate-authority=cacrt \
           --embed-certs=true \
           --server=${{ parameters.AKS_API_SERVER_URL }} \
           --kubeconfig="config-${{ parameters.AKS_NAME }}"
         echo "[INFO] kubectl set-cluster"
-        
+
         kubectl config set-credentials azure-devops \
           --token=${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }} \
           --kubeconfig="config-${{ parameters.AKS_NAME }}"
         echo "[INFO] kubectl set-credentials"
-        
+
         kubectl config set-context iac \
           --cluster=aks-azure-devops \
           --user=azure-devops \
           --kubeconfig="config-${{ parameters.AKS_NAME }}"
         echo "[INFO] kubectl set-context"
         echo "⚙️ kubectl composed"
-        
+
         kubelogin convert-kubeconfig -l azurecli --kubeconfig "config-${{ parameters.AKS_NAME }}"
         echo "️⚙️ kubelogin applied"
-        
+
         kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
         echo "⚙️ kubectl change context"
-        
+
         echo "✅ kubeconfig ready"
-        
+
         echo "##[endgroup]"
