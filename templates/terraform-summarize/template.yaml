@@ -22,6 +22,7 @@ steps:
       sudo mv tf-summarize /usr/local/bin/
       echo "[info] remove tar gz"
       rm tf-summarize_linux_amd64.tar.gz
+      echo "[info] complete"
 
 - task: Bash@3
   displayName: Check tf-summarize
