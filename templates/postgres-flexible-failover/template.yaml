@@ -1,0 +1,83 @@
+# Run terraform init and terraform plan
+parameters:
+  - name: 'AZURE_PLAN_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'TF_ENVIRONMENT_FOLDER'
+    displayName: '(Required) Terraform environment folder name to apply to. For example [dev|weu-dev|uat|weu-uat|prod|weu-prod] etc.'
+    type: string
+  - name: 'WORKINGDIR'
+    displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
+    type: string
+    default: "src"
+  - name: 'FAILED_REGION'
+    displayName: '(Required) Failed region name. eg: "West Europe"'
+    type: string
+  - name: 'FAILOVER_REGION'
+    displayName: '(Required) Failover region name. eg: "North Europe"'
+    type: string
+  - name: 'DNS_ZONE_NAME'
+    displayName: '(Required) private dns zone name to update'
+    type: string
+  - name: 'DNS_ZONE_RG_NAME'
+    displayName: '(Required) private dns zone resource group name to update'
+    type: string
+  - name: 'DNS_ZONE_RECORD_NAME'
+    displayName: '(Required) private dns zone record name to update'
+    type: string
+  - name: 'FAILED_DB_NAME'
+    displayName: '(Required) Failed database name'
+    type: string
+  - name: 'FAILOVER_DB_NAME'
+    displayName: '(Required) Failover database name'
+    type: string
+
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: Plan(generate state)
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_PLAN_SERVICE_CONNECTION_NAME}}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##💈 Start postgres failover procedure"
+
+        export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
+
+        export ARM_USE_OIDC=true
+        export ARM_OIDC_TOKEN=${idToken}
+        export ARM_CLIENT_ID=${cliendId}
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+        
+        FAILED_DB_RG=$(az postgres flexible-server list --query "[?name == '${{ parameters.FAILED_DB_NAME}}'].{name: name, rg: resourceGroup, fqdn: fullyQualifiedDomainName}[0]" | jq '.rg')
+        FAILOVER_DB_FQDN=$(az postgres flexible-server list --query "[?name == '${{ parameters.FAILOVER_DB_NAME}}'].{name: name, rg: resourceGroup, fqdn: fullyQualifiedDomainName}[0]" | jq '.fqdn')
+        
+        echo "failed db rg $FAILED_DB_RG"
+        echo "failover db fqdn $FAILOVER_DB_FQDN"
+        
+        echo "✅ postgres failover completed"
+
+
+  - task: AzureCLI@2
+    displayName: Clean project
+    condition: always()
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "[INFO] Clean project"
+        rm -rf .azure
