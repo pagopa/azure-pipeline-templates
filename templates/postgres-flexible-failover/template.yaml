@@ -1,13 +1,7 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'AZURE_PLAN_SERVICE_CONNECTION_NAME'
-    displayName: '(Required) Azure service connection name.'
-    type: string
   - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
-    type: string
-  - name: 'TF_ENVIRONMENT_FOLDER'
-    displayName: '(Required) Terraform environment folder name to apply to. For example [dev|weu-dev|uat|weu-uat|prod|weu-prod] etc.'
     type: string
   - name: 'WORKINGDIR'
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
@@ -42,7 +36,7 @@ steps:
   - task: AzureCLI@2
     displayName: Plan(generate state)
     inputs:
-      azureSubscription: '${{ parameters.AZURE_PLAN_SERVICE_CONNECTION_NAME}}'
+      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME}}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
