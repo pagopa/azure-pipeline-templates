@@ -1,31 +1,25 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
+  - name: 'TF_AZURE_APPLY_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
   - name: 'WORKINGDIR'
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
-  - name: 'FAILED_REGION'
-    displayName: '(Required) Failed region name. eg: "West Europe"'
-    type: string
-  - name: 'FAILOVER_REGION'
-    displayName: '(Required) Failover region name. eg: "North Europe"'
-    type: string
-  - name: 'DNS_ZONE_NAME'
+  - name: 'TF_DNS_ZONE_NAME'
     displayName: '(Required) private dns zone name to update'
     type: string
-  - name: 'DNS_ZONE_RG_NAME'
+  - name: 'TF_DNS_ZONE_RG_NAME'
     displayName: '(Required) private dns zone resource group name to update'
     type: string
-  - name: 'DNS_ZONE_RECORD_NAME'
+  - name: 'TF_DNS_ZONE_RECORD_NAME'
     displayName: '(Required) private dns zone record name to update'
     type: string
-  - name: 'FAILED_DB_NAME'
+  - name: 'TF_FAILED_DB_NAME'
     displayName: '(Required) Failed database name'
     type: string
-  - name: 'FAILOVER_DB_NAME'
+  - name: 'TF_FAILOVER_DB_NAME'
     displayName: '(Required) Failover database name'
     type: string
 
@@ -34,9 +28,9 @@ steps:
   - checkout: self
 
   - task: AzureCLI@2
-    displayName: Plan(generate state)
+    displayName: Postgres failover
     inputs:
-      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME}}'
+      azureSubscription: '${{ parameters.TF_AZURE_APPLY_SERVICE_CONNECTION_NAME}}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
@@ -53,8 +47,8 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
         
-        FAILED_DB_RG=$(az postgres flexible-server list --query "[?name == '${{ parameters.FAILED_DB_NAME}}'].{name: name, rg: resourceGroup, fqdn: fullyQualifiedDomainName}[0]" | jq '.rg')
-        FAILOVER_DB_FQDN=$(az postgres flexible-server list --query "[?name == '${{ parameters.FAILOVER_DB_NAME}}'].{name: name, rg: resourceGroup, fqdn: fullyQualifiedDomainName}[0]" | jq '.fqdn')
+        FAILED_DB_RG=$(az postgres flexible-server list --query "[?name == '${{ parameters.TF_FAILED_DB_NAME}}'].{name: name, rg: resourceGroup, fqdn: fullyQualifiedDomainName}[0]" | jq '.rg')
+        FAILOVER_DB_FQDN=$(az postgres flexible-server list --query "[?name == '${{ parameters.TF_FAILOVER_DB_NAME}}'].{name: name, rg: resourceGroup, fqdn: fullyQualifiedDomainName}[0]" | jq '.fqdn')
         
         echo "failed db rg $FAILED_DB_RG"
         echo "failover db fqdn $FAILOVER_DB_FQDN"
@@ -66,7 +60,7 @@ steps:
     displayName: Clean project
     condition: always()
     inputs:
-      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+      azureSubscription: '${{ parameters.TF_AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
