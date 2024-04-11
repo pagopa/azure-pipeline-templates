@@ -52,7 +52,13 @@ steps:
         
         echo "failed db rg $FAILED_DB_RG"
         echo "failover db fqdn $FAILOVER_DB_FQDN"
+        echo "triggering failover"
+        az postgres flexible-server restart --resource-group "$FAILED_DB_RG" --name ${{ parameters.FAILED_DB_NAME}} --failover Forced
+        echo "triggered failover"
         
+        echo "updating dns record"
+        az network private-dns record-set cname set-record -g ${{ parameters.DNS_ZONE_RG_NAME }} -z ${{ parameters.DNS_ZONE_NAME }} -n ${{ parameters.DNS_ZONE_RECORD_NAME }} -c "$FAILOVER_DB_FQDN"
+        echo "updated dns record"
         echo "✅ postgres failover completed"
 
 
