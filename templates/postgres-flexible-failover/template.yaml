@@ -54,6 +54,12 @@ steps:
         FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
         echo "failover db fqdn $FAILOVER_DB_FQDN"
         
+        if [ -z "$FAILOVER_DB_FQDN"]
+        then
+          echo "ERROR failover fqdn not found. stopping"
+          exit 1
+        fi
+        
         echo "triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y"
         replica_out=$(az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y -o none)
         echo "triggered failover. exit status: $replica_out"
@@ -62,11 +68,11 @@ steps:
         then
           echo "ERROR postgres failover failed"
           exit 1
-        else
-          echo "updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
-          az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
-          echo "updated dns record"
         fi
+        
+        echo "updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
+        az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
+        echo "updated dns record"
         
         echo "✅ postgres failover completed"
 
