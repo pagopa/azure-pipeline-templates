@@ -54,7 +54,7 @@ steps:
         FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
         echo "failover db fqdn $FAILOVER_DB_FQDN"
         
-        if [ -z "$FAILOVER_DB_FQDN"]
+        if [ -z "$FAILOVER_DB_FQDN" ]
         then
           echo "ERROR failover fqdn not found. stopping"
           exit 1
