@@ -54,11 +54,11 @@ steps:
         FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq '.fullyQualifiedDomainName')
         echo "failover db fqdn $FAILOVER_DB_FQDN"
         
-        echo "triggering failover"
+        echo "triggering failover: az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode $TF_FAILOVER_TYPE -y"
         az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode $TF_FAILOVER_TYPE -y
         echo "triggered failover"
         
-        echo "updating dns record"
+        echo "updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
         az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
         echo "updated dns record"
         
