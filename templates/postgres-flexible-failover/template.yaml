@@ -23,7 +23,7 @@ parameters:
     displayName: '(Required) Failover database name'
     type: string
   - name: 'TF_FAILOVER_TYPE'
-    displayName: '(Optional) Failover type: Forced or Planned'
+    displayName: '(Optional) Failover type: forced or planned'
     type: string
     default: "Planned"
 
@@ -51,11 +51,13 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
         
-        FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq '.fullyQualifiedDomainName')
+        FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
         echo "failover db fqdn $FAILOVER_DB_FQDN"
         
-        echo "triggering failover: az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode $TF_FAILOVER_TYPE -y"
-        az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode $TF_FAILOVER_TYPE -y
+        echo "triggering failover: az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode switchover --promote-option $TF_FAILOVER_TYPE -y"
+#        az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode switchover --promote-option $TF_FAILOVER_TYPE -y
+        az postgres flexible-server restart --resource-group ${{ parameters.TF_FAILOVER_DB_RG}} --name ${{ parameters.TF_FAILOVER_DB_NAME}} --failover $TF_FAILOVER_TYPE
+
         echo "triggered failover"
         
         echo "updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
