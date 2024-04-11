@@ -55,7 +55,6 @@ steps:
         echo "failover db fqdn $FAILOVER_DB_FQDN"
         
         echo "triggering failover: az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode switchover --promote-option $TF_FAILOVER_TYPE -y"
-#        az postgres flexible-server replica promote -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} --promote-mode switchover --promote-option $TF_FAILOVER_TYPE -y
         az postgres flexible-server restart --resource-group ${{ parameters.TF_FAILOVER_DB_RG}} --name ${{ parameters.TF_FAILOVER_DB_NAME}} --failover $TF_FAILOVER_TYPE
 
         echo "triggered failover"
