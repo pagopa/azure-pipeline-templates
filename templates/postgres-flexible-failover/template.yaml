@@ -62,7 +62,7 @@ steps:
         
         echo "triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y"
         az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y
-        echo "triggered failover. exit status: $replica_out"
+        echo "triggered failover. exit status $?"
         
         if [ $? -eq 0 ]
         then
