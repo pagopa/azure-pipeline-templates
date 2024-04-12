@@ -50,30 +50,30 @@ steps:
         export ARM_CLIENT_ID=${cliendId}
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-        
+
         FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
-        echo "failover db fqdn $FAILOVER_DB_FQDN"
-        
+        echo "INFO failover db fqdn: $FAILOVER_DB_FQDN"
+
         if [ $? -ne 0 ] || [ -z "$FAILOVER_DB_FQDN" ]
         then
           echo "ERROR failover fqdn not found. stopping"
           exit 1
         fi
-        
-        echo "triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y"
+
+        echo "INFO triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y"
         az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y
-        echo "triggered failover. exit status $?"
-        
+        echo "INFO triggered failover. exit status $?"
+
         if [ $? -ne 0 ]
         then
           echo "ERROR postgres failover failed"
           exit 1
         fi
-        
-        echo "updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
+
+        echo "INFO updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
         az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
-        echo "updated dns record"
-        
+        echo "INFO updated dns record"
+
         echo "✅ postgres failover completed"
 
 
