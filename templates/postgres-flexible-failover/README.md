@@ -31,11 +31,11 @@ resources:
         steps:
           - template: templates/postgres-flexible-failover/template.yaml@terraform
             parameters:
-              TF_DNS_ZONE_NAME: "d.internal.postgresql.pagopa.it"
-              TF_DNS_ZONE_RG_NAME: "pagopa-d-vnet-rg"
-              TF_DNS_ZONE_RECORD_NAME: "nodo-db"
-              TF_FAILOVER_DB_RG: "pagopa-d-weu-nodo-db-rg"
-              TF_FAILOVER_DB_NAME: "pagopa-d-neu-nodo-replica"
+              PRIVATE_DNS_ZONE_NAME: "d.internal.postgresql.pagopa.it"
+              PRIVATE_DNS_ZONE_RG_NAME: "pagopa-d-vnet-rg"
+              PRIVATE_DNS_ZONE_RECORD_NAME: "nodo-db"
+              FAILOVER_DB_RG: "pagopa-d-weu-nodo-db-rg"
+              FAILOVER_DB_NAME: "pagopa-d-neu-nodo-replica"
               WORKINGDIR: ${{ variables.WORKING_DIR }}
-              TF_AZURE_APPLY_SERVICE_CONNECTION_NAME: "${{variables.azureServiceConnectionApplyNameDev}}"
+              AZURE_APPLY_SERVICE_CONNECTION_NAME: "${{variables.azureServiceConnectionApplyNameDev}}"
 ```

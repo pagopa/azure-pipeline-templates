@@ -1,31 +1,27 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'TF_AZURE_APPLY_SERVICE_CONNECTION_NAME'
+  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
   - name: 'WORKINGDIR'
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
-  - name: 'TF_DNS_ZONE_NAME'
+  - name: 'PRIVATE_DNS_ZONE_NAME'
     displayName: '(Required) private dns zone name to update'
     type: string
-  - name: 'TF_DNS_ZONE_RG_NAME'
+  - name: 'PRIVATE_DNS_ZONE_RG_NAME'
     displayName: '(Required) private dns zone resource group name to update'
     type: string
-  - name: 'TF_DNS_ZONE_RECORD_NAME'
+  - name: 'PRIVATE_DNS_ZONE_RECORD_NAME'
     displayName: '(Required) private dns zone record name to update'
     type: string
-  - name: 'TF_FAILOVER_DB_RG'
+  - name: 'FAILOVER_DB_RG'
     displayName: '(Required) Failover database resource group name'
     type: string
-  - name: 'TF_FAILOVER_DB_NAME'
+  - name: 'FAILOVER_DB_NAME'
     displayName: '(Required) Failover database name'
     type: string
-  - name: 'TF_FAILOVER_TYPE'
-    displayName: '(Optional) Failover type: forced or planned'
-    type: string
-    default: "Planned"
 
 
 steps:
@@ -34,7 +30,7 @@ steps:
   - task: AzureCLI@2
     displayName: Postgres failover
     inputs:
-      azureSubscription: '${{ parameters.TF_AZURE_APPLY_SERVICE_CONNECTION_NAME}}'
+      connectedServiceNameARM: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME}}'
       addSpnToEnvironment: true
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
@@ -51,7 +47,7 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-        FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.TF_FAILOVER_DB_NAME}} -g ${{ parameters.TF_FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
+        FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.FAILOVER_DB_NAME}} -g ${{ parameters.FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
         echo "INFO failover db fqdn: $FAILOVER_DB_FQDN"
 
         if [ $? -ne 0 ] || [ -z "$FAILOVER_DB_FQDN" ]
@@ -60,8 +56,8 @@ steps:
           exit 1
         fi
 
-        echo "INFO triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y"
-        az postgres flexible-server replica stop-replication -g ${{ parameters.TF_FAILOVER_DB_RG}} -n ${{ parameters.TF_FAILOVER_DB_NAME}} -y
+        echo "INFO triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} -y"
+        az postgres flexible-server replica stop-replication -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} -y
         echo "INFO triggered failover. exit status $?"
 
         if [ $? -ne 0 ]
@@ -70,23 +66,20 @@ steps:
           exit 1
         fi
 
-        echo "INFO updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
-        az network private-dns record-set cname set-record -g ${{ parameters.TF_DNS_ZONE_RG_NAME }} -z ${{ parameters.TF_DNS_ZONE_NAME }} -n ${{ parameters.TF_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
+        echo "INFO updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.PRIVATE_DNS_ZONE_RG_NAME }} -z ${{ parameters.PRIVATE_DNS_ZONE_NAME }} -n ${{ parameters.PRIVATE_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
+        az network private-dns record-set cname set-record -g ${{ parameters.PRIVATE_DNS_ZONE_RG_NAME }} -z ${{ parameters.PRIVATE_DNS_ZONE_NAME }} -n ${{ parameters.PRIVATE_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
         echo "INFO updated dns record"
 
         echo "✅ postgres failover completed"
 
 
-  - task: AzureCLI@2
+  - task: Bash@3
     displayName: Clean project
     condition: always()
     inputs:
-      azureSubscription: '${{ parameters.TF_AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
-      addSpnToEnvironment: true
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
+      targetType: inline
       failOnStandardError: true
       workingDirectory: '${{ parameters.WORKINGDIR }}'
-      inlineScript: |
+      script: |
         echo "[INFO] Clean project"
         rm -rf .azure
