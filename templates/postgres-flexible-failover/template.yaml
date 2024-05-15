@@ -7,15 +7,6 @@ parameters:
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
-  - name: 'PRIVATE_DNS_ZONE_NAME'
-    displayName: '(Required) private dns zone name to update'
-    type: string
-  - name: 'PRIVATE_DNS_ZONE_RG_NAME'
-    displayName: '(Required) private dns zone resource group name to update'
-    type: string
-  - name: 'PRIVATE_DNS_ZONE_RECORD_NAME'
-    displayName: '(Required) private dns zone record name to update'
-    type: string
   - name: 'FAILOVER_DB_RG'
     displayName: '(Required) Failover database resource group name'
     type: string
@@ -47,17 +38,8 @@ steps:
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
-        FAILOVER_DB_FQDN=$(az postgres flexible-server show  -n ${{ parameters.FAILOVER_DB_NAME}} -g ${{ parameters.FAILOVER_DB_RG}}  | jq -r '.fullyQualifiedDomainName')
-        echo "INFO failover db fqdn: $FAILOVER_DB_FQDN"
-
-        if [ $? -ne 0 ] || [ -z "$FAILOVER_DB_FQDN" ]
-        then
-          echo "ERROR failover fqdn not found. stopping"
-          exit 1
-        fi
-
-        echo "INFO triggering failover: az postgres flexible-server replica stop-replication -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} -y"
-        az postgres flexible-server replica stop-replication -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} -y
+        echo "INFO triggering failover: az postgres flexible-server replica promote -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} --promote-mode switchover --promote-option forced -y"
+        az postgres flexible-server replica promote -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} --promote-mode switchover --promote-option forced -y
         echo "INFO triggered failover. exit status $?"
 
         if [ $? -ne 0 ]
@@ -66,9 +48,6 @@ steps:
           exit 1
         fi
 
-        echo "INFO updating dns record: az network private-dns record-set cname set-record -g ${{ parameters.PRIVATE_DNS_ZONE_RG_NAME }} -z ${{ parameters.PRIVATE_DNS_ZONE_NAME }} -n ${{ parameters.PRIVATE_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN"
-        az network private-dns record-set cname set-record -g ${{ parameters.PRIVATE_DNS_ZONE_RG_NAME }} -z ${{ parameters.PRIVATE_DNS_ZONE_NAME }} -n ${{ parameters.PRIVATE_DNS_ZONE_RECORD_NAME }} -c $FAILOVER_DB_FQDN
-        echo "INFO updated dns record"
 
         echo "✅ postgres failover completed"
 
