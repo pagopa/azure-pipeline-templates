@@ -1,6 +1,11 @@
 # Postgres flexible failover
 
-Executes the failover onto a replica postgres flexible server and updates the private dns record referencing the db
+Executes the failover onto a replica postgres flexible server switching the replica roles between master and replica servers
+Requires a virtual endpoint to be created on the pg flexible servers 
+
+[Docs](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-read-replicas-promote)
+
+
 
 
 ## Usage
@@ -31,9 +36,6 @@ resources:
         steps:
           - template: templates/postgres-flexible-failover/template.yaml@terraform
             parameters:
-              PRIVATE_DNS_ZONE_NAME: "d.internal.postgresql.pagopa.it"
-              PRIVATE_DNS_ZONE_RG_NAME: "pagopa-d-vnet-rg"
-              PRIVATE_DNS_ZONE_RECORD_NAME: "nodo-db"
               FAILOVER_DB_RG: "pagopa-d-weu-nodo-db-rg"
               FAILOVER_DB_NAME: "pagopa-d-neu-nodo-replica"
               WORKINGDIR: ${{ variables.WORKING_DIR }}
