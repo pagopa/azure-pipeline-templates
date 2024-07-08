@@ -1,0 +1,64 @@
+# Run terraform init and terraform plan
+parameters:
+  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'WORKINGDIR'
+    displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
+    type: string
+    default: "src"
+  - name: 'FAILOVER_DB_RG'
+    displayName: '(Required) Failover database resource group name'
+    type: string
+  - name: 'FAILOVER_DB_NAME'
+    displayName: '(Required) Failover database name'
+    type: string
+
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: Postgres failover
+    inputs:
+      connectedServiceNameARM: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME}}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "##💈 Start postgres failover procedure"
+
+        export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
+
+        export ARM_USE_OIDC=true
+        export ARM_OIDC_TOKEN=${idToken}
+        export ARM_CLIENT_ID=${cliendId}
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+
+        echo "INFO triggering failover: az postgres flexible-server replica promote -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} --promote-mode switchover --promote-option forced -y"
+        az postgres flexible-server replica promote -g ${{ parameters.FAILOVER_DB_RG}} -n ${{ parameters.FAILOVER_DB_NAME}} --promote-mode switchover --promote-option forced -y
+        echo "INFO triggered failover. exit status $?"
+
+        if [ $? -ne 0 ]
+        then
+          echo "ERROR postgres failover failed"
+          exit 1
+        fi
+
+
+        echo "✅ postgres failover completed"
+
+
+  - task: Bash@3
+    displayName: Clean project
+    condition: always()
+    inputs:
+      targetType: inline
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      script: |
+        echo "[INFO] Clean project"
+        rm -rf .azure
