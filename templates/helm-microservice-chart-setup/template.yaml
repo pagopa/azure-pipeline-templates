@@ -7,6 +7,13 @@ parameters:
 
 - name: 'DEPLOY_VERSION'
   type: string
+  default: '-'
+- name: 'HELM_DEPENDECIES_COMMAND'
+  type: string
+  default: 'update'
+- name: 'CHART_FILE'
+  type: string
+  default: 'helm/Chart.yaml'
 
 steps:
   - task: Bash@3
@@ -16,10 +23,10 @@ steps:
       targetType: "inline"
       script: |
         DEPLOY_VERSION=${{ parameters.DEPLOY_VERSION }}
-        CHART_FILE="helm/Chart.yaml"
-        if [[ -f "$CHART_FILE" ]]; then
+
+        if [ "$DEPLOY_VERSION" = "-" ]; then
           yq -i ".appVersion = \"${DEPLOY_VERSION}\"" "$CHART_FILE"
         fi
         helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-        helm dep update helm
+        helm dep ${{ parameters.HELM_DEPENDECIES_COMMAND }} ${{ parameters.CHART_FILE }}
       failOnStderr: true

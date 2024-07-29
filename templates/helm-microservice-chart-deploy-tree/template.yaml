@@ -1,0 +1,71 @@
+parameters:
+  # Required
+  - name: "COMMAND"
+    type: string
+    default: "upgrade"
+  - name: "DO_DEPLOY"
+    displayName: '(Required) Launch helm deploy.'
+    type: boolean
+  - name: "ENV"
+    type: string
+    displayName: '(Required) Which environment is involved into deploy.'
+  - name: "KUBERNETES_SERVICE_CONN"
+    type: string
+    displayName: '(Required) Azure devops service connection name.'
+  - name: "NAMESPACE"
+    type: string
+    displayName: '(Required) Kubernetes namespace.'
+  - name: "APP_NAME"
+    type: string
+    displayName: '(Required) Helm deploy name.'
+  - name: "VALUE_FILE"
+    type: string
+    displayName: '(Required) Path name.'
+  - name: "DEPLOY_VERSION"
+    type: string
+    displayName: '(Required) Deploy image tag version.'
+  # Optional
+  - name: "CHART_TYPE"
+    type: string
+    default: "filepath"
+  - name: "CHART_PATH"
+    type: string
+    default: "helm"
+  - name: "WAIT_FOR_EXECUTION"
+    type: boolean
+    default: true
+  - name: "ARGUMENTS"
+    type: string
+    default: "--timeout 5m0s"
+  - name: "APPINSIGHTS_SERVICE_CONN"
+    type: string
+    default: "none"
+  - name: "APPINSIGHTS_RESOURCE_ID"
+    type: string
+    default: "none"
+  - name: "OVERRIDE_EXTENDS" # https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/helm-deploy-v0?view=azure-pipelines
+    type: string
+    default: ""
+    displayName: ",key1=val1,key2=val2"
+
+
+
+
+
+stages:
+#
+# SETUP
+#
+  - stage: ${{parameters.ENVIRONMENT}}-helm-setup-${{parameters.APP_NAME}}
+    displayName: 🔦 ${{parameters.ENVIRONMENT}}-helm-setup-${{parameters.APP_NAME}}
+    dependsOn: []
+    condition: succeeded()
+    pool:
+      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}} # TODO Ci serve?
+    jobs:
+      - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+        timeoutInMinutes: $[variables.TIME_OUT]
+        steps:
+          - checkout: self
+          # 1. Install terraform
+          - template: ../terraform-setup/template.yaml@terraform
