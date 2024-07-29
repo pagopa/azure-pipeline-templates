@@ -67,5 +67,9 @@ stages:
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
-          # 1. Install terraform
-          - template: ../terraform-setup/template.yaml@terraform
+          # 1. Setup helm
+          - template: ../helm-microservice-chart-setup/template.yaml@helm
+            parameters:
+              DEPLOY_VERSION: ${{parameters.DEPLOY_VERSION}}
+              HELM_DEPENDECIES_COMMAND: 'build'
+              CHART_FILE: '${{parameters.ENVIRONMENT}}/${{parameters.APP_NAME}}/Chart.yml'
