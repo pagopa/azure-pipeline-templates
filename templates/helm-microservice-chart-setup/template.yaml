@@ -14,6 +14,9 @@ parameters:
 - name: 'CHART_FILE'
   type: string
   default: 'helm/Chart.yaml'
+- name: 'VALUES_FILE'
+  type: string
+  default: '-'
 
 steps:
   - task: Bash@3
@@ -23,10 +26,14 @@ steps:
       targetType: "inline"
       script: |
         DEPLOY_VERSION=${{ parameters.DEPLOY_VERSION }}
+        VALUES_FILE=${{ parameters.VALUES_FILE }}
 
         if [ "$DEPLOY_VERSION" = "-" ]; then
           yq -i ".appVersion = \"${DEPLOY_VERSION}\"" "$CHART_FILE"
         fi
         helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
         helm dep ${{ parameters.HELM_DEPENDECIES_COMMAND }} ${{ parameters.CHART_FILE }}
+        if [ "$VALUES_FILE" = "-" ]; then
+          helm template ${{ parameters.CHART_FILE }} -f "$VALUES_FILE"  --debug
+        fi
       failOnStderr: true

@@ -25,12 +25,6 @@ parameters:
     type: string
     displayName: '(Required) Deploy image tag version.'
   # Optional
-  - name: "CHART_TYPE"
-    type: string
-    default: "filepath"
-  - name: "CHART_PATH"
-    type: string
-    default: "helm"
   - name: "WAIT_FOR_EXECUTION"
     type: boolean
     default: true
@@ -56,14 +50,14 @@ stages:
 #
 # SETUP
 #
-  - stage: ${{parameters.ENVIRONMENT}}-helm-setup-${{parameters.APP_NAME}}
-    displayName: 🔦 ${{parameters.ENVIRONMENT}}-helm-setup-${{parameters.APP_NAME}}
+  - stage: ${{parameters.ENV}}-helm-setup-${{parameters.APP_NAME}}
+    displayName: 🔦 ${{parameters.ENV}}-helm-setup-${{parameters.APP_NAME}}
     dependsOn: []
     condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}} # TODO Ci serve?
     jobs:
-      - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+      - job: ${{parameters.ENV}}_setup_${{parameters.APP_NAME}}
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -72,4 +66,37 @@ stages:
             parameters:
               DEPLOY_VERSION: ${{parameters.DEPLOY_VERSION}}
               HELM_DEPENDECIES_COMMAND: 'build'
-              CHART_FILE: '${{parameters.ENVIRONMENT}}/${{parameters.APP_NAME}}/Chart.yml'
+              CHART_FILE: '${{parameters.ENV}}/${{parameters.APP_NAME}}/Chart.yml'
+              VALUES_FILE: '${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yml'
+#
+# DEPLOY
+#
+  - stage: ${{parameters.ENV}}-helm-deploy-${{parameters.APP_NAME}}
+    displayName: 🔦 ${{parameters.ENV}}-helm-deploy-${{parameters.APP_NAME}}
+    dependsOn: []
+    condition: succeeded()
+    pool:
+      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}} # TODO Ci serve?
+    jobs:
+      - job: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
+        timeoutInMinutes: $[variables.TIME_OUT]
+        steps:
+          - checkout: self
+          # 1. deploy helm
+          - template: ../helm-microservice-chart-deploy/template.yaml@helm
+            parameters:
+              DO_DEPLOY : true
+              COMMAND: ${{parameters.COMMAND}}
+              ENV: ${{parameters.ENV}}
+              KUBERNETES_SERVICE_CONN: ${{parameters.KUBERNETES_SERVICE_CONN}}
+              NAMESPACE: ${{parameters.NAMESPACE}}
+              APP_NAME: ${{parameters.APP_NAME}}
+              CHART_TYPE: "filepath"
+              CHART_PATH: '${{parameters.ENV}}/${{parameters.APP_NAME}}/Chart.yml'
+              VALUE_FILE: '${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yml'
+              DEPLOY_VERSION: ${{parameters.DEPLOY_VERSION}}
+              WAIT_FOR_EXECUTION: ${{parameters.WAIT_FOR_EXECUTION}}
+              ARGUMENTS: ${{parameters.ARGUMENTS}}
+              APPINSIGHTS_SERVICE_CONN: ${{parameters.APPINSIGHTS_SERVICE_CONN}}
+              APPINSIGHTS_RESOURCE_ID: ${{parameters.APPINSIGHTS_RESOURCE_ID}}
+              OVERRIDE_EXTENDS: ${{parameters.OVERRIDE_EXTENDS}}
