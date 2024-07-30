@@ -18,9 +18,6 @@ parameters:
   - name: "APP_NAME"
     type: string
     displayName: '(Required) Helm deploy name.'
-  - name: "VALUE_FILE"
-    type: string
-    displayName: '(Required) Path name.'
   - name: "DEPLOY_VERSION"
     type: string
     displayName: '(Required) Deploy image tag version.'
