@@ -48,8 +48,8 @@ steps:
     parameters:
       DEPLOY_VERSION: ${{parameters.DEPLOY_VERSION}}
       HELM_DEPENDECIES_COMMAND: 'build'
-      CHART_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/Chart.yaml'
-      VALUES_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml'
+      CHART_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
+      VALUES_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
   - template: ../helm-microservice-chart-deploy/template.yaml@helm
     parameters:
       DO_DEPLOY : true
@@ -59,8 +59,8 @@ steps:
       NAMESPACE: ${{parameters.NAMESPACE}}
       APP_NAME: ${{parameters.APP_NAME}}
       CHART_TYPE: "filepath"
-      CHART_PATH: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/Chart.yaml'
-      VALUE_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml'
+      CHART_PATH: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
+      VALUE_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
       DEPLOY_VERSION: ${{parameters.DEPLOY_VERSION}}
       WAIT_FOR_EXECUTION: ${{parameters.WAIT_FOR_EXECUTION}}
       ARGUMENTS: ${{parameters.ARGUMENTS}}
