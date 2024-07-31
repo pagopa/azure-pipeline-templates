@@ -60,7 +60,7 @@ steps:
       APP_NAME: ${{parameters.APP_NAME}}
       CHART_TYPE: "filepath"
       CHART_PATH: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
-      VALUE_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
+      VALUE_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml'
       DEPLOY_VERSION: ${{parameters.DEPLOY_VERSION}}
       WAIT_FOR_EXECUTION: ${{parameters.WAIT_FOR_EXECUTION}}
       ARGUMENTS: ${{parameters.ARGUMENTS}}
