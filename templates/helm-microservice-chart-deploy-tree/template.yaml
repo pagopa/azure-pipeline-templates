@@ -43,7 +43,6 @@ parameters:
 
 
 steps:
-  - checkout: self
   # 1. Setup helm
   - template: ../helm-microservice-chart-setup/template.yaml@helm
     parameters:
