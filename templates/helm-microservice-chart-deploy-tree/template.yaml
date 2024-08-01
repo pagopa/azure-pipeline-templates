@@ -12,15 +12,9 @@ parameters:
   - name: "KUBERNETES_SERVICE_CONN"
     type: string
     displayName: '(Required) Azure devops service connection name.'
-#  - name: "NAMESPACE"
-#    type: string
-#    displayName: '(Required) Kubernetes namespace.'
   - name: "APP_NAME"
     type: string
     displayName: '(Required) Helm deploy name.'
-#  - name: "DEPLOY_VERSION"
-#    type: string
-#    displayName: '(Required) Deploy image tag version.'
   # Optional
   - name: "WAIT_FOR_EXECUTION"
     type: boolean
@@ -43,6 +37,9 @@ parameters:
 
 
 stages:
+#
+# SETUP
+#
   - stage: set_variables
     displayName: 🔦 ${{parameters.ENV}} set variables ${{parameters.APP_NAME}}
     dependsOn: [ ]
@@ -63,14 +60,15 @@ stages:
                 echo "##vso[task.setvariable variable=deployversion;isOutput=true]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
 
 #
-# SETUP
+# TEMPLATE
 #
-  - stage: helm_setup
+  - stage: helm_template
     displayName: 🔦 ${{parameters.ENV}} helm setup ${{parameters.APP_NAME}}
     dependsOn: [set_variables]
     condition: succeeded()
     jobs:
-      - job: ${{parameters.ENV}}_setup_${{parameters.APP_NAME}}
+      - job: ${{parameters.ENV}}_template_${{parameters.APP_NAME}}
+        displayName: "Helm template for ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
@@ -93,19 +91,13 @@ stages:
     condition: succeeded()
     jobs:
       - job: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
+        displayName: "Helm deploy of ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
         timeoutInMinutes: $[variables.TIME_OUT]
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
         steps:
           - checkout: self
-#          - task: Bash@3
-#            displayName: 'Set namespace variables'
-#            inputs:
-#              targetType: 'inline'
-#              script: |
-#                echo "##vso[task.setvariable variable=namespace]$(yq '.microservice-chart.namespace' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
-#                echo "##vso[task.setvariable variable=deployversion]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
           - template: ../helm-microservice-chart-setup/template.yaml@helm
             parameters:
               DEPLOY_VERSION: $(deployversion)
