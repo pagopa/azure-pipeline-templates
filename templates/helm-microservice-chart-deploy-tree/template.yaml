@@ -15,6 +15,12 @@ parameters:
   - name: "APP_NAME"
     type: string
     displayName: '(Required) Helm deploy name.'
+  - name: "CHART_PATH"
+    type: string
+    displayName: 'folder path where to find the Chart.yaml file'
+  - name: "VALUE_FILE"
+    type: string
+    displayName: 'values.yaml file path relative to the repository root'
   # Optional
   - name: "WAIT_FOR_EXECUTION"
     type: boolean
@@ -32,14 +38,7 @@ parameters:
     type: string
     default: ""
     displayName: ",key1=val1,key2=val2"
-  - name: "CHART_PATH"
-    type: string
-    default: "helm/${{parameters.ENV}}/${{parameters.APP_NAME}}"
-    displayName: 'folder path where to find the Chart.yaml file'
-  - name: "VALUE_FILE"
-    type: string
-    default: "helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml"
-    displayName: 'values.yaml file path relative to the repository root'
+
 
 
 

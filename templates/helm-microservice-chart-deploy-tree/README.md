@@ -7,7 +7,6 @@ In particular, it:
 - executes helm template to output the "plan"
 - executes helm upgrade to deploy the given char
 
-By default it looks for `Chart.yaml` and `values.yaml` in the following folder: `helm/${{parameters.ENV}}/${{parameters.APP_NAME}}`
 
 ## Usage
 
@@ -26,6 +25,8 @@ stages:
       ENV: ${{ parameters.ENV }}
       KUBERNETES_SERVICE_CONN: $(DEV_KUBERNETES_SERVICE_CONN)
       APP_NAME: ${{ parameters.APP_NAME }}
+      CHART_PATH: "helm/${{parameters.ENV}}/${{parameters.APP_NAME}}"
+      VALUE_FILE: "helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml"
 ```
 
 
