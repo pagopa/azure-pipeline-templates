@@ -32,6 +32,14 @@ parameters:
     type: string
     default: ""
     displayName: ",key1=val1,key2=val2"
+  - name: "CHART_PATH"
+    type: string
+    default: "helm/${{parameters.ENV}}/${{parameters.APP_NAME}}"
+    displayName: 'folder path where to find the Chart.yaml file'
+  - name: "VALUE_FILE"
+    type: string
+    default: "helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml"
+    displayName: 'values.yaml file path relative to the repository root'
 
 
 
@@ -56,8 +64,8 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                echo "##vso[task.setvariable variable=namespace;isOutput=true]$(yq '.microservice-chart.namespace' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
-                echo "##vso[task.setvariable variable=deployversion;isOutput=true]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
+                echo "##vso[task.setvariable variable=namespace;isOutput=true]$(yq '.microservice-chart.namespace' $(Build.Repository.LocalPath)/${{parameters.VALUE_FILE}} )"
+                echo "##vso[task.setvariable variable=deployversion;isOutput=true]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/${{parameters.VALUE_FILE}} )"
           - task: Bash@3
             displayName: 'Print namespace variables'
             inputs:
@@ -87,8 +95,8 @@ stages:
             parameters:
               DEPLOY_VERSION: $(deployversion)
               HELM_DEPENDECIES_COMMAND: 'build'
-              CHART_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
-              VALUES_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml'
+              CHART_FILE: ${{ parameters.CHART_PATH }}
+              VALUES_FILE: ${{ parameters.VALUE_FILE }}
 #
 # DEPLOY
 #
@@ -109,7 +117,7 @@ stages:
             parameters:
               DEPLOY_VERSION: $(deployversion)
               HELM_DEPENDECIES_COMMAND: 'build'
-              CHART_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
+              CHART_FILE: ${{ parameters.CHART_PATH }}
           # 1. deploy helm
           - template: ../helm-microservice-chart-deploy/template.yaml@helm
             parameters:
@@ -120,8 +128,8 @@ stages:
               NAMESPACE: $(namespace)
               APP_NAME: ${{parameters.APP_NAME}}
               CHART_TYPE: "filepath"
-              CHART_PATH: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
-              VALUE_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml'
+              CHART_PATH: ${{ parameters.CHART_PATH }}
+              VALUE_FILE: ${{ parameters.VALUE_FILE }}
               DEPLOY_VERSION: $(deployversion)
               WAIT_FOR_EXECUTION: ${{parameters.WAIT_FOR_EXECUTION}}
               ARGUMENTS: ${{parameters.ARGUMENTS}}
