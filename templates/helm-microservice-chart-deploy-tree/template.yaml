@@ -17,10 +17,10 @@ parameters:
     displayName: '(Required) Helm deploy name.'
   - name: "CHART_PATH"
     type: string
-    displayName: 'folder path where to find the Chart.yaml file'
+    displayName: '(Required) folder path where to find the Chart.yaml file'
   - name: "VALUE_FILE"
     type: string
-    displayName: 'values.yaml file path relative to the repository root'
+    displayName: '(Required) values.yaml file path relative to the repository root'
   # Optional
   - name: "WAIT_FOR_EXECUTION"
     type: boolean
