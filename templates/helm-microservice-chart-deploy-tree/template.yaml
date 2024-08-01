@@ -94,7 +94,7 @@ stages:
 #
   - stage: helm_deploy
     displayName: 🚀 ${{parameters.ENV}} helm deploy ${{parameters.APP_NAME}}
-    dependsOn: [set_variables]
+    dependsOn: [helm_template]
     condition: succeeded()
     jobs:
       - job: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
