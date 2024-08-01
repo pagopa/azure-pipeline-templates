@@ -33,7 +33,7 @@ steps:
         fi
         helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
         helm dep ${{ parameters.HELM_DEPENDECIES_COMMAND }} ${{ parameters.CHART_FILE }}
-        if [ "$VALUES_FILE" = "-" ]; then
+        if [ "$VALUES_FILE" != "-" ]; then
           helm template ${{ parameters.CHART_FILE }} -f "$VALUES_FILE"  --debug
         fi
       failOnStderr: true

@@ -108,9 +108,9 @@ stages:
 #                echo "##vso[task.setvariable variable=deployversion]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
           - template: ../helm-microservice-chart-setup/template.yaml@helm
             parameters:
-            DEPLOY_VERSION: $(deployversion)
-            HELM_DEPENDECIES_COMMAND: 'build'
-            CHART_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
+              DEPLOY_VERSION: $(deployversion)
+              HELM_DEPENDECIES_COMMAND: 'build'
+              CHART_FILE: 'helm/${{parameters.ENV}}/${{parameters.APP_NAME}}'
           # 1. deploy helm
           - template: ../helm-microservice-chart-deploy/template.yaml@helm
             parameters:
