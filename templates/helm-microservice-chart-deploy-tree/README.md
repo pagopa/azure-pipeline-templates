@@ -7,7 +7,6 @@ In particular, it:
 - executes helm template to output the "plan"
 - executes helm upgrade to deploy the given char
 
-
 ## Usage
 
 ```yaml
