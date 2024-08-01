@@ -90,7 +90,7 @@ stages:
         steps:
           - checkout: self
           # 1. Setup helm
-          - template: ../helm-microservice-chart-setup/template.yaml@helm
+          - template: ../helm-microservice-chart-setup/template.yaml
             parameters:
               DEPLOY_VERSION: $(deployversion)
               HELM_DEPENDECIES_COMMAND: 'build'
@@ -112,13 +112,13 @@ stages:
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
         steps:
           - checkout: self
-          - template: ../helm-microservice-chart-setup/template.yaml@helm
+          - template: ../helm-microservice-chart-setup/template.yaml
             parameters:
               DEPLOY_VERSION: $(deployversion)
               HELM_DEPENDECIES_COMMAND: 'build'
               CHART_FILE: ${{ parameters.CHART_PATH }}
           # 1. deploy helm
-          - template: ../helm-microservice-chart-deploy/template.yaml@helm
+          - template: ../helm-microservice-chart-deploy/template.yaml
             parameters:
               DO_DEPLOY : true
               COMMAND: ${{parameters.COMMAND}}
