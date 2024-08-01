@@ -60,7 +60,6 @@ stages:
                 echo "##vso[task.setvariable variable=deployversion;isOutput=true]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/helm/${{parameters.ENV}}/${{parameters.APP_NAME}}/values.yaml )"
           - task: Bash@3
             displayName: 'Print namespace variables'
-            name: vars
             inputs:
               targetType: 'inline'
               script: |
