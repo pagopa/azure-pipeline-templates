@@ -63,8 +63,8 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                echo "namespace: "; echo $(namespace)
-                echo "deployversion: "; echo $(deployversion)
+                echo "namespace: '$(namespace)'"
+                echo "deployversion: '$(deployversion)'"
 
 #
 # TEMPLATE
