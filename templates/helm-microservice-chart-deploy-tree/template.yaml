@@ -104,35 +104,40 @@ stages:
     dependsOn: [helm_template, set_variables]
     condition: succeeded()
     jobs:
-      - job: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
+      - deployment: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
         displayName: "Helm deploy of ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
         timeoutInMinutes: $[variables.TIME_OUT]
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
-        steps:
-          - checkout: self
-          - template: ../helm-microservice-chart-setup/template.yaml
-            parameters:
-              DEPLOY_VERSION: $(deployversion)
-              HELM_DEPENDECIES_COMMAND: 'build'
-              CHART_FILE: ${{ parameters.CHART_PATH }}
-          # 1. deploy helm
-          - template: ../helm-microservice-chart-deploy/template.yaml
-            parameters:
-              DO_DEPLOY : true
-              COMMAND: ${{parameters.COMMAND}}
-              ENV: ${{parameters.ENV}}
-              KUBERNETES_SERVICE_CONN: ${{parameters.KUBERNETES_SERVICE_CONN}}
-              NAMESPACE: $(namespace)
-              APP_NAME: ${{parameters.APP_NAME}}
-              CHART_TYPE: "filepath"
-              CHART_PATH: ${{ parameters.CHART_PATH }}
-              VALUE_FILE: ${{ parameters.VALUE_FILE }}
-              DEPLOY_VERSION: $(deployversion)
-              WAIT_FOR_EXECUTION: ${{parameters.WAIT_FOR_EXECUTION}}
-              ARGUMENTS: ${{parameters.ARGUMENTS}}
-              APPINSIGHTS_SERVICE_CONN: ${{parameters.APPINSIGHTS_SERVICE_CONN}}
-              APPINSIGHTS_RESOURCE_ID: ${{parameters.APPINSIGHTS_RESOURCE_ID}}
-              OVERRIDE_EXTENDS: ${{parameters.OVERRIDE_EXTENDS}}
+        continueOnError: false
+        environment: ${{parameters.ENV}}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: ../helm-microservice-chart-setup/template.yaml
+                  parameters:
+                    DEPLOY_VERSION: $(deployversion)
+                    HELM_DEPENDECIES_COMMAND: 'build'
+                    CHART_FILE: ${{ parameters.CHART_PATH }}
+                # 1. deploy helm
+                - template: ../helm-microservice-chart-deploy/template.yaml
+                  parameters:
+                    DO_DEPLOY : true
+                    COMMAND: ${{parameters.COMMAND}}
+                    ENV: ${{parameters.ENV}}
+                    KUBERNETES_SERVICE_CONN: ${{parameters.KUBERNETES_SERVICE_CONN}}
+                    NAMESPACE: $(namespace)
+                    APP_NAME: ${{parameters.APP_NAME}}
+                    CHART_TYPE: "filepath"
+                    CHART_PATH: ${{ parameters.CHART_PATH }}
+                    VALUE_FILE: ${{ parameters.VALUE_FILE }}
+                    DEPLOY_VERSION: $(deployversion)
+                    WAIT_FOR_EXECUTION: ${{parameters.WAIT_FOR_EXECUTION}}
+                    ARGUMENTS: ${{parameters.ARGUMENTS}}
+                    APPINSIGHTS_SERVICE_CONN: ${{parameters.APPINSIGHTS_SERVICE_CONN}}
+                    APPINSIGHTS_RESOURCE_ID: ${{parameters.APPINSIGHTS_RESOURCE_ID}}
+                    OVERRIDE_EXTENDS: ${{parameters.OVERRIDE_EXTENDS}}
 
