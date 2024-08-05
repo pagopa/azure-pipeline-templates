@@ -47,7 +47,6 @@ stages:
 #
 # PREPARE
 #
-  -
   - stage: prepare_variables
     displayName: 🔦 ${{parameters.ENV}} prepare APP_NAME variable
     dependsOn: [ ]
