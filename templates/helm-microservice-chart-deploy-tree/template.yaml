@@ -47,13 +47,30 @@ stages:
 #
 # SETUP
 #
-  - stage: set_variables
-    displayName: 🔦 ${{parameters.ENV}} set variables ${{parameters.APP_NAME}}
+  - stage: Prepare variable
+    displayName: 🔦 Prepare APP_NAME variable
     dependsOn: [ ]
     condition: succeeded()
     jobs:
       - job: set_variable_job
-        displayName: Set variable for ${{parameters.APP_NAME}} on ${{parameters.ENV}}
+        displayName: Prepare APP_NAME variable
+        timeoutInMinutes: $[variables.TIME_OUT]
+        steps:
+          - task: Bash@3
+            displayName: 'Set namespace variables'
+            name: vars
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "##vso[task.setvariable variable=APP_NAME]$(echo "${{ parameters.APP_NAME }}" | sed 's/-/_/g')"
+
+  - stage: set_variables
+    displayName: 🔦 ${{parameters.ENV}} set variables ${{variables.APP_NAME}}
+    dependsOn: [ ]
+    condition: succeeded()
+    jobs:
+      - job: set_variable_job
+        displayName: Set variable for ${{variables.APP_NAME}} on ${{parameters.ENV}}
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -65,7 +82,6 @@ stages:
               script: |
                 echo "##vso[task.setvariable variable=namespace;isOutput=true]$(yq '.microservice-chart.namespace' $(Build.Repository.LocalPath)/${{parameters.VALUE_FILE}} )"
                 echo "##vso[task.setvariable variable=deployversion;isOutput=true]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/${{parameters.VALUE_FILE}} )"
-                echo "##vso[task.setvariable variable=APP_NAME_TRASF]$(echo "${{ parameters.APP_NAME }}" | sed 's/-/_/g')"
           - task: Bash@3
             displayName: 'Print namespace variables'
             inputs:
@@ -78,11 +94,11 @@ stages:
 # TEMPLATE
 #
   - stage: helm_template
-    displayName: 🔦 ${{parameters.ENV}} helm setup ${{parameters.APP_NAME}}
+    displayName: 🔦 ${{parameters.ENV}} helm setup ${{variables.APP_NAME}}
     dependsOn: [set_variables]
     condition: succeeded()
     jobs:
-      - job: ${{parameters.ENV}}_template_${{parameters.APP_NAME}}
+      - job: ${{parameters.ENV}}_template_${{variables.APP_NAME}}
         displayName: "Helm template for ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
@@ -101,12 +117,12 @@ stages:
 # DEPLOY
 #
   - stage: helm_deploy
-    displayName: 🚀 ${{parameters.ENV}} helm deploy ${{parameters.APP_NAME}}
+    displayName: 🚀 ${{parameters.ENV}} helm deploy ${{variables.APP_NAME}}
     dependsOn: [helm_template, set_variables]
     condition: succeeded()
     jobs:
-      - deployment: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
-        displayName: "Helm deploy of ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
+      - deployment: ${{parameters.ENV}}_deploy_${{variables.APP_NAME}}
+        displayName: "Helm deploy of ${{variables.APP_NAME}} on ${{parameters.ENV}}"
         timeoutInMinutes: $[variables.TIME_OUT]
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
