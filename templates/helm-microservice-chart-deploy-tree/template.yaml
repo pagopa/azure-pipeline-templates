@@ -45,11 +45,40 @@ parameters:
 
 stages:
 #
+# PREPARE
+#
+  -
+  - stage: prepare_variables
+    displayName: 🔦 ${{parameters.ENV}} prepare APP_NAME variable
+    dependsOn: [ ]
+    condition: succeeded()
+    jobs:
+      - job: set_variable_job
+        displayName: Set variable for APP_NAME on ${{parameters.ENV}}
+        timeoutInMinutes: $[variables.TIME_OUT]
+        steps:
+          - checkout: self
+          - task: Bash@3
+            displayName: 'Set namespace variables'
+            name: vars
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "##vso[task.setvariable variable=APP_NAME]$(echo "${{ parameters.APP_NAME }}" | sed 's/-/_/g')"
+
+          - task: Bash@3
+            displayName: 'Print APP_NAME variable'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "APP_NAME: $(vars.APP_NAME)"
+
+#
 # SETUP
 #
   - stage: set_variables
     displayName: 🔦 ${{parameters.ENV}} set variables ${{parameters.APP_NAME}}
-    dependsOn: [ ]
+    dependsOn: [prepare_variables]
     condition: succeeded()
     jobs:
       - job: set_variable_job
@@ -140,4 +169,3 @@ stages:
                     APPINSIGHTS_SERVICE_CONN: ${{parameters.APPINSIGHTS_SERVICE_CONN}}
                     APPINSIGHTS_RESOURCE_ID: ${{parameters.APPINSIGHTS_RESOURCE_ID}}
                     OVERRIDE_EXTENDS: ${{parameters.OVERRIDE_EXTENDS}}
-
