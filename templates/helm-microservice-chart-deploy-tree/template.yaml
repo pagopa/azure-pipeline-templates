@@ -39,10 +39,6 @@ parameters:
     default: ""
     displayName: ",key1=val1,key2=val2"
 
-
-
-
-
 stages:
 #
 # PREPARE
@@ -70,18 +66,18 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                echo "APP_NAME: $(vars.APP_NAME)"
+                echo "APP_NAME: $(variables.APP_NAME)"
 
 #
 # SETUP
 #
   - stage: set_variables
-    displayName: 🔦 ${{parameters.ENV}} set variables ${{vars.APP_NAME}}
+    displayName: 🔦 ${{parameters.ENV}} set variables ${{variables.APP_NAME}}
     dependsOn: [prepare_variables]
     condition: succeeded()
     jobs:
       - job: set_variable_job
-        displayName: Set variable for ${{vars.APP_NAME}} on ${{parameters.ENV}}
+        displayName: Set variable for ${{variables.APP_NAME}} on ${{parameters.ENV}}
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
@@ -105,12 +101,12 @@ stages:
 # TEMPLATE
 #
   - stage: helm_template
-    displayName: 🔦 ${{parameters.ENV}} helm setup ${{vars.APP_NAME}}
+    displayName: 🔦 ${{parameters.ENV}} helm setup ${{variables.APP_NAME}}
     dependsOn: [set_variables]
     condition: succeeded()
     jobs:
-      - job: ${{parameters.ENV}}_template_${{vars.APP_NAME}}
-        displayName: "Helm template for ${{vars.APP_NAME}} on ${{parameters.ENV}}"
+      - job: ${{parameters.ENV}}_template_${{variables.APP_NAME}}
+        displayName: "Helm template for ${{variables.APP_NAME}} on ${{parameters.ENV}}"
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
@@ -128,12 +124,12 @@ stages:
 # DEPLOY
 #
   - stage: helm_deploy
-    displayName: 🚀 ${{parameters.ENV}} helm deploy ${{vars.APP_NAME}}
+    displayName: 🚀 ${{parameters.ENV}} helm deploy ${{variables.APP_NAME}}
     dependsOn: [helm_template, set_variables]
     condition: succeeded()
     jobs:
-      - deployment: ${{parameters.ENV}}_deploy_${{vars.APP_NAME}}
-        displayName: "Helm deploy of ${{vars.APP_NAME}} on ${{parameters.ENV}}"
+      - deployment: ${{parameters.ENV}}_deploy_${{variables.APP_NAME}}
+        displayName: "Helm deploy of ${{variables.APP_NAME}} on ${{parameters.ENV}}"
         timeoutInMinutes: $[variables.TIME_OUT]
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
