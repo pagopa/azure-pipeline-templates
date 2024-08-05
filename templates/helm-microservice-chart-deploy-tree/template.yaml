@@ -47,12 +47,12 @@ stages:
 #
 # SETUP
 #
-  - stage: Prepare variable
+  - stage: prepare_variable
     displayName: 🔦 Prepare APP_NAME variable
     dependsOn: [ ]
     condition: succeeded()
     jobs:
-      - job: set_variable_job
+      - job: set_variable_app_name
         displayName: Prepare APP_NAME variable
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
