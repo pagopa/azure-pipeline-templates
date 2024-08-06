@@ -39,10 +39,6 @@ parameters:
     default: ""
     displayName: ",key1=val1,key2=val2"
 
-
-
-
-
 stages:
 #
 # SETUP
@@ -81,7 +77,7 @@ stages:
     dependsOn: [set_variables]
     condition: succeeded()
     jobs:
-      - job: ${{parameters.ENV}}_template_${{parameters.APP_NAME}}
+      - job: ${{parameters.ENV}}_template_${{ replace(parameters.APP_NAME, '-', '_') }}
         displayName: "Helm template for ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
@@ -104,7 +100,7 @@ stages:
     dependsOn: [helm_template, set_variables]
     condition: succeeded()
     jobs:
-      - deployment: ${{parameters.ENV}}_deploy_${{parameters.APP_NAME}}
+      - deployment: ${{parameters.ENV}}_deploy_${{ replace(parameters.APP_NAME, '-', '_') }}
         displayName: "Helm deploy of ${{parameters.APP_NAME}} on ${{parameters.ENV}}"
         timeoutInMinutes: $[variables.TIME_OUT]
         variables:
@@ -140,4 +136,3 @@ stages:
                     APPINSIGHTS_SERVICE_CONN: ${{parameters.APPINSIGHTS_SERVICE_CONN}}
                     APPINSIGHTS_RESOURCE_ID: ${{parameters.APPINSIGHTS_RESOURCE_ID}}
                     OVERRIDE_EXTENDS: ${{parameters.OVERRIDE_EXTENDS}}
-
