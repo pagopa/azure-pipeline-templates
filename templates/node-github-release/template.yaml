@@ -110,7 +110,7 @@ steps:
   displayName: 'Push to the release branch'
 
 # create new releae
-- task: GitHubRelease@0
+- task: GitHubRelease@1
   inputs:
     gitHubConnection: ${{ parameters.gitHubConnection }}
     repositoryName: $(Build.Repository.Name)
@@ -120,3 +120,4 @@ steps:
     tag: $(tag)
     title: $(title)
     addChangelog: true
+    isPreRelease: ${{ if eq(parameters.semver, true) }}
