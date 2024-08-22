@@ -105,6 +105,7 @@ stages:
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
+          helmreleasename: $[stageDependencies.set_variables.set_variable_job.outputs['vars.helmreleasename']]
         continueOnError: false
         environment: ${{parameters.ENV}}
         strategy:
