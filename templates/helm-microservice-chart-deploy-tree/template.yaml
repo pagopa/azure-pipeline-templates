@@ -11,7 +11,7 @@ parameters:
     displayName: '(Required) Azure devops service connection name.'
   - name: "APP_NAME"
     type: string
-    displayName: '(Required) Helm deploy name.'
+    displayName: '(Required) Helm deploy folder name.'
   - name: "CHART_PATH"
     type: string
     displayName: '(Required) folder path where to find the Chart.yaml file'
