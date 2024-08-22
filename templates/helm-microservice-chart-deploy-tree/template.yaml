@@ -3,9 +3,6 @@ parameters:
   - name: "COMMAND"
     type: string
     default: "upgrade"
-  - name: "DO_DEPLOY"
-    displayName: '(Required) Launch helm deploy.'
-    type: boolean
   - name: "ENV"
     type: string
     displayName: '(Required) Which environment is involved into deploy.'
@@ -14,7 +11,7 @@ parameters:
     displayName: '(Required) Azure devops service connection name.'
   - name: "APP_NAME"
     type: string
-    displayName: '(Required) Helm deploy name.'
+    displayName: '(Required) Helm deploy folder name.'
   - name: "CHART_PATH"
     type: string
     displayName: '(Required) folder path where to find the Chart.yaml file'
@@ -61,6 +58,7 @@ stages:
               script: |
                 echo "##vso[task.setvariable variable=namespace;isOutput=true]$(yq '.microservice-chart.namespace' $(Build.Repository.LocalPath)/${{parameters.VALUE_FILE}} )"
                 echo "##vso[task.setvariable variable=deployversion;isOutput=true]$(yq '.microservice-chart.image.tag' $(Build.Repository.LocalPath)/${{parameters.VALUE_FILE}} )"
+                echo "##vso[task.setvariable variable=helmreleasename;isOutput=true]$(yq '.name' $(Build.Repository.LocalPath)/${{parameters.CHART_PATH}}/Chart.yaml )"
           - task: Bash@3
             displayName: 'Print namespace variables'
             inputs:
@@ -68,6 +66,7 @@ stages:
               script: |
                 echo "namespace: $(vars.namespace)"
                 echo "deployversion: $(vars.deployversion)"
+                echo "helmreleasename: $(vars.helmreleasename)"
 
 #
 # TEMPLATE
@@ -106,6 +105,7 @@ stages:
         variables:
           namespace: $[stageDependencies.set_variables.set_variable_job.outputs['vars.namespace']]
           deployversion: $[stageDependencies.set_variables.set_variable_job.outputs['vars.deployversion']]
+          helmreleasename: $[stageDependencies.set_variables.set_variable_job.outputs['vars.helmreleasename']]
         continueOnError: false
         environment: ${{parameters.ENV}}
         strategy:
@@ -126,7 +126,7 @@ stages:
                     ENV: ${{parameters.ENV}}
                     KUBERNETES_SERVICE_CONN: ${{parameters.KUBERNETES_SERVICE_CONN}}
                     NAMESPACE: $(namespace)
-                    APP_NAME: ${{parameters.APP_NAME}}
+                    APP_NAME: $(helmreleasename)
                     CHART_TYPE: "filepath"
                     CHART_PATH: ${{ parameters.CHART_PATH }}
                     VALUE_FILE: ${{ parameters.VALUE_FILE }}
