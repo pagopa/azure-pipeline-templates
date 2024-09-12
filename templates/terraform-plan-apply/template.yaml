@@ -44,12 +44,41 @@ parameters:
     default: true
 
 stages:
+#
+# PLAN
+#
+  - stage: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+    displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+    dependsOn: []
+    condition: succeeded()
+    pool:
+      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
+    jobs:
+      - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+        timeoutInMinutes: $[variables.TIME_OUT]
+        steps:
+          - checkout: self
+          # 1. Install terraform
+          - template: ../terraform-setup/template.yaml@terraform
+          - template: ../terraform-summarize/template.yaml@terraform
+          # 2. Run terraform plan
+          - template: ../terraform-plan/template.yaml@terraform
+            parameters:
+              AZURE_SERVICE_CONNECTION_NAME: ${{parameters.AZURE_SERVICE_CONNECTION_PLAN_NAME}}
+              TF_ENVIRONMENT_FOLDER: ${{parameters.TF_ENVIRONMENT_FOLDER}}
+              WORKINGDIR: ${{parameters.WORKINGDIR}}
+              AKS_NAME: ${{parameters.AKS_NAME}}
+              AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
+              AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
+              AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+              TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
 
 #
 # APPLY
 #
   - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
     displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+    dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
     condition: succeeded()
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
