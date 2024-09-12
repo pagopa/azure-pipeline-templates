@@ -25,6 +25,8 @@ steps:
     script: |
       TERRAFORM_VERSION="$(cat .terraform-version)"
       echo "📢 terraform version to install: ${TERRAFORM_VERSION}"
+      echo "pwd: $(pwd)"
+      echo "ls: $(ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/')"
       wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
       unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
       sudo mv terraform /usr/local/bin/
