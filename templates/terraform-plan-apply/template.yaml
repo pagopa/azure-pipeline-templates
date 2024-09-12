@@ -79,7 +79,6 @@ stages:
           runOnce:
             deploy:
               steps:
-                - checkout: self
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
                 # 2. Run terraform apply
