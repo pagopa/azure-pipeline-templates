@@ -47,8 +47,8 @@ stages:
 #
 # PLAN
 #
-  - stage: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
-    displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
+  - stage: ${{parameters.ENVIRONMENT}}_plan_apply_${{parameters.FULL_DOMAIN_NAME}}
+    displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_apply_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
     pool:
@@ -72,17 +72,6 @@ stages:
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
               TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
-
-#
-# APPLY
-#
-  - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
-    displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
-    dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
-    condition: succeeded()
-    pool:
-      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
-    jobs:
       - deployment: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
         continueOnError: false
         environment: ${{parameters.ENVIRONMENT}}
@@ -104,3 +93,14 @@ stages:
                     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
                     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
                     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+##
+## APPLY
+##
+#  - stage: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+#    displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+#    dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
+#    condition: succeeded()
+#    pool:
+#      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
+#    jobs:
+
