@@ -74,6 +74,7 @@ stages:
               TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
       - deployment: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
         continueOnError: false
+        dependsOn: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
         environment: ${{parameters.ENVIRONMENT}}
         strategy:
           runOnce:
