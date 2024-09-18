@@ -52,7 +52,7 @@ steps:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
         echo "##[section] 💈 Start terraform plan for tf-env-folder=${{ parameters.TF_ENVIRONMENT_FOLDER }} on $(pwd)"
-
+        set -x
         export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
 
         echo "[INFO] Terraform setup variables"
@@ -73,9 +73,13 @@ steps:
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes"
+          terraform -version
+          ./terraform.sh init ${{ parameters.TF_ENVIRONMENT_FOLDER }}
           ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -lock-timeout=300s -lock=false ${generate_state_output}
         else
           echo "[INFO] 🚀 Run terraform plan"
+          terraform -version
+          ./terraform.sh init ${{ parameters.TF_ENVIRONMENT_FOLDER }}
           ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false ${generate_state_output}
         fi
 
