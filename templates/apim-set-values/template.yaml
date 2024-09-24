@@ -1,0 +1,53 @@
+# Run terraform init and terraform plan
+parameters:
+  - name: 'AZURE_PLAN_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'APIM_NAME'
+    displayName: '(Required) API management instance name'
+    type: string
+  - name: 'APIM_RG'
+    displayName: '(Required) API management resource group name'
+    type: string
+  - name: 'NAMED_VALUES'
+    displayName: '(Required) API management named values to be updated'
+    type: object
+    default: []
+
+steps:
+  - checkout: self
+
+  - ${{ each named_value in parameters.NAMED_VALUES }}:
+    - task: AzureCLI@2
+      displayName: 'Update Apim named value: ${{named_value.name}}'
+      inputs:
+        azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+        addSpnToEnvironment: true
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        failOnStandardError: true
+        inlineScript: |
+          echo "##[section] 💈 Start terraform apply with tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} on $(pwd)"
+          
+          az apim nv update --service-name ${{ parameters.APIM_NAME }} -g  ${{ parameters.APIM_RG }} --named-value-id ${{named_value.name}} --value ${{named_value.value}}
+  
+          #export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
+          
+
+  - task: AzureCLI@2
+    displayName: Clean project
+    condition: always()
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      workingDirectory: '${{ parameters.WORKINGDIR }}'
+      inlineScript: |
+        echo "[INFO] Clean project"
+        rm -rf .azure
+        rm -f tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
