@@ -50,4 +50,3 @@ steps:
       inlineScript: |
         echo "[INFO] Clean project"
         rm -rf .azure
-        rm -f tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}
