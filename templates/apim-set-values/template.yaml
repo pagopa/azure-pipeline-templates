@@ -1,8 +1,5 @@
 # Run terraform init and terraform plan
 parameters:
-  - name: 'AZURE_PLAN_SERVICE_CONNECTION_NAME'
-    displayName: '(Required) Azure service connection name.'
-    type: string
   - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
     type: string
