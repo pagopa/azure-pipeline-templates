@@ -28,7 +28,7 @@ steps:
           value=$(az apim nv show --named-value-id ${{named_value.name}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
           echo "##vso[task.setvariable variable=${{named_value.name}}]$value"
     - bash: |
-        echo $(${{named_value.name}})
+        echo "${{named_value.name}}: $(${{named_value.name}})"
 
   - task: AzureCLI@2
     displayName: Clean project
