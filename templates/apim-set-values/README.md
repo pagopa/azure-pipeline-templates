@@ -35,5 +35,3 @@ stages:
               - name: named-value.idd-2
                 value: new-value-2
 ```
-
-

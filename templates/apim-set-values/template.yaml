@@ -1,4 +1,3 @@
-# Run terraform init and terraform plan
 parameters:
   - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
     displayName: '(Required) Azure service connection name.'
@@ -15,8 +14,6 @@ parameters:
     default: []
 
 steps:
-  - checkout: self
-
   - ${{ each named_value in parameters.NAMED_VALUES }}:
     - task: AzureCLI@2
       displayName: 'Update Apim named value: ${{named_value.name}}'
@@ -27,12 +24,8 @@ steps:
         scriptLocation: 'inlineScript'
         failOnStandardError: true
         inlineScript: |
-          echo "##[section] 💈 Start terraform apply with tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} on $(pwd)"
-          
+          echo "##💈 Updating ${{ parameters.APIM_NAME }} named value ${{named_value.name}} with value ${{named_value.value}}"
           az apim nv update --service-name ${{ parameters.APIM_NAME }} -g  ${{ parameters.APIM_RG }} --named-value-id ${{named_value.name}} --value ${{named_value.value}}
-  
-          #export cliendId=$(az ad sp show --id ${servicePrincipalId} --query "appId" -o tsv)
-          
 
   - task: AzureCLI@2
     displayName: Clean project
