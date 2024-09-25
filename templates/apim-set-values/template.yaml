@@ -10,7 +10,7 @@ parameters:
     displayName: '(Required) API management resource group name'
     type: string
   - name: 'NAMED_VALUES'
-    displayName: '(Required) API management named values to be updated'
+    displayName: '(Required) List of API management named values to be updated'
     type: object
     default: []
 
