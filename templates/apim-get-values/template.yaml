@@ -1,0 +1,44 @@
+parameters:
+  - name: 'AZURE_APPLY_SERVICE_CONNECTION_NAME'
+    displayName: '(Required) Azure service connection name.'
+    type: string
+  - name: 'APIM_NAME'
+    displayName: '(Required) API management instance name'
+    type: string
+  - name: 'APIM_RG'
+    displayName: '(Required) API management resource group name'
+    type: string
+  - name: 'NAMED_VALUES'
+    displayName: '(Required) List of API management named values to be updated'
+    type: object
+    default: []
+
+steps:
+  - ${{ each named_value in parameters.NAMED_VALUES }}:
+    - task: AzureCLI@2
+      displayName: 'Update Apim named value: ${{named_value.name}}'
+      inputs:
+        azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+        addSpnToEnvironment: true
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        failOnStandardError: true
+        inlineScript: |
+          echo "##💈 Retrieving ${{ parameters.APIM_NAME }} named value ${{named_value.name}}"
+          value=$(az apim nv show --named-value-id ${{named_value.name}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
+          echo "##vso[task.setvariable variable=${{named_value.name}}]$value"
+    - bash: |
+        echo $(${{named_value.name}})
+
+  - task: AzureCLI@2
+    displayName: Clean project
+    condition: always()
+    inputs:
+      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+      addSpnToEnvironment: true
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      failOnStandardError: true
+      inlineScript: |
+        echo "[INFO] Clean project"
+        rm -rf .azure
