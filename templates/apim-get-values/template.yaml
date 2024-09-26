@@ -47,15 +47,15 @@ jobs:
 ##        echo "##vso[task.setvariable variable=${{named_value.name}};isoutput=true]$value"
 #      name: readValues
 
-  - task: AzureCLI@2
-    displayName: Clean project
-    condition: always()
-    inputs:
-      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
-      addSpnToEnvironment: true
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      failOnStandardError: true
-      inlineScript: |
-        echo "[INFO] Clean project"
-        rm -rf .azure
+      - task: AzureCLI@2
+        displayName: Clean project
+        condition: always()
+        inputs:
+          azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
+          addSpnToEnvironment: true
+          scriptType: 'bash'
+          scriptLocation: 'inlineScript'
+          failOnStandardError: true
+          inlineScript: |
+            echo "[INFO] Clean project"
+            rm -rf .azure
