@@ -31,6 +31,7 @@ steps:
         name: readValues
     - bash: |
         echo "test outout: $(${{named_value}})"
+        echo $(${{named_value}})
 #  - task: AzureCLI@2
 #    displayName: 'Read Apim named values'
 #    inputs:
