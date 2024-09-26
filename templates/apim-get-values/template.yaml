@@ -29,10 +29,14 @@ steps:
         echo "read value: $value"
         echo "##vso[task.setvariable variable=test-marco-01;isoutput=true]$value"
       name: readValues
-  - bash: |
-      printenv
-      echo "test outout: $(readValues.test-marco-01)"
-      echo $(readValues.test-marco-01)
+  - task: Bash@3
+    displayName: 'Print namespace variables'
+    inputs:
+      targetType: 'inline'
+      script: |
+        printenv
+        echo "test outout: $(readValues.test-marco-01)"
+        echo $(readValues.test-marco-01)
 #  - task: AzureCLI@2
 #    displayName: 'Read Apim named values'
 #    inputs:
