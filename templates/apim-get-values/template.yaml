@@ -16,7 +16,7 @@ parameters:
 steps:
   - ${{ each named_value in parameters.NAMED_VALUES }}:
     - task: AzureCLI@2
-      displayName: 'Read Apim named value: ${{named_value.name}}'
+      displayName: 'Read Apim named value: ${{named_value}}'
       inputs:
         azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
         addSpnToEnvironment: true
@@ -24,11 +24,11 @@ steps:
         scriptLocation: 'inlineScript'
         failOnStandardError: true
         inlineScript: |
-          echo "##💈 Retrieving ${{ parameters.APIM_NAME }} named value ${{named_value.name}}"
-          value=$(az apim nv show --named-value-id ${{named_value.name}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
+          echo "##💈 Retrieving ${{ parameters.APIM_NAME }} named value ${{named_value}}"
+          value=$(az apim nv show --named-value-id ${{named_value}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
           echo "read value: $value"
-          echo "##vso[task.setvariable variable=output;isoutput=true]$value"
-        name: something
+          echo "##vso[task.setvariable variable=${{named_value}};isoutput=true]$value"
+        name: readValues
 #  - task: AzureCLI@2
 #    displayName: 'Read Apim named values'
 #    inputs:
