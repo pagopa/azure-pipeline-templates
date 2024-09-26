@@ -27,7 +27,7 @@ steps:
           echo "##💈 Retrieving ${{ parameters.APIM_NAME }} named value ${{named_value}}"
           value=$(az apim nv show --named-value-id ${{named_value}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
           echo "read value: $value"
-          echo "##vso[task.setvariable variable=${{named_value}};isoutput=true]$value"
+          echo "##vso[task.setvariable variable=myvar;isoutput=true]myval"
         name: readValues
     - bash: |
         echo "test outout: $(readValues.${{named_value}})"
