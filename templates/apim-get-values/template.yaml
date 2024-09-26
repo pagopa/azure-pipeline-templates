@@ -30,7 +30,7 @@ steps:
           echo "##vso[task.setvariable variable=${{named_value}};isoutput=true]$value"
         name: readValues
     - bash: |
-        echo $(readValues.${{named_value}})
+        echo "test outout: $(readValues.${{named_value}})"
 #  - task: AzureCLI@2
 #    displayName: 'Read Apim named values'
 #    inputs:
