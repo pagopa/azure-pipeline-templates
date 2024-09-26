@@ -34,9 +34,7 @@ steps:
       inputs:
         targetType: 'inline'
         script: |
-          printenv
-          echo "test outout: $(readValues_${{replace(named_value, '-', '_')}}.${{named_value}})"
-          echo $(readValues_${{replace(named_value, '-', '_')}}.${{named_value}})
+          echo "read named value: $(readValues_${{replace(named_value, '-', '_')}}.${{named_value}})"
 #  - task: AzureCLI@2
 #    displayName: 'Read Apim named values'
 #    inputs:
