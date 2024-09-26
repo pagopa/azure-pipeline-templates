@@ -16,7 +16,7 @@ parameters:
 steps:
 #  - ${{ each named_value in parameters.NAMED_VALUES }}:
   - task: AzureCLI@2
-    displayName: 'Read Apim named value: ${{named_value}}'
+    displayName: 'Read Apim named value'
     inputs:
       azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
       addSpnToEnvironment: true
