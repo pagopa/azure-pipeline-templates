@@ -28,26 +28,13 @@ steps:
           value=$(az apim nv show --named-value-id ${{named_value}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
           echo "read value: $value"
           echo "##vso[task.setvariable variable=${{named_value}};isoutput=true]$value"
-      name: readValues_${{ replace(named_value, '-', '_') }}
+      name: ${{ replace(named_value, '-', '_') }}
     - task: Bash@3
-      displayName: 'Print namespace variables'
+      displayName: 'Print named value ${{named_value}}'
       inputs:
         targetType: 'inline'
         script: |
-          echo "read named value: $(readValues_${{replace(named_value, '-', '_')}}.${{named_value}})"
-#  - task: AzureCLI@2
-#    displayName: 'Read Apim named values'
-#    inputs:
-#      azureSubscription: '${{ parameters.AZURE_APPLY_SERVICE_CONNECTION_NAME }}'
-#      addSpnToEnvironment: true
-#      scriptType: 'bash'
-#      scriptLocation: 'inlineScript'
-#      failOnStandardError: true
-#      inlineScript: |
-#        echo "##💈 Retrieving ${{ convertToJson(parameters.NAMED_VALUES) }}"
-#        value=$(az apim nv show --named-value-id ${{named_value.name}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
-##        echo "##vso[task.setvariable variable=${{named_value.name}};isoutput=true]$value"
-#      name: readValues
+          echo "## Read named value: $(${{replace(named_value, '-', '_')}}.${{named_value}})"
 
   - task: AzureCLI@2
     displayName: Clean project

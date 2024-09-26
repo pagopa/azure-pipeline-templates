@@ -1,7 +1,9 @@
-# Apim values set template
+# Apim values get template
 
-Updates a set of named values on the given apim based on the configuration
+Reads a list of named values from the given APIm and saves them as output
 
+The outputs are saved to a variable named after the given named value, replacing dashes with underscores (as per AZ DevOps requirement);
+for example, given "my-named-value" as the id of the named value, the output will be `my_named_value.my-named-value`
 
 
 ## Usage
@@ -20,18 +22,30 @@ stages:
       name: "${{variables.poolName}}"
 
     jobs:
-      - job: "update_my_values"
-        displayName: "Updating some values on apim"
+      - job: get_current_values
+        displayName: "Retrieve current APIM named values"
         condition: succeeded()
         steps:
-        - template: templates/apim-set-values/template.yaml@templates
+        - template: templates/apim-get-values/template.yaml@terraform
           parameters:
             AZURE_APPLY_SERVICE_CONNECTION_NAME: "${{variables.azureServiceConnectionApplyName}}"
-            APIM_NAME: "my-apim-name"
-            APIM_RG: "my-apim-rg-name"
+            APIM_NAME: "${{variables.apimName}}"
+            APIM_RG: "${{variables.apimRg}}"
             NAMED_VALUES:
-              - name: named-value-id-1
-                value: new-value-1
-              - name: named-value.idd-2
-                value: new-value-2
+              - my-value
+              - my-value-2
+      #
+      # how to access the values
+      #
+      - job: accessing_values
+        displayName: "printing named values"
+        condition: succeeded()
+        dependsOn: get_current_values #required
+        variables:
+          my-read-value: $[ dependencies.get_current_values.outputs['my_value.my-value'] ] #variable container name has underscores instead of dashes
+          my-read-value-2: $[ dependencies.get_current_values.outputs['my_value_2.my-value-2'] ] #variable container name has underscores instead of dashes
+        steps:
+          - bash: |
+              echo $(my-read-value)
+              echo $(my-read-value-2)
 ```
