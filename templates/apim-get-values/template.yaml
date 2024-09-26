@@ -28,7 +28,7 @@ steps:
           value=$(az apim nv show --named-value-id ${{named_value}} --resource-group ${{ parameters.APIM_RG }} --service-name ${{ parameters.APIM_NAME }} --query "value")
           echo "read value: $value"
           echo "##vso[task.setvariable variable=${{named_value}};isoutput=true]$value"
-        name: readValues
+      name: readValues
     - task: Bash@3
       displayName: 'Print namespace variables'
       inputs:
