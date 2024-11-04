@@ -28,6 +28,10 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: TF_LOG
+    displayName: '(Optional) If set, sets the level of TF_LOG variable. Defaults to not setting any level at all'
+    type: string
+    default: ""
 
 steps:
   - checkout: self
@@ -61,6 +65,10 @@ steps:
         export ARM_CLIENT_ID=${cliendId}
         export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+        
+        if [[ "${{ parameters.TF_LOG }}" != "" ]]; then
+          export TF_LOG=${{ parameters.TF_LOG }}
+        fi
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes -> generate state"
@@ -96,6 +104,10 @@ steps:
         if ! [[ -e "tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }}" ]]; then
           echo "❌ State file not exist"
           exit 1
+        fi
+        
+        if [[ "${{ parameters.TF_LOG }}" != "" ]]; then
+          export TF_LOG=${{ parameters.TF_LOG }}
         fi
 
         echo "🚀 Run terraform apply output state"

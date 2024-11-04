@@ -42,6 +42,10 @@ parameters:
     displayName: Show summarize data
     type: boolean
     default: true
+  - name: TF_LOG
+    displayName: '(Optional) If set, sets the level of TF_LOG variable. Defaults to not setting any level at all'
+    type: string
+    default: ""
 
 stages:
 #
@@ -73,6 +77,7 @@ stages:
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
               TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
+              TF_LOG: ${{parameters.TF_LOG}}
 
 #
 # APPLY
@@ -106,3 +111,4 @@ stages:
                     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
                     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
                     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+                    TF_LOG: ${{parameters.TF_LOG}}

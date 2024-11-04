@@ -29,6 +29,10 @@ parameters:
     displayName: Show summarize data
     type: boolean
     default: true
+  - name: TF_LOG
+    displayName: '(Optional) If set, sets the level of TF_LOG variable. Defaults to not setting any level at all'
+    type: string
+    default: ""
 
 steps:
 
@@ -63,6 +67,10 @@ steps:
         export ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 
         generate_state_output=""
+        
+        if [[ "${{ parameters.TF_LOG }}" != "" ]]; then
+          export TF_LOG=${{ parameters.TF_LOG }}
+        fi
 
         if [[ "${{ parameters.TF_SUMMARIZE }}" == "True" ]]; then
           echo "[info] Added option to generate tfplan"
