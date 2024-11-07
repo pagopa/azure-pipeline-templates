@@ -86,6 +86,7 @@ steps:
           echo "[INFO] 🚀 Run terraform plan"
           ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false ${generate_state_output}
         fi
+        terraform show -json tfplan
 
   - task: Bash@3
     displayName: "🔎 Summarize table"
