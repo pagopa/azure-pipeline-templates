@@ -38,6 +38,22 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: 'SECOND_AKS_NAME'
+    displayName: '(Optional) Second AKS Name'
+    type: string
+    default: ""
+  - name: 'SECOND_AKS_API_SERVER_URL'
+    displayName: '(Optional) Second AKS api server url like (e.g. https://my-url.com:443)'
+    type: string
+    default: ""
+  - name: 'SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT'
+    displayName: '(Optional) Second AKS service account CA cert, used by azure devops account'
+    type: string
+    default: ""
+  - name: 'SECOND_AKS_AZURE_DEVOPS_SA_TOKEN'
+    displayName: '(Optional) Second AKS service account token, used by azure devops account'
+    type: string
+    default: ""
   - name: TF_SUMMARIZE
     displayName: Show summarize data
     type: boolean
@@ -72,6 +88,10 @@ stages:
               AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+              SECOND_AKS_NAME: ${{parameters.SECOND_AKS_NAME}}
+              SECOND_AKS_API_SERVER_URL: ${{parameters.SECOND_AKS_API_SERVER_URL}}
+              SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT}}
+              SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
               TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
 
 #
@@ -106,3 +126,7 @@ stages:
                     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
                     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
                     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+                    SECOND_AKS_NAME: ${{parameters.SECOND_AKS_NAME}}
+                    SECOND_AKS_API_SERVER_URL: ${{parameters.SECOND_AKS_API_SERVER_URL}}
+                    SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT}}
+                    SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
