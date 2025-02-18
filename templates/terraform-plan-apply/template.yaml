@@ -58,6 +58,7 @@ stages:
         timeoutInMinutes: $[variables.TIME_OUT]
         steps:
           - checkout: self
+            workspaceRepo: true
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
           - template: ../terraform-summarize/template.yaml@terraform
@@ -91,6 +92,7 @@ stages:
             deploy:
               steps:
                 - checkout: self
+                  workspaceRepo: true
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
                 # 2. Run terraform apply
