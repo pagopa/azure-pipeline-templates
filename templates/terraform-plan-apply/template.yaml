@@ -58,6 +58,14 @@ parameters:
     displayName: Show summarize data
     type: boolean
     default: true
+  - name: REQUEST_VALIDATION
+    displayName: Apply requires an approval
+    type: boolean
+    default: false
+  - name: VALIDATION_NOTIFY_USERS
+    displayName: Users to be notified for validation
+    type: string
+    default: ""
 
 stages:
 #
@@ -104,7 +112,22 @@ stages:
     pool:
       name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
+      - ${{ if eq(parameters['REQUEST_VALIDATION'], true) }}:
+        - job: waitForValidation
+          condition: succeeded()
+          displayName: Wait for external validation
+          pool: server
+          steps:
+            - task: ManualValidation@0
+              timeoutInMinutes: 240 # task times out in 4 hours
+              inputs:
+                notifyUsers: |
+                  ${{parameters.VALIDATION_NOTIFY_USERS}}
+                instructions: 'Please authorize the apply and resume'
+                onTimeout: 'reject'
       - deployment: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+        ${{ if eq(parameters['REQUEST_VALIDATION'], true) }}:
+          dependsOn:  waitForValidation
         continueOnError: false
         environment: ${{parameters.ENVIRONMENT}}
         strategy:
