@@ -4,7 +4,7 @@ parameters:
     displayName: '(Required) Azure service connection name.'
     type: string
   - name: 'WORKINGDIR'
-    displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
+    displayName: '(Optional) Working directory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
   - name: 'AKS_NAME'
