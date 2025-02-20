@@ -6,6 +6,7 @@ parameters:
   - name: 'AZURE_DEVOPS_POOL_AGENT_NAME'
     displayName: '(Required) Azure devops agent name.'
     type: string
+    default: ""
   - name: 'AZURE_SERVICE_CONNECTION_PLAN_NAME'
     displayName: '(Required) Azure service connection name for plan.'
     type: string
@@ -75,8 +76,9 @@ stages:
     displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
-    pool:
-      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
+    ${{ if ne(parameters.AZURE_DEVOPS_POOL_AGENT_NAME, '') }}:
+      pool:
+        name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
       - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
         timeoutInMinutes: $[variables.TIME_OUT]
@@ -109,8 +111,9 @@ stages:
     displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
     condition: succeeded()
-    pool:
-      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
+    ${{ if ne(parameters.AZURE_DEVOPS_POOL_AGENT_NAME, '') }}:
+      pool:
+        name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
       - ${{ if eq(parameters['REQUEST_VALIDATION'], true) }}:
         - job: waitForValidation
