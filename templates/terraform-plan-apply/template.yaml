@@ -150,6 +150,9 @@ stages:
                   workspaceRepo: true
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
+                  parameters:
+                    USE_SOPS: ${{ parameters.USE_SOPS }}
+                    VERSION_SOPS: ${{ parameters.VERSION_SOPS }}
                 # 2. Run terraform apply
                 - template: ../terraform-apply/template.yaml@terraform
                   parameters:
