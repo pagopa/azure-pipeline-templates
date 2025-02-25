@@ -67,6 +67,12 @@ parameters:
     displayName: Users to be notified for validation
     type: string
     default: ""
+  - name: USE_SOPS
+    type: boolean
+    default: false
+  - name: VERSION_SOPS
+    type: string
+    default: 'v3.9.4'
 
 stages:
 #
@@ -87,6 +93,9 @@ stages:
             workspaceRepo: true
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
+            parameters:
+              USE_SOPS: ${{ parameters.USE_SOPS }}
+              VERSION_SOPS: ${{ parameters.VERSION_SOPS }}
           - template: ../terraform-summarize/template.yaml@terraform
           # 2. Run terraform plan
           - template: ../terraform-plan/template.yaml@terraform
