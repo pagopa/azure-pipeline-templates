@@ -60,3 +60,5 @@ steps:
     failOnStderr: false
     script: |
       curl -LO https://github.com/getsops/sops/releases/download/${{ parameters.VERSION_SOPS }}/sops-${{ parameters.VERSION_SOPS }}.linux.amd64
+      mv sops-${{ parameters.VERSION_SOPS }}.linux.amd64 /usr/local/bin/sops
+      chmod +x /usr/local/bin/sops
