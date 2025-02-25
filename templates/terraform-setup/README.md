@@ -1,6 +1,6 @@
 # Install terraform
 
-Install terraform in a debian-based linux agent. This is intended as a setup step in order to run terraform script in subsequent tasks of the same job.
+Install terraform and when required [sops](https://github.com/getsops/sops) in a debian-based linux agent. This is intended as a setup step in order to run terraform script in subsequent tasks of the same job.
 
 ## Prerequisites
 
