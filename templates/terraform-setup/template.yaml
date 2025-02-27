@@ -1,4 +1,12 @@
-# Install in a linux VM a specified version of terraform and terragrunt.
+parameters:
+  - name: 'USE_SOPS'
+    type: boolean
+    default: false
+  - name: 'VERSION_SOPS'
+    type: string
+    default: 'v3.9.4'
+
+# Install in a linux VM a specified version of terraform
 steps:
 
 # 1. Install terraform
@@ -43,3 +51,14 @@ steps:
       fi
 
       echo "✅ Terraform installed correctly"
+
+- task: Bash@3
+  displayName: Install Sops
+  condition: eq( ${{ parameters.USE_SOPS }}, true)
+  inputs:
+    targetType: 'inline'
+    failOnStderr: false
+    script: |
+      curl -LO https://github.com/getsops/sops/releases/download/${{ parameters.VERSION_SOPS }}/sops-${{ parameters.VERSION_SOPS }}.linux.amd64
+      mv sops-${{ parameters.VERSION_SOPS }}.linux.amd64 /usr/local/bin/sops
+      chmod +x /usr/local/bin/sops

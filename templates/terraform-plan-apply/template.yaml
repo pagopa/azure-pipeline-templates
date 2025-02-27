@@ -6,6 +6,7 @@ parameters:
   - name: 'AZURE_DEVOPS_POOL_AGENT_NAME'
     displayName: '(Required) Azure devops agent name.'
     type: string
+    default: ""
   - name: 'AZURE_SERVICE_CONNECTION_PLAN_NAME'
     displayName: '(Required) Azure service connection name for plan.'
     type: string
@@ -38,10 +39,40 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: 'SECOND_AKS_NAME'
+    displayName: '(Optional) Second AKS Name'
+    type: string
+    default: ""
+  - name: 'SECOND_AKS_API_SERVER_URL'
+    displayName: '(Optional) Second AKS api server url like (e.g. https://my-url.com:443)'
+    type: string
+    default: ""
+  - name: 'SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT'
+    displayName: '(Optional) Second AKS service account CA cert, used by azure devops account'
+    type: string
+    default: ""
+  - name: 'SECOND_AKS_AZURE_DEVOPS_SA_TOKEN'
+    displayName: '(Optional) Second AKS service account token, used by azure devops account'
+    type: string
+    default: ""
   - name: TF_SUMMARIZE
     displayName: Show summarize data
     type: boolean
     default: true
+  - name: REQUEST_VALIDATION
+    displayName: Apply requires an approval
+    type: boolean
+    default: false
+  - name: VALIDATION_NOTIFY_USERS
+    displayName: Users to be notified for validation
+    type: string
+    default: ""
+  - name: USE_SOPS
+    type: boolean
+    default: false
+  - name: VERSION_SOPS
+    type: string
+    default: 'v3.9.4'
 
 stages:
 #
@@ -51,8 +82,9 @@ stages:
     displayName: 🔦 ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: []
     condition: succeeded()
-    pool:
-      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
+    ${{ if ne(parameters.AZURE_DEVOPS_POOL_AGENT_NAME, '') }}:
+      pool:
+        name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
       - job: ${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}
         timeoutInMinutes: $[variables.TIME_OUT]
@@ -61,6 +93,9 @@ stages:
             workspaceRepo: true
           # 1. Install terraform
           - template: ../terraform-setup/template.yaml@terraform
+            parameters:
+              USE_SOPS: ${{ parameters.USE_SOPS }}
+              VERSION_SOPS: ${{ parameters.VERSION_SOPS }}
           - template: ../terraform-summarize/template.yaml@terraform
           # 2. Run terraform plan
           - template: ../terraform-plan/template.yaml@terraform
@@ -72,6 +107,10 @@ stages:
               AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
               AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+              SECOND_AKS_NAME: ${{parameters.SECOND_AKS_NAME}}
+              SECOND_AKS_API_SERVER_URL: ${{parameters.SECOND_AKS_API_SERVER_URL}}
+              SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT}}
+              SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
               TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
 
 #
@@ -81,10 +120,26 @@ stages:
     displayName: 🚀 ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
     dependsOn: ['${{parameters.ENVIRONMENT}}_plan_${{parameters.FULL_DOMAIN_NAME}}']
     condition: succeeded()
-    pool:
-      name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
+    ${{ if ne(parameters.AZURE_DEVOPS_POOL_AGENT_NAME, '') }}:
+      pool:
+        name: ${{parameters.AZURE_DEVOPS_POOL_AGENT_NAME}}
     jobs:
+      - ${{ if eq(parameters['REQUEST_VALIDATION'], true) }}:
+        - job: waitForValidation
+          condition: succeeded()
+          displayName: Wait for external validation
+          pool: server
+          steps:
+            - task: ManualValidation@0
+              timeoutInMinutes: 240 # task times out in 4 hours
+              inputs:
+                notifyUsers: |
+                  ${{parameters.VALIDATION_NOTIFY_USERS}}
+                instructions: 'Please authorize the apply and resume'
+                onTimeout: 'reject'
       - deployment: ${{parameters.ENVIRONMENT}}_apply_${{parameters.FULL_DOMAIN_NAME}}
+        ${{ if eq(parameters['REQUEST_VALIDATION'], true) }}:
+          dependsOn:  waitForValidation
         continueOnError: false
         environment: ${{parameters.ENVIRONMENT}}
         strategy:
@@ -95,6 +150,9 @@ stages:
                   workspaceRepo: true
                 # 1. Install terraform
                 - template: ../terraform-setup/template.yaml@terraform
+                  parameters:
+                    USE_SOPS: ${{ parameters.USE_SOPS }}
+                    VERSION_SOPS: ${{ parameters.VERSION_SOPS }}
                 # 2. Run terraform apply
                 - template: ../terraform-apply/template.yaml@terraform
                   parameters:
@@ -106,3 +164,7 @@ stages:
                     AKS_API_SERVER_URL: ${{parameters.AKS_API_SERVER_URL}}
                     AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.AKS_AZURE_DEVOPS_SA_CA_CRT}}
                     AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.AKS_AZURE_DEVOPS_SA_TOKEN}}
+                    SECOND_AKS_NAME: ${{parameters.SECOND_AKS_NAME}}
+                    SECOND_AKS_API_SERVER_URL: ${{parameters.SECOND_AKS_API_SERVER_URL}}
+                    SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT}}
+                    SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
