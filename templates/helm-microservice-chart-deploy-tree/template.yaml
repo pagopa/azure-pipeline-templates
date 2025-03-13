@@ -35,6 +35,9 @@ parameters:
     type: string
     default: ""
     displayName: ",key1=val1,key2=val2"
+  - name: "FORCE_DEPLOY"
+    type: boolean
+    default: false
 
 stages:
 #
@@ -136,3 +139,4 @@ stages:
                     APPINSIGHTS_SERVICE_CONN: ${{parameters.APPINSIGHTS_SERVICE_CONN}}
                     APPINSIGHTS_RESOURCE_ID: ${{parameters.APPINSIGHTS_RESOURCE_ID}}
                     OVERRIDE_EXTENDS: ${{parameters.OVERRIDE_EXTENDS}}
+                    FORCE_DEPLOY: ${{parameters.FORCE_DEPLOY}}
