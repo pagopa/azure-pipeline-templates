@@ -60,7 +60,7 @@ steps:
   - ${{ if ne(parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT, '') }}:
     - template: ../azure-kubeconfig-generator/template.yaml
       parameters:
-        AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_SERVICE_CONNECTION_NAME }}'
+        AZURE_SERVICE_CONNECTION_NAME: '${{ parameters.AZURE_PLAN_SERVICE_CONNECTION_NAME }}'
         WORKINGDIR: '${{ parameters.WORKINGDIR }}'
         AKS_NAME: '${{ parameters.SECOND_AKS_NAME }}'
         AKS_API_SERVER_URL: '${{ parameters.SECOND_AKS_API_SERVER_URL }}'
