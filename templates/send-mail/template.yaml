@@ -39,9 +39,9 @@ steps:
         from os import getenv
         
         subject = '${{ parameters.MAIL_SUBJECT }}'
-        body = """
-        '${{ parameters.MAIL_BODY }}'
-        """
+        body = '''
+        ${{ parameters.MAIL_BODY }}
+        '''
         sender_email = '${{ parameters.SENDER_EMAIL }}'
         receiver_email = '${{ parameters.RECEIVER_EMAIL }}'
         password = "${{ parameters.APP_PASS }}"
@@ -54,7 +54,7 @@ steps:
         message["Bcc"] = receiver_email
         
         # Add body to email
-        message.attach(MIMEText(body, "plain"))
+        message.attach(MIMEText(body, "html"))
         
         files = "${{ parameters.ATTACHMENTS_COMMA_SEP }}".split(",")
         
