@@ -70,7 +70,6 @@ steps:
             encoders.encode_base64(part)
           
             part.add_header('Content-Disposition','attachment', filename=f)
-            part.attach(attachment)
 
         
         # Add attachment to message and convert message to string
