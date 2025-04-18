@@ -19,13 +19,15 @@ parameters:
     displayName: '(Optional) Comma separated attachments files name.'
     type: string
     default: ""
+  - name: CONDITION_FLAG
+    displayName: "(Optional) Run on conditions."
+    type: string
+    default: "parameters.succeeded()"
 
 steps:
   - task: PythonScript@0
     name: SendMail
-    env:
-      APP_PASS: $(APP_PASS)
-      KEY_VAULT_CERT_NAME: $(KEY_VAULT_CERT_NAME)
+    condition: '${{ CONDITION_FLAG }}'
     inputs:
       scriptSource: 'inline'
       script: |
