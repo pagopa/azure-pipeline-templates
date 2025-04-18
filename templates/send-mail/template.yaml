@@ -22,12 +22,12 @@ parameters:
   - name: CONDITION_FLAG
     displayName: "(Optional) Run on conditions."
     type: string
-    default: "parameters.succeeded()"
+    default: "succeeded()"
 
 steps:
   - task: PythonScript@0
     name: SendMail
-    condition: '${{ CONDITION_FLAG }}'
+    condition: '${{ parameters.CONDITION_FLAG }}'
     inputs:
       scriptSource: 'inline'
       script: |
