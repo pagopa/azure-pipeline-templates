@@ -44,7 +44,7 @@ steps:
         """
         sender_email = '${{ parameters.SENDER_EMAIL }}'
         receiver_email = '${{ parameters.RECEIVER_EMAIL }}'
-        password = "'${{ parameters.APP_PASS }}'"
+        password = "${{ parameters.APP_PASS }}"
         
         # Create a multipart message and set headers
         message = MIMEMultipart()
