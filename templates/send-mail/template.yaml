@@ -56,7 +56,7 @@ steps:
         # Add body to email
         message.attach(MIMEText(body, "plain"))
         
-        files = "'${{ parameters.ATTACHMENTS_COMMA_SEP }}'".split(",")
+        files = "${{ parameters.ATTACHMENTS_COMMA_SEP }}".split(",")
         
         # Add header as key/value pair to attachment part
         for f in files:  # add files to the message
