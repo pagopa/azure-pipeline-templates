@@ -1,0 +1,83 @@
+# Send mail with a Python smtp client
+parameters:
+  - name: 'MAIL_SUBJECT'
+    displayName: '(Required) Email subject.'
+    type: string
+  - name: 'MAIL_BODY'
+    displayName: '(Required) Email body.'
+    type: string
+  - name: 'RECEIVER_EMAIL'
+    displayName: '(Required) The receiver mail.'
+    type: string
+  - name: 'SENDER_EMAIL'
+    displayName: '(Required) The sender mail.'
+    type: string
+  - name: 'APP_PASS'
+    displayName: '(Required) SMTP App password.'
+    type: string
+  - name: 'ATTACHMENTS_COMMA_SEP'
+    displayName: '(Optional) Comma separated attachments files name.'
+    type: string
+    default: ""
+  - name: CONDITION_FLAG
+    displayName: "(Optional) Run on conditions."
+    type: string
+    default: "succeeded()"
+
+steps:
+  - task: PythonScript@0
+    name: SendMail
+    condition: '${{ parameters.CONDITION_FLAG }}'
+    inputs:
+      scriptSource: 'inline'
+      script: |
+        import email, smtplib, ssl
+        from email import encoders 
+        from email.mime.base import MIMEBase
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from os import getenv
+        
+        subject = '${{ parameters.MAIL_SUBJECT }}'
+        body = '''
+        ${{ parameters.MAIL_BODY }}
+        '''
+        sender_email = '${{ parameters.SENDER_EMAIL }}'
+        receiver_email = '${{ parameters.RECEIVER_EMAIL }}'
+        password = "${{ parameters.APP_PASS }}"
+        
+        # Create a multipart message and set headers
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = receiver_email
+        message["Subject"] = subject
+        message["Bcc"] = receiver_email
+        
+        # Add body to email
+        message.attach(MIMEText(body, "html"))
+        
+        files = "${{ parameters.ATTACHMENTS_COMMA_SEP }}".split(",")
+        
+        # Add header as key/value pair to attachment part
+        for f in files:  # add files to the message
+          with open(f, "rb") as attachment:
+            # Add file as application/octet-stream
+            # Email client can usually download this automatically as attachment
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+        
+            # Encode file in ASCII characters to send by email    
+            encoders.encode_base64(part)
+          
+            part.add_header('Content-Disposition','attachment', filename=f)
+
+        
+        # Add attachment to message and convert message to string
+        message.attach(part)
+        text = message.as_string()
+        
+        # Log in to server using secure context and send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, text)
