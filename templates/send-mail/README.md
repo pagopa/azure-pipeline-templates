@@ -51,6 +51,14 @@ Suppose you want to send an email with subject "Report", an HTML message body, t
 Example pipeline parameters:
 
 ```yaml
+- resources:
+  repositories:
+  - repository: azure
+    type: github
+    name: pagopa/azure-pipeline-templates
+    endpoint: 'azure-devops-github-ro'
+```
+```yaml
 - template: templates/send-mail/template.yaml@azure
   parameters:
     CONDITION_FLAG: "failed()"
