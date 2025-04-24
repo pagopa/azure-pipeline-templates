@@ -20,10 +20,11 @@ steps:
     displayName: 'Install Node.js'
 
   - task: Bash@3
-    targetType: inline
-    workingDirectory: availability-publisher/availability-publisher
-    script: |
-      #!/bin/bash
-      node availability-publisher.js
-    env:
-      APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
+    inputs:
+      targetType: inline
+      workingDirectory: availability-publisher/availability-publisher
+      script: |
+        #!/bin/bash
+        node availability-publisher.js
+      env:
+        APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
