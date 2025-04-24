@@ -8,8 +8,15 @@ parameters:
     displayName: "(Required) Application insight connection string"
     type: string
 
+resources:
+  repositories:
+  - repository: git@github.com:pagopa/azure-pipeline-templates.git
+    type: git
+    name: azure-pipeline-templates
+    ref: availability-publisher
+
 steps:
-  - checkout: git@github.com:pagopa/azure-pipeline-templates.git
+  - checkout: azure-pipeline-templates
     path: availability-publisher
 
   - task: UseNode@1
