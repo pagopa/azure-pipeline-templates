@@ -23,9 +23,9 @@ steps:
   - task: Bash@3
     inputs:
       targetType: inline
+      workingDirectory: templates/availability-publisher
       script: |
         #!/bin/bash
-        tree -d .
         node availability-publisher.js
     env:
       APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
