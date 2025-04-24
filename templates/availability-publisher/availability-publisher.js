@@ -9,7 +9,7 @@ let event = {
   id: process.env.PIPELINE_NAME,
   message: "foo",
   success : true,
-  name: `my-test-id`,
+  name: process.env.PIPELINE_NAME,
   runLocation: "azure"
 }
 
