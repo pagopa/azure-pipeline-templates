@@ -26,6 +26,6 @@ steps:
       script: |
         #!/bin/bash
         tree -d ./
-        node ./availability-publisher.js
+        node ./templates/availability-publisher/availability-publisher.js
     env:
       APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
