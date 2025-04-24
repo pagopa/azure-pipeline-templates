@@ -7,7 +7,7 @@ const client = new appInsights.TelemetryClient(process.env.APP_INSIGHT_CONNECTIO
 
 let event = {
   id: process.env.PIPELINE_NAME,
-  success : process.env.SUCCESS,
+  success : (String(process.env.SUCCESS).toLowerCase() === 'true'),
   name: process.env.PIPELINE_NAME,
   runLocation: process.env.ENVIRONMENT
 }
