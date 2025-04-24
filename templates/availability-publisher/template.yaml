@@ -23,7 +23,6 @@ steps:
   - task: Bash@3
     inputs:
       targetType: inline
-      workingDirectory: availability-publisher
       script: |
         #!/bin/bash
         node availability-publisher.js
