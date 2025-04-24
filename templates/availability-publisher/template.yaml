@@ -9,7 +9,7 @@ parameters:
     type: string
 
 steps:
-  - checkout: https://github.com/pagopa/azure-pipeline-templates.git
+  - checkout: git@github.com:pagopa/azure-pipeline-templates.git
     path: availability-publisher
 
   - task: UseNode@1
