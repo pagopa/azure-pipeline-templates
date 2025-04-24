@@ -9,6 +9,10 @@ parameters:
     type: string
 
 steps:
+  - checkout: https://github.com/pagopa/azure-pipeline-templates.git
+    path: availability-publisher
+
+
   - task: UseNode@1
     condition: '${{ parameters.CONDITION_FLAG }}'
     inputs:
@@ -17,6 +21,7 @@ steps:
 
   - task: Bash@3
     targetType: inline
+    workingDirectory: availability-publisher/availability-publisher
     script: |
       #!/bin/bash
       node availability-publisher.js
