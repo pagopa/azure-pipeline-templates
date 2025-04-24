@@ -12,7 +12,6 @@ steps:
   - checkout: https://github.com/pagopa/azure-pipeline-templates.git
     path: availability-publisher
 
-
   - task: UseNode@1
     condition: '${{ parameters.CONDITION_FLAG }}'
     inputs:
@@ -26,5 +25,5 @@ steps:
       script: |
         #!/bin/bash
         node availability-publisher.js
-      env:
-        APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
+    env:
+      APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
