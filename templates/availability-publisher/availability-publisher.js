@@ -7,10 +7,9 @@ const client = new appInsights.TelemetryClient(process.env.APP_INSIGHT_CONNECTIO
 
 let event = {
   id: process.env.PIPELINE_NAME,
-  message: "foo",
-  success : true,
+  success : process.env.SUCCESS,
   name: process.env.PIPELINE_NAME,
-  runLocation: "azure"
+  runLocation: process.env.ENVIRONMENT
 }
 
 client.trackAvailability(event)

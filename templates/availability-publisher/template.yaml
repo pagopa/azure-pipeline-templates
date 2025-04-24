@@ -13,6 +13,10 @@ parameters:
   - name: "ENVIRONMENT"
     displayName: "(Required) Environment name"
     type: string
+  - name: "SUCCESS"
+    displayName: "(Required) Environment name"
+    type: string
+    default: "true"
 
 
 
@@ -37,3 +41,4 @@ steps:
       APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
       PIPELINE_NAME: ${{ parameters.PIPELINE_NAME }}
       ENVIRONMENT: ${{ parameters.ENVIRONMENT }}
+      SUCCESS: ${{ parameters.SUCCESS }}
