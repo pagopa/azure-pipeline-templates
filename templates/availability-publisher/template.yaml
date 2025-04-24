@@ -23,7 +23,6 @@ steps:
   - task: Bash@3
     inputs:
       targetType: inline
-      workingDirectory: templates/availability-publisher
       script: |
         #!/bin/bash
         tree -d ./
