@@ -26,7 +26,7 @@ steps:
       targetType: inline
       script: |
         #!/bin/bash
-        curl -o availability-publisher.js 'https://raw.githubusercontent.com/pagopa/azure-pipeline-templates/refs/heads/availability-publisher/templates/availability-publisher/availability-publisher.js'
+        curl -o availability-publisher.js 'https://raw.githubusercontent.com/pagopa/azure-pipeline-templates/refs/heads/master/templates/availability-publisher/availability-publisher.js'
         npm install applicationinsights@2.9.1
         echo "ℹ️ Publishing availability event for '${{ parameters.PIPELINE_NAME }}' on env '${{ parameters.ENVIRONMENT }}' with status '${{ parameters.SUCCESS }}'"
         node ./availability-publisher.js
