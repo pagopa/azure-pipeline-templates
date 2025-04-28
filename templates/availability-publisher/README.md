@@ -7,7 +7,7 @@ This template will publish an availablity event with the `runLocation` field set
 
 ## Usage
 
-### As job
+### As a JOB
 
 Include the template `templates/availability-publisher/template-job.yaml` to use the pre-packaged job which automatically tracks the success or failure availability of the job specified in `DEPENDS_ON`
 
@@ -41,7 +41,7 @@ The availability is based on the result of the `succeeded()` and `failed()` func
 
 
 
-### As step
+### As a STEP
 
 Include the template `templates/terraform-setup/template.yaml` in your job as the last step if you want to use the functionality as a step. 
 In this case you'll have to manually specify the success status of your job using the `SUCCESS` parameter.
