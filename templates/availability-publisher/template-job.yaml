@@ -15,6 +15,7 @@ parameters:
 
 jobs:
 - job: availability_tracking_success
+  displayName: 'Publish success availability event'
   condition: succeeded()
   dependsOn: ${{ parameters.DEPENDS_ON }}
   strategy:
@@ -28,6 +29,7 @@ jobs:
         SUCCESS: true
 
 - job: availability_tracking_failure
+  displayName: 'Publish failure availability event'
   condition: failed()
   dependsOn: ${{ parameters.DEPENDS_ON }}
   strategy:
