@@ -34,12 +34,18 @@ As a stage
             SUCCESS: true 
 ```
 
-As a step
+As a job
 ```yaml
-  - template: templates/availability-publisher/template.yaml@terraform
-    parameters:
-      APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
-      PIPELINE_NAME: $(System.DefinitionName)
-      ENVIRONMENT: ${{ parameters.ENV }}
-      SUCCESS: true 
+      - job: availability
+        dependsOn: [job_to_monitor] # set the job name to monitor
+        condition: always() # required, this step must run even if the job to monitor fails
+        strategy:
+          parallel: 1
+        steps:
+          - template: templates/availability-publisher/template.yaml@terraform
+            parameters:
+              APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
+              PIPELINE_NAME: $(System.DefinitionName)
+              ENVIRONMENT: ${{ parameters.ENV }}
+              SUCCESS: succeeded()
 ```
