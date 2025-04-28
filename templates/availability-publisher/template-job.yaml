@@ -1,0 +1,43 @@
+# Track an availability event
+parameters:
+  - name: "APP_INSIGHT_CONNECTION_STRING"
+    displayName: "(Required) Application insight connection string"
+    type: string
+  - name: "PIPELINE_NAME"
+    displayName: "(Required) Pipeline name"
+    type: string
+  - name: "ENVIRONMENT"
+    displayName: "(Required) Environment name"
+    type: string
+  - name: "DEPENDS_ON"
+    displayName: "(Required) job to which this job depends on"
+    type: string
+
+jobs:
+- job: availability_tracking_success
+  condition: succeeded()
+  dependsOn: ${{ parameters.DEPENDS_ON }}
+  strategy:
+    parallel: 1
+  steps:
+    - template: ./template-step.yaml
+      parameters:
+        APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
+        PIPELINE_NAME: $(System.DefinitionName)
+        ENVIRONMENT: ${{ parameters.ENV }}
+        SUCCESS: true
+
+- job: availability_tracking_failure
+  condition: failed()
+  dependsOn: ${{ parameters.DEPENDS_ON }}
+  strategy:
+    parallel: 1
+  steps:
+    - template: ./template-step.yaml
+      parameters:
+        APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
+        PIPELINE_NAME: $(System.DefinitionName)
+        ENVIRONMENT: ${{ parameters.ENV }}
+        SUCCESS: false
+
+
