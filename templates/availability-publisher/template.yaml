@@ -21,8 +21,6 @@ parameters:
 
 
 steps:
-  - checkout: terraform
-    path: availability-publisher
 
   - task: UseNode@1
     condition: '${{ parameters.CONDITION_FLAG }}'
