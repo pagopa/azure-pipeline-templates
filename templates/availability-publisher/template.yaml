@@ -10,13 +10,17 @@ parameters:
     displayName: "(Required) Environment name"
     type: string
   - name: "SUCCESS"
-    displayName: "(Required) Environment name"
+    displayName: "(Optional) Pipeline status"
     type: string
     default: "false"
+  - name: "DEPENDS_ON"
+    displayName: "(Required) job to which this job depends on"
+    type: string
 
 jobs:
 - job: availability
   condition: always()
+  dependsOn: ${{ parameters.DEPENDS_ON }}
   strategy:
     parallel: 1
   steps:
