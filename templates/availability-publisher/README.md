@@ -36,16 +36,17 @@ As a stage
 
 As a job
 ```yaml
-      - job: availability
-        dependsOn: [job_to_monitor] # set the job name to monitor
-        condition: always() # required, this step must run even if the job to monitor fails
+    jobs:
+      - job: my_job
         strategy:
           parallel: 1
+        timeoutInMinutes: ${{parameters.TIME_OUT}}
         steps:
-          - template: templates/availability-publisher/template.yaml@terraform
-            parameters:
-              APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
-              PIPELINE_NAME: $(System.DefinitionName)
-              ENVIRONMENT: ${{ parameters.ENV }}
-              SUCCESS: succeeded()
+         [..]
+      - template: templates/availability-publisher/template.yaml@terraform
+        parameters:
+          APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
+          PIPELINE_NAME: $(System.DefinitionName)
+          ENVIRONMENT: ${{ parameters.ENV }}
+          DEPENDS_ON: my_job
 ```
