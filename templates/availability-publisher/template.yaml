@@ -44,7 +44,7 @@ jobs:
 
     - task: Bash@3
       displayName: 'Publish false availability event'
-      confition: failed()
+      condition: failed()
       inputs:
         targetType: inline
         script: |
