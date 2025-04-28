@@ -23,7 +23,7 @@ steps:
     displayName: 'Install Node.js'
 
   - task: Bash@3
-    displayName: 'Publish availability event'
+    displayName: 'Publish true availability event'
     condition: succeeded()
     inputs:
       targetType: inline
@@ -40,7 +40,7 @@ steps:
 
 
   - task: Bash@3
-    displayName: 'Publish availability event'
+    displayName: 'Publish false availability event'
     condition: failed()
     inputs:
       targetType: inline
