@@ -23,13 +23,14 @@ steps:
     displayName: 'Install Node.js'
 
   - task: Bash@3
-    displayName: 'Publish true availability event'
+    displayName: 'Publish availability event'
     inputs:
       targetType: inline
       script: |
         #!/bin/bash
         curl -o availability-publisher.js 'https://raw.githubusercontent.com/pagopa/azure-pipeline-templates/refs/heads/availability-publisher/templates/availability-publisher/availability-publisher.js'
         npm install applicationinsights@2.9.1
+        echo "publishing availability event for ${{ parameters.PIPELINE_NAME }} on env ${{ parameters.ENVIRONMENT }} with status ${{ parameters.SUCCESS }}"
         node ./availability-publisher.js
     env:
       APP_INSIGHT_CONNECTION_STRING: ${{ parameters.APP_INSIGHT_CONNECTION_STRING }}
