@@ -7,7 +7,8 @@ parameters:
     displayName: "(Required) Pipeline name"
     type: string
   - name: "ENVIRONMENT"
-    displayName: "(Required) Environment name"
+    displayName: "(Optional) Environment name"
+    default: "ENV"
     type: string
   - name: "DEPENDS_ON"
     displayName: "(Required) job to which this job depends on"
@@ -41,5 +42,3 @@ jobs:
         PIPELINE_NAME: $(System.DefinitionName)
         ENVIRONMENT: ${{ parameters.ENVIRONMENT }}
         SUCCESS: false
-
-
