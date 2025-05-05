@@ -8,7 +8,7 @@ parameters:
     type: string
   - name: "ENVIRONMENT"
     displayName: "(Optional) Environment name"
-    default: "ENV"
+    default: "Status"
     type: string
   - name: "DEPENDS_ON"
     displayName: "(Required) job to which this job depends on"
