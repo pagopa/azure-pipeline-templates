@@ -8,7 +8,7 @@ parameters:
     type: string
   - name: "ENVIRONMENT"
     displayName: "(Optional) Environment name"
-    default: "ENV"
+    default: "Status"
     type: string
   - name: "SUCCESS"
     displayName: "(Required) Availability status to be published"
