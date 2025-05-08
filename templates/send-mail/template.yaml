@@ -43,15 +43,14 @@ steps:
         ${{ parameters.MAIL_BODY }}
         '''
         sender_email = '${{ parameters.SENDER_EMAIL }}'
-        receiver_email = '${{ parameters.RECEIVER_EMAIL }}'
+        receiver_email = [email.strip() for email in '${{ parameters.RECEIVER_EMAIL }}'.split(',')]
         password = "${{ parameters.APP_PASS }}"
 
         # Create a multipart message and set headers
         message = MIMEMultipart()
         message["From"] = sender_email
-        message["To"] = receiver_email
+        message["To"] = ', '.join(receiver_email)
         message["Subject"] = subject
-        message["Bcc"] = receiver_email
 
         # Add body to email
         message.attach(MIMEText(body, "html"))
