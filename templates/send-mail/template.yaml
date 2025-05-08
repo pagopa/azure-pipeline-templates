@@ -43,7 +43,7 @@ steps:
         ${{ parameters.MAIL_BODY }}
         '''
         sender_email = '${{ parameters.SENDER_EMAIL }}'
-        receiver_email = '${{ parameters.RECEIVER_EMAIL }}'.split(",")
+        receiver_email = '${{ parameters.RECEIVER_EMAIL }}'
         password = "${{ parameters.APP_PASS }}"
 
         # Create a multipart message and set headers
