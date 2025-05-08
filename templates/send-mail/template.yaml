@@ -32,32 +32,32 @@ steps:
       scriptSource: 'inline'
       script: |
         import email, smtplib, ssl
-        from email import encoders 
+        from email import encoders
         from email.mime.base import MIMEBase
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
         from os import getenv
-        
+
         subject = '${{ parameters.MAIL_SUBJECT }}'
         body = '''
         ${{ parameters.MAIL_BODY }}
         '''
         sender_email = '${{ parameters.SENDER_EMAIL }}'
-        receiver_email = ${{ parameters.RECEIVER_EMAIL }}.split(",")
+        receiver_email = '${{ parameters.RECEIVER_EMAIL }}'.split(",")
         password = "${{ parameters.APP_PASS }}"
-        
+
         # Create a multipart message and set headers
         message = MIMEMultipart()
         message["From"] = sender_email
         message["To"] = receiver_email
         message["Subject"] = subject
         message["Bcc"] = receiver_email
-        
+
         # Add body to email
         message.attach(MIMEText(body, "html"))
-        
+
         files = "${{ parameters.ATTACHMENTS_COMMA_SEP }}".split(",")
-        
+
         # Add header as key/value pair to attachment part
         for f in files:  # add files to the message
           with open(f, "rb") as attachment:
@@ -65,17 +65,17 @@ steps:
             # Email client can usually download this automatically as attachment
             part = MIMEBase("application", "octet-stream")
             part.set_payload(attachment.read())
-        
-            # Encode file in ASCII characters to send by email    
+
+            # Encode file in ASCII characters to send by email
             encoders.encode_base64(part)
-          
+
             part.add_header('Content-Disposition','attachment', filename=f)
 
-        
+
         # Add attachment to message and convert message to string
         message.attach(part)
         text = message.as_string()
-        
+
         # Log in to server using secure context and send email
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
