@@ -11,7 +11,7 @@ This template allows you to send an email using a Python SMTP client, with optio
   _(Required)_ The body of the email, supports HTML content.
 
 - **RECEIVER_EMAIL**  
-  _(Required)_ The recipient's email address.
+  _(Required)_ The recipient's email address, comma separated.
 
 - **SENDER_EMAIL**  
   _(Required)_ The sender's email address.
@@ -70,7 +70,7 @@ Example pipeline parameters:
         </body>
       </html>
     SENDER_EMAIL: "sender@gmail.com"
-    RECEIVER_EMAIL: "recipient@example.com" 
+    RECEIVER_EMAIL: "recipient@example.com,example@example.com" 
     APP_PASS: "APP PASSWORD"
     ATTACHMENTS_COMMA_SEP: "example.pdf"
 ```
