@@ -66,7 +66,7 @@ steps:
             validate_email_address(email, "RECEIVER_EMAIL")
         
         # For header To/Bcc string needed
-        recipient_str = ",".join(receiver_email)
+        recipient_str = ",".join(receiver_emails)
 
         password = "${{ parameters.APP_PASS }}"
         
