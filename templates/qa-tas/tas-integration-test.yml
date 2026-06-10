@@ -1,0 +1,267 @@
+##############################################################################
+# tas-integration-tests.yml
+#
+# Official Azure DevOps template for the Test Automation Service (TAS).
+#
+# Encapsulates all three supported invocation modes (sync, async, raw)
+# behind a single, parameterised entry point. Consumers reference this
+# template from their own pipeline via a remote `resources.repositories`
+# pointer; see docs/tas/tas-developer-guide.md for the full integration
+# guide and docs/tas/examples/tas-example-ado-using-template.yml for a
+# ready-to-copy example.
+#
+# ── PUBLIC CONTRACT ─────────────────────────────────────────────────────────
+# Stage name : TAS_IntegrationTests
+# Job name   : RunTAS
+# Step name  : tas              (normalised across all modes)
+#
+# Output variables (read with:
+#   $[ stageDependencies.TAS_IntegrationTests.RunTAS.outputs['tas.<NAME>'] ])
+#
+#   Variable         | sync | async | raw  | Description
+#   ─────────────────┼──────┼───────┼──────┼────────────────────────────────
+#   CORRELATION_ID   |  ✅  |  ✅   |  ✅  | Identifier used to locate the run
+#   RUN_ID           |  ✅  |   —   |   —  | GHA workflow run numeric ID
+#   RUN_URL          |  ✅  |   —   |   —  | Direct URL to the GHA run
+#
+# In modes where a variable is not produced, the value is an empty string.
+#
+# ── REQUIRED CALLER CONFIGURATION ───────────────────────────────────────────
+# - A variable group (default name: 'tas-integration-secrets') containing:
+#     INTEGRATION_TEST_PAT — GitHub PAT, secret, scopes: public_repo + actions:read
+#   The pipeline must be authorised to consume the variable group
+#   (Library → Variable group → Pipeline permissions).
+# - A service connection of type 'GitHub' pointing to github.com, used to
+#   resolve the 'tas' repository alias declared in resources.repositories.
+##############################################################################
+
+parameters:
+  - name: suite
+    displayName: "Test suite"
+    type: string
+    default: wisp
+    values: [wisp]
+
+  - name: environment
+    displayName: "Target environment"
+    type: string
+    default: uat
+    values: [dev, uat]
+
+  - name: mode
+    displayName: "Invocation mode"
+    type: string
+    default: sync
+    values: [sync, async, raw]
+
+  - name: ref
+    displayName: "TAS repo branch/tag to run the tests from"
+    type: string
+    default: main
+
+  - name: secretsGroup
+    displayName: "Variable group containing INTEGRATION_TEST_PAT"
+    type: string
+    default: tas-integration-secrets
+
+  - name: pythonVersion
+    type: string
+    default: "3.11"
+
+  - name: tasRepo
+    type: string
+    default: "pagopa/pagopa-platform-integration-test"
+
+  - name: workflowFile
+    type: string
+    default: "test-automation-service.yml"
+
+  - name: poolVmImage
+    type: string
+    default: "ubuntu-latest"
+
+  # ── Supply-chain integrity (orchestrator-based modes only) ──────────────
+  # The orchestrator script is downloaded over HTTPS from raw.githubusercontent.com
+  # at job time. The template offers two complementary verification options:
+  #
+  #   1. Sidecar mode (default, verifyOrchestrator=true, orchestratorSha256 empty)
+  #      Downloads scripts/tas_orchestrator.py.sha256 from the same `ref` and
+  #      runs `sha256sum -c`. Guards against partial downloads, MITM proxies
+  #      and accidental tampering of a single file, as long as the ref itself
+  #      is trusted (pin a tag, not a moving branch, for maximum value).
+  #
+  #   2. Pinned mode (orchestratorSha256 set to an explicit hex digest)
+  #      True SRI: the expected digest is supplied by the consumer, baked
+  #      into the pipeline YAML, and the sidecar is ignored. Survives
+  #      tampering of the ref tip. Update the digest whenever the
+  #      orchestrator is intentionally upgraded.
+  #
+  # Set verifyOrchestrator=false to opt out entirely (not recommended).
+  - name: verifyOrchestrator
+    displayName: "Verify tas_orchestrator.py SHA-256 integrity"
+    type: boolean
+    default: true
+
+  - name: orchestratorSha256
+    displayName: "Pinned SHA-256 of tas_orchestrator.py (empty = use sidecar)"
+    type: string
+    default: ""
+
+stages:
+  - stage: TAS_IntegrationTests
+    displayName: "TAS — Integration Tests (${{ parameters.mode }})"
+    variables:
+      # Sequence syntax is REQUIRED to reference a variable group.
+      - group: ${{ parameters.secretsGroup }}
+    jobs:
+      - job: RunTAS
+        displayName: "Run TAS (${{ parameters.mode }})"
+        pool:
+          vmImage: ${{ parameters.poolVmImage }}
+        steps:
+
+          # ── Common bootstrap (only for orchestrator-based modes) ─────────
+          - ${{ if ne(parameters.mode, 'raw') }}:
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: "${{ parameters.pythonVersion }}"
+                displayName: "Setup Python ${{ parameters.pythonVersion }}"
+
+              - script: pip install requests
+                displayName: "Install orchestrator dependencies"
+
+              - script: |
+                  set -euo pipefail
+                  curl -sSfL \
+                    "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py" \
+                    -o tas_orchestrator.py
+                displayName: "Download tas_orchestrator.py"
+
+              # ── Integrity verification (SHA-256) ─────────────────────────
+              # Pinned mode wins over sidecar mode when both are available.
+              # Skipped entirely when verifyOrchestrator=false.
+              - ${{ if eq(parameters.verifyOrchestrator, true) }}:
+                  - script: |
+                      set -euo pipefail
+                      PINNED="${{ parameters.orchestratorSha256 }}"
+                      if [ -n "${PINNED}" ]; then
+                        echo "Verifying tas_orchestrator.py against pinned SHA-256..."
+                        echo "${PINNED}  tas_orchestrator.py" | sha256sum -c -
+                      else
+                        echo "Verifying tas_orchestrator.py against published sidecar..."
+                        curl -sSfL \
+                          "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py.sha256" \
+                          -o tas_orchestrator.py.sha256
+                        sha256sum -c tas_orchestrator.py.sha256
+                      fi
+                    displayName: "Verify tas_orchestrator.py SHA-256"
+
+          # ── SYNC ────────────────────────────────────────────────────────
+          # Blocks until the GHA workflow completes. Exits 0 on pass,
+          # 1 on test failure, 2 on orchestration error. Exposes
+          # CORRELATION_ID, RUN_ID, RUN_URL as output variables.
+          - ${{ if eq(parameters.mode, 'sync') }}:
+              - script: |
+                  # pipefail (no -e): we want to capture the orchestrator
+                  # exit code AND still publish output variables before
+                  # propagating the failure to the step.
+                  set -o pipefail
+                  python tas_orchestrator.py \
+                    --suite "${{ parameters.suite }}" \
+                    --env "${{ parameters.environment }}" \
+                    --ref "${{ parameters.ref }}" \
+                    --repo "${{ parameters.tasRepo }}" \
+                    --workflow "${{ parameters.workflowFile }}" \
+                    --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
+                    --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+                    --sync \
+                    | tee tas_output.txt
+                  EXIT_CODE=${PIPESTATUS[0]}
+
+                  # Publish output variables (best-effort) regardless of outcome
+                  CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2- || true)
+                  RID=$(grep -E '^RUN_ID='         tas_output.txt | cut -d= -f2- || true)
+                  RURL=$(grep -E '^RUN_URL='       tas_output.txt | cut -d= -f2- || true)
+                  echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+                  echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]${RID}"
+                  echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]${RURL}"
+
+                  exit "$EXIT_CODE"
+                displayName: "Run integration tests (sync)"
+                name: tas
+                env:
+                  GITHUB_TOKEN: $(INTEGRATION_TEST_PAT)
+
+          # ── ASYNC ───────────────────────────────────────────────────────
+          # Fire-and-forget via the orchestrator. Step exits 0 as long as
+          # the dispatch succeeds. Exposes CORRELATION_ID.
+          - ${{ if eq(parameters.mode, 'async') }}:
+              - script: |
+                  set -euo pipefail
+                  python tas_orchestrator.py \
+                    --suite "${{ parameters.suite }}" \
+                    --env "${{ parameters.environment }}" \
+                    --ref "${{ parameters.ref }}" \
+                    --repo "${{ parameters.tasRepo }}" \
+                    --workflow "${{ parameters.workflowFile }}" \
+                    --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
+                    --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+                    | tee tas_output.txt
+
+                  CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
+                  if [ -z "$CID" ]; then
+                    echo "##[error]CORRELATION_ID not found in orchestrator output"
+                    exit 1
+                  fi
+                  echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+                  echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
+                  echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
+                  echo "Correlation ID : ${CID}"
+                  echo "Monitor at     : https://github.com/${{ parameters.tasRepo }}/actions"
+                displayName: "Dispatch tests (async)"
+                name: tas
+                env:
+                  GITHUB_TOKEN: $(INTEGRATION_TEST_PAT)
+
+          # ── RAW ─────────────────────────────────────────────────────────
+          # Direct workflow_dispatch via curl, no Python on the agent.
+          # Exposes CORRELATION_ID (RUN_ID/RUN_URL are not knowable here).
+          - ${{ if eq(parameters.mode, 'raw') }}:
+              - script: |
+                  set -euo pipefail
+                  CID="$(Build.BuildId)-$(System.JobAttempt)"
+
+                  # The token is read from the shell env ($INTEGRATION_TEST_PAT),
+                  # NOT interpolated via the ADO macro $(INTEGRATION_TEST_PAT),
+                  # to avoid embedding the secret in the rendered script.
+                  HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+                    -X POST \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "Authorization: Bearer $INTEGRATION_TEST_PAT" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    "https://api.github.com/repos/${{ parameters.tasRepo }}/actions/workflows/${{ parameters.workflowFile }}/dispatches" \
+                    -d "{
+                      \"ref\": \"${{ parameters.ref }}\",
+                      \"inputs\": {
+                        \"test_suite\": \"${{ parameters.suite }}\",
+                        \"environment\": \"${{ parameters.environment }}\",
+                        \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
+                        \"correlation_id\": \"${CID}\"
+                      }
+                    }")
+
+                  if [ "$HTTP" != "204" ]; then
+                    echo "##vso[task.logissue type=error]Dispatch failed with HTTP $HTTP"
+                    exit 1
+                  fi
+
+                  echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+                  echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
+                  echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
+                  echo "Tests dispatched (raw API). Run name: tas-${CID}"
+                  echo "Monitor at: https://github.com/${{ parameters.tasRepo }}/actions"
+                displayName: "Dispatch tests (raw API)"
+                name: tas
+                env:
+                  INTEGRATION_TEST_PAT: $(INTEGRATION_TEST_PAT)
+
