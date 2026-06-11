@@ -155,8 +155,8 @@ stages:
                     VERSION_SOPS: ${{ parameters.VERSION_SOPS }}
                 # Install python3-venv
                 - script: |
-                    sudo apt-get update
-                    sudo apt-get install -y python3-venv
+                    sudo apt-get update -qq
+                    sudo apt-get install -y -qq python3-venv
                   displayName: 'Install python3-venv'
                 # 2. Run terraform apply
                 - template: ../terraform-apply/template.yaml@terraform
