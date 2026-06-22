@@ -54,6 +54,7 @@ resources:
 stages:
   - template: .azuredevops/templates/tas-integration-tests.yml@tas
     parameters:
+      testType: integration         # integration | e2e | api
       suite: wisp
       environment: uat
       mode: sync                    # sync | async | raw
@@ -90,6 +91,7 @@ same tag.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
+| `testType` | string | `integration` | Test category: `integration`, `e2e`, or `api` (maps to `src/<testType>/<suite>` on the TAS workflow) |
 | `suite` | string | `wisp` | Test suite: `wisp` or `all` |
 | `environment` | string | `uat` | Target environment: `dev` or `uat` |
 | `mode` | string | `sync` | Invocation mode: `sync`, `async`, or `raw` |
@@ -101,6 +103,8 @@ same tag.
 | `poolVmImage` | string | `ubuntu-latest` | Agent image |
 | `verifyOrchestrator` | boolean | `true` | Verify the SHA-256 of `tas_orchestrator.py` after download |
 | `orchestratorSha256` | string | `""` | Pinned SHA-256 hex digest of `tas_orchestrator.py`. When set, it overrides the published sidecar and provides true SRI even if the `ref` is mutated |
+| `publishTests` | boolean | `true` | Publish JUnit results to the ADO "Tests" tab via `PublishTestResults@2` (sync mode only — silently ignored in async/raw) |
+| `testRunTitle` | string | `""` | Title shown for the published test run. Empty = auto-generated as `"TAS — <suite> / <env> (<ref>)"` |
 
 ### Output variables
 
@@ -115,6 +119,7 @@ $[ stageDependencies.TAS_IntegrationTests.RunTAS.outputs['tas.<NAME>'] ]
 | `CORRELATION_ID` | ✅ | ✅ | ✅ | Identifier used to locate the run (`run-name: tas-<id>`) |
 | `RUN_ID` | ✅ | — | — | GHA workflow run numeric ID |
 | `RUN_URL` | ✅ | — | — | Direct URL to the GHA run |
+| `ARTIFACT_DIR` | ✅ | — | — | On-agent path where the TAS artifact (`test-summary.json`, `behave-results.json`, `junit/*.xml`) is extracted |
 
 In modes where a variable is not produced, the value is an **empty string**.
 Downstream jobs can branch on it with `condition: ne(variables.RUN_ID, '')`.
@@ -195,6 +200,51 @@ then bake it into the caller:
 
 Set `verifyOrchestrator: false` to skip verification entirely. Not
 recommended — keep the default on unless you have a specific reason.
+
+---
+
+## Test reporting (ADO "Tests" tab)
+
+In `mode: sync` the template enables the native Azure DevOps **Tests**
+tab on the build summary out of the box:
+
+1. The orchestrator step extracts the TAS artifact under
+   `$(Agent.TempDirectory)/tas-artifact` (`test-summary.json`,
+   `behave-results.json`, `junit/*.xml`). The path is also exposed as
+   the `ARTIFACT_DIR` output variable.
+2. A `PublishTestResults@2` task runs with `condition: always()` on
+   `junit/*.xml`, merging the per-feature XML files into a single
+   logical test run.
+
+The task is added at compile time only when both `mode == 'sync'` and
+`publishTests == true`. In `async` / `raw` the dispatch returns before
+the artifact exists, so there is nothing to publish — the parameter is
+silently ignored in those modes.
+
+To customise the run title shown on the portal, pass `testRunTitle`:
+
+```yaml
+- template: .azuredevops/templates/tas-integration-tests.yml@tas
+  parameters:
+    mode:         sync
+    suite:        wisp
+    environment:  uat
+    testRunTitle: "Smoke — pagopa-checkout (build $(Build.BuildId))"
+```
+
+Leave it empty to get the auto-generated default:
+`TAS — <suite> / <environment> (<ref>)`.
+
+To opt out of the publish step (e.g. because you already publish the
+JUnit XML elsewhere), set `publishTests: false`. The artifact is still
+extracted, so `ARTIFACT_DIR` remains usable for custom downstream
+logic (e.g. uploading the zip to your own storage).
+
+**Note on `failTaskOnFailedTests`:** the orchestrator step already
+fails the job on scenario failure (exit 1). The publish task is
+therefore configured with `failTaskOnFailedTests: false` to avoid
+marking the run failed twice for the same reason; the stage outcome
+still reflects test failure thanks to the orchestrator step.
 
 ---
 
