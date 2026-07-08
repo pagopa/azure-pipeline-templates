@@ -51,8 +51,6 @@ parameters:
   - name: suite
     displayName: "Test suite"
     type: string
-    default: wisp
-    values: [wisp]
 
   - name: environment
     displayName: "Target environment"
