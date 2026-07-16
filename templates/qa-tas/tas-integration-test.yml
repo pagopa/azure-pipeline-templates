@@ -72,6 +72,11 @@ parameters:
     type: string
     default: main
 
+  - name: tags
+    displayName: "Behave tag expression (e.g. @runnable, @e2e); empty = workflow default"
+    type: string
+    default: ""
+
   - name: githubToken
     displayName: "GitHub PAT (scopes: public_repo + actions:read)"
     type: string
@@ -213,6 +218,7 @@ stages:
                     --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
                     --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
                     --artifact-dir "${ARTIFACT_DIR}" \
+                    --tags "${{ parameters.tags }}" \
                     --sync \
                     | tee tas_output.txt
                   EXIT_CODE=${PIPESTATUS[0]}
@@ -270,6 +276,7 @@ stages:
                     --workflow "${{ parameters.workflowFile }}" \
                     --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
                     --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+                    --tags "${{ parameters.tags }}" \
                     | tee tas_output.txt
 
                   CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
@@ -300,6 +307,14 @@ stages:
                   # populated from the 'githubToken' parameter via the step
                   # 'env' block below, so it is not interpolated into the
                   # rendered script body.
+
+                  # Include the 'tags' input only when set, so the payload
+                  # stays compatible with older workflow refs lacking it.
+                  TAGS_JSON=""
+                  if [ -n "${{ parameters.tags }}" ]; then
+                    TAGS_JSON=", \"tags\": \"${{ parameters.tags }}\""
+                  fi
+
                   HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
                     -X POST \
                     -H "Accept: application/vnd.github+json" \
@@ -313,7 +328,7 @@ stages:
                         \"test_suite\": \"${{ parameters.suite }}\",
                         \"environment\": \"${{ parameters.environment }}\",
                         \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
-                        \"correlation_id\": \"${CID}\"
+                        \"correlation_id\": \"${CID}\"${TAGS_JSON}
                       }
                     }")
 
