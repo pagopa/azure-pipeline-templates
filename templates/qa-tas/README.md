@@ -5,8 +5,7 @@ Test Automation Service (TAS) team for external consumers.
 
 | Template | Purpose |
 |---|---|
-| [`tas-integration-tests.yml`](./tas-integration-tests.yml) | All-in-one entry point to run TAS integration tests from an ADO pipeline. Supports the `sync`, `async` and `raw` invocation modes behind a single, parameterised stage. |
-
+| [`tas-integration-test.yml`](./tas-integration-test.yml) | All-in-one entry point to run TAS integration tests from an ADO pipeline. Supports the `sync`, `async` and `raw` invocation modes behind a single, parameterised stage. |
 ---
 
 ## Why use these templates
