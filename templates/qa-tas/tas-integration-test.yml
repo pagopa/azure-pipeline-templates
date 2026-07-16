@@ -33,10 +33,13 @@
 # tab via PublishTestResults@2 (toggle with `publishTests`).
 #
 # ── REQUIRED CALLER CONFIGURATION ───────────────────────────────────────────
-# - A variable group (default name: 'tas-integration-secrets') containing:
-#     INTEGRATION_TEST_PAT — GitHub PAT, secret, scopes: public_repo + actions:read
-#   The pipeline must be authorised to consume the variable group
-#   (Library → Variable group → Pipeline permissions).
+# - A GitHub PAT (scopes: public_repo + actions:read) supplied to the
+#   'githubToken' parameter. The caller is responsible for sourcing it
+#   securely (e.g. a secret pipeline variable or an Azure Key Vault–linked
+#   variable group) and passing it in as a secret; the template forwards it
+#   to the orchestrator via the TAS_GITHUB_TOKEN environment variable (a
+#   TAS-scoped name chosen to avoid clashing with a generic GITHUB_TOKEN
+#   that may already exist in the caller's environment).
 # - A service connection of type 'GitHub' pointing to github.com, used to
 #   resolve the 'tas' repository alias declared in resources.repositories.
 ##############################################################################
@@ -69,10 +72,9 @@ parameters:
     type: string
     default: main
 
-  - name: secretsGroup
-    displayName: "Variable group containing INTEGRATION_TEST_PAT"
+  - name: githubToken
+    displayName: "GitHub PAT (scopes: public_repo + actions:read)"
     type: string
-    default: tas-integration-secrets
 
   - name: pythonVersion
     type: string
@@ -139,9 +141,6 @@ parameters:
 stages:
   - stage: TAS_IntegrationTests
     displayName: "TAS — Integration Tests (${{ parameters.mode }})"
-    variables:
-      # Sequence syntax is REQUIRED to reference a variable group.
-      - group: ${{ parameters.secretsGroup }}
     jobs:
       - job: RunTAS
         displayName: "Run TAS (${{ parameters.mode }})"
@@ -232,7 +231,7 @@ stages:
                 displayName: "Run integration tests (sync)"
                 name: tas
                 env:
-                  GITHUB_TOKEN: $(INTEGRATION_TEST_PAT)
+                  TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
 
               # ── Publish JUnit to the "Tests" tab of the ADO build ────────
               # condition: always() so the tab gets populated even when the
@@ -287,7 +286,7 @@ stages:
                 displayName: "Dispatch tests (async)"
                 name: tas
                 env:
-                  GITHUB_TOKEN: $(INTEGRATION_TEST_PAT)
+                  TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
 
           # ── RAW ─────────────────────────────────────────────────────────
           # Direct workflow_dispatch via curl, no Python on the agent.
@@ -298,8 +297,9 @@ stages:
                   CID="$(Build.BuildId)-$(System.JobAttempt)"
 
                   # The token is read from the shell env ($INTEGRATION_TEST_PAT),
-                  # NOT interpolated via the ADO macro $(INTEGRATION_TEST_PAT),
-                  # to avoid embedding the secret in the rendered script.
+                  # populated from the 'githubToken' parameter via the step
+                  # 'env' block below, so it is not interpolated into the
+                  # rendered script body.
                   HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
                     -X POST \
                     -H "Accept: application/vnd.github+json" \
@@ -331,5 +331,5 @@ stages:
                 displayName: "Dispatch tests (raw API)"
                 name: tas
                 env:
-                  INTEGRATION_TEST_PAT: $(INTEGRATION_TEST_PAT)
+                  INTEGRATION_TEST_PAT: ${{ parameters.githubToken }}
 
