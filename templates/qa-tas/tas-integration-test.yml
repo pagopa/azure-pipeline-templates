@@ -143,8 +143,14 @@ parameters:
     type: string
     default: ""
 
+  - name: dependsOnStages
+    displayName: "Stage dependencies (for cross-stage variable access)"
+    type: object
+    default: []
+
 stages:
   - stage: TAS_IntegrationTests
+    dependsOn: ${{ parameters.dependsOnStages }}
     displayName: "TAS — Integration Tests (${{ parameters.mode }})"
     jobs:
       - job: RunTAS
