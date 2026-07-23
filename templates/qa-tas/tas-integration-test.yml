@@ -13,10 +13,10 @@
 # ── PUBLIC CONTRACT ─────────────────────────────────────────────────────────
 # Stage name : TAS_IntegrationTests
 # Job name   : RunTAS
-# Step name  : tas              (normalised across all modes)
+# Step name  : configurable via `stepName` (default: tas)
 #
 # Output variables (read with:
-#   $[ stageDependencies.TAS_IntegrationTests.RunTAS.outputs['tas.<NAME>'] ])
+#   $[ stageDependencies.TAS_IntegrationTests.RunTAS.outputs['<stepName>.<NAME>'] ])
 #
 #   Variable         | sync | async | raw  | Description
 #   ─────────────────┼──────┼───────┼──────┼────────────────────────────────
@@ -92,6 +92,11 @@ parameters:
   - name: workflowFile
     type: string
     default: "test-automation-service.yml"
+
+  - name: stepName
+    displayName: "Output step name"
+    type: string
+    default: "tas"
 
   # ── Supply-chain integrity (orchestrator-based modes only) ──────────────
   # The orchestrator script is downloaded over HTTPS from raw.githubusercontent.com
@@ -224,7 +229,7 @@ steps:
 
       exit "$EXIT_CODE"
     displayName: "Run integration tests (sync)"
-    name: tas
+    name: ${{ parameters.stepName }}
     env:
       TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
 
@@ -280,7 +285,7 @@ steps:
       echo "Correlation ID : ${CID}"
       echo "Monitor at     : https://github.com/${{ parameters.tasRepo }}/actions"
     displayName: "Dispatch tests (async)"
-    name: tas
+    name: ${{ parameters.stepName }}
     env:
       TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
 
@@ -333,7 +338,7 @@ steps:
       echo "Tests dispatched (raw API). Run name: tas-${CID}"
       echo "Monitor at: https://github.com/${{ parameters.tasRepo }}/actions"
     displayName: "Dispatch tests (raw API)"
-    name: tas
+    name: ${{ parameters.stepName }}
     env:
       INTEGRATION_TEST_PAT: ${{ parameters.githubToken }}
 
