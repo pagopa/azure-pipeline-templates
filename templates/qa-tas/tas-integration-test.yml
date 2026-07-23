@@ -93,10 +93,6 @@ parameters:
     type: string
     default: "test-automation-service.yml"
 
-  - name: poolVmImage
-    type: string
-    default: "ubuntu-latest"
-
   # ── Supply-chain integrity (orchestrator-based modes only) ──────────────
   # The orchestrator script is downloaded over HTTPS from raw.githubusercontent.com
   # at job time. The template offers two complementary verification options:
@@ -143,214 +139,201 @@ parameters:
     type: string
     default: ""
 
-  - name: dependsOnStages
-    displayName: "Stage dependencies (for cross-stage variable access)"
-    type: object
-    default: []
 
-stages:
-  - stage: TAS_IntegrationTests
-    dependsOn: ${{ parameters.dependsOnStages }}
-    displayName: "TAS — Integration Tests (${{ parameters.mode }})"
-    jobs:
-      - job: RunTAS
-        displayName: "Run TAS (${{ parameters.mode }})"
-        pool:
-          vmImage: ${{ parameters.poolVmImage }}
-        steps:
+steps:
 
-          # ── Common bootstrap (only for orchestrator-based modes) ─────────
-          - ${{ if ne(parameters.mode, 'raw') }}:
-              - task: UsePythonVersion@0
-                inputs:
-                  versionSpec: "${{ parameters.pythonVersion }}"
-                displayName: "Setup Python ${{ parameters.pythonVersion }}"
+# ── Common bootstrap (only for orchestrator-based modes) ─────────
+- ${{ if ne(parameters.mode, 'raw') }}:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "${{ parameters.pythonVersion }}"
+    displayName: "Setup Python ${{ parameters.pythonVersion }}"
 
-              - script: pip install requests
-                displayName: "Install orchestrator dependencies"
+  - script: pip install requests
+    displayName: "Install orchestrator dependencies"
 
-              - script: |
-                  set -euo pipefail
-                  curl -sSfL \
-                    "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py" \
-                    -o tas_orchestrator.py
-                displayName: "Download tas_orchestrator.py"
+  - script: |
+      set -euo pipefail
+      curl -sSfL \
+        "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py" \
+        -o tas_orchestrator.py
+    displayName: "Download tas_orchestrator.py"
 
-              # ── Integrity verification (SHA-256) ─────────────────────────
-              # Pinned mode wins over sidecar mode when both are available.
-              # Skipped entirely when verifyOrchestrator=false.
-              - ${{ if eq(parameters.verifyOrchestrator, true) }}:
-                  - script: |
-                      set -euo pipefail
-                      PINNED="${{ parameters.orchestratorSha256 }}"
-                      if [ -n "${PINNED}" ]; then
-                        echo "Verifying tas_orchestrator.py against pinned SHA-256..."
-                        echo "${PINNED}  tas_orchestrator.py" | sha256sum -c -
-                      else
-                        echo "Verifying tas_orchestrator.py against published sidecar..."
-                        curl -sSfL \
-                          "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py.sha256" \
-                          -o tas_orchestrator.py.sha256
-                        sha256sum -c tas_orchestrator.py.sha256
-                      fi
-                    displayName: "Verify tas_orchestrator.py SHA-256"
+  # ── Integrity verification (SHA-256) ─────────────────────────
+  # Pinned mode wins over sidecar mode when both are available.
+  # Skipped entirely when verifyOrchestrator=false.
+  - ${{ if eq(parameters.verifyOrchestrator, true) }}:
+      - script: |
+          set -euo pipefail
+          PINNED="${{ parameters.orchestratorSha256 }}"
+          if [ -n "${PINNED}" ]; then
+            echo "Verifying tas_orchestrator.py against pinned SHA-256..."
+            echo "${PINNED}  tas_orchestrator.py" | sha256sum -c -
+          else
+            echo "Verifying tas_orchestrator.py against published sidecar..."
+            curl -sSfL \
+              "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py.sha256" \
+              -o tas_orchestrator.py.sha256
+            sha256sum -c tas_orchestrator.py.sha256
+          fi
+        displayName: "Verify tas_orchestrator.py SHA-256"
 
-          # ── SYNC ────────────────────────────────────────────────────────
-          # Blocks until the GHA workflow completes. Exits 0 on pass,
-          # 1 on test failure, 2 on orchestration error. Exposes
-          # CORRELATION_ID, RUN_ID, RUN_URL as output variables.
-          - ${{ if eq(parameters.mode, 'sync') }}:
-              - script: |
-                  # pipefail (no -e): we want to capture the orchestrator
-                  # exit code AND still publish output variables before
-                  # propagating the failure to the step.
-                  set -o pipefail
+# ── SYNC ────────────────────────────────────────────────────────
+# Blocks until the GHA workflow completes. Exits 0 on pass,
+# 1 on test failure, 2 on orchestration error. Exposes
+# CORRELATION_ID, RUN_ID, RUN_URL as output variables.
+- ${{ if eq(parameters.mode, 'sync') }}:
+  - script: |
+      # pipefail (no -e): we want to capture the orchestrator
+      # exit code AND still publish output variables before
+      # propagating the failure to the step.
+      set -o pipefail
 
-                  # Directory where the orchestrator extracts the TAS artifact
-                  # (test-summary.json, behave-results.json, junit/*.xml). The
-                  # next step (PublishTestResults@2) consumes junit/*.xml from
-                  # the same path. Falls under $(Agent.TempDirectory) so the
-                  # job cleanup discards it automatically.
-                  ARTIFACT_DIR="$(Agent.TempDirectory)/tas-artifact"
-                  mkdir -p "${ARTIFACT_DIR}"
+      # Directory where the orchestrator extracts the TAS artifact
+      # (test-summary.json, behave-results.json, junit/*.xml). The
+      # next step (PublishTestResults@2) consumes junit/*.xml from
+      # the same path. Falls under $(Agent.TempDirectory) so the
+      # job cleanup discards it automatically.
+      ARTIFACT_DIR="$(Agent.TempDirectory)/tas-artifact"
+      mkdir -p "${ARTIFACT_DIR}"
 
-                  python tas_orchestrator.py \
-                    --type "${{ parameters.testType }}" \
-                    --suite "${{ parameters.suite }}" \
-                    --env "${{ parameters.environment }}" \
-                    --ref "${{ parameters.ref }}" \
-                    --repo "${{ parameters.tasRepo }}" \
-                    --workflow "${{ parameters.workflowFile }}" \
-                    --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
-                    --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
-                    --artifact-dir "${ARTIFACT_DIR}" \
-                    --tags "${{ parameters.tags }}" \
-                    --sync \
-                    | tee tas_output.txt
-                  EXIT_CODE=${PIPESTATUS[0]}
+      python tas_orchestrator.py \
+        --type "${{ parameters.testType }}" \
+        --suite "${{ parameters.suite }}" \
+        --env "${{ parameters.environment }}" \
+        --ref "${{ parameters.ref }}" \
+        --repo "${{ parameters.tasRepo }}" \
+        --workflow "${{ parameters.workflowFile }}" \
+        --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
+        --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+        --artifact-dir "${ARTIFACT_DIR}" \
+        --tags "${{ parameters.tags }}" \
+        --sync \
+        | tee tas_output.txt
+      EXIT_CODE=${PIPESTATUS[0]}
 
-                  # Publish output variables (best-effort) regardless of outcome
-                  CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2- || true)
-                  RID=$(grep -E '^RUN_ID='         tas_output.txt | cut -d= -f2- || true)
-                  RURL=$(grep -E '^RUN_URL='       tas_output.txt | cut -d= -f2- || true)
-                  ADIR=$(grep -E '^ARTIFACT_DIR='  tas_output.txt | cut -d= -f2- || true)
-                  echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
-                  echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]${RID}"
-                  echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]${RURL}"
-                  echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]${ADIR}"
+      # Publish output variables (best-effort) regardless of outcome
+      CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2- || true)
+      RID=$(grep -E '^RUN_ID='         tas_output.txt | cut -d= -f2- || true)
+      RURL=$(grep -E '^RUN_URL='       tas_output.txt | cut -d= -f2- || true)
+      ADIR=$(grep -E '^ARTIFACT_DIR='  tas_output.txt | cut -d= -f2- || true)
+      echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+      echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]${RID}"
+      echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]${RURL}"
+      echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]${ADIR}"
 
-                  exit "$EXIT_CODE"
-                displayName: "Run integration tests (sync)"
-                name: tas
-                env:
-                  TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
+      exit "$EXIT_CODE"
+    displayName: "Run integration tests (sync)"
+    name: tas
+    env:
+      TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
 
-              # ── Publish JUnit to the "Tests" tab of the ADO build ────────
-              # condition: always() so the tab gets populated even when the
-              # previous step exits 1 (test failure) — that is exactly the
-              # case the consumer wants to inspect from the portal.
-              # The step is compiled out entirely when publishTests=false.
-              - ${{ if eq(parameters.publishTests, true) }}:
-                  - task: PublishTestResults@2
-                    displayName: "Publish JUnit test results"
-                    condition: always()
-                    inputs:
-                      testResultsFormat: "JUnit"
-                      testResultsFiles: "$(Agent.TempDirectory)/tas-artifact/junit/*.xml"
-                      mergeTestResults: true
-                      # The orchestrator step already failed the job on test
-                      # failure (exit 1); failing this task too would only add
-                      # a second red box without changing the stage outcome.
-                      failTaskOnFailedTests: false
-                      ${{ if ne(parameters.testRunTitle, '') }}:
-                        testRunTitle: ${{ parameters.testRunTitle }}
-                      ${{ if eq(parameters.testRunTitle, '') }}:
-                        testRunTitle: "TAS — ${{ parameters.suite }} / ${{ parameters.environment }} (${{ parameters.ref }})"
+  # ── Publish JUnit to the "Tests" tab of the ADO build ────────
+  # condition: always() so the tab gets populated even when the
+  # previous step exits 1 (test failure) — that is exactly the
+  # case the consumer wants to inspect from the portal.
+  # The step is compiled out entirely when publishTests=false.
+  - ${{ if eq(parameters.publishTests, true) }}:
+      - task: PublishTestResults@2
+        displayName: "Publish JUnit test results"
+        condition: always()
+        inputs:
+          testResultsFormat: "JUnit"
+          testResultsFiles: "$(Agent.TempDirectory)/tas-artifact/junit/*.xml"
+          mergeTestResults: true
+          # The orchestrator step already failed the job on test
+          # failure (exit 1); failing this task too would only add
+          # a second red box without changing the stage outcome.
+          failTaskOnFailedTests: false
+          ${{ if ne(parameters.testRunTitle, '') }}:
+            testRunTitle: ${{ parameters.testRunTitle }}
+          ${{ if eq(parameters.testRunTitle, '') }}:
+            testRunTitle: "TAS — ${{ parameters.suite }} / ${{ parameters.environment }} (${{ parameters.ref }})"
 
-          # ── ASYNC ───────────────────────────────────────────────────────
-          # Fire-and-forget via the orchestrator. Step exits 0 as long as
-          # the dispatch succeeds. Exposes CORRELATION_ID.
-          - ${{ if eq(parameters.mode, 'async') }}:
-              - script: |
-                  set -euo pipefail
-                  python tas_orchestrator.py \
-                    --type "${{ parameters.testType }}" \
-                    --suite "${{ parameters.suite }}" \
-                    --env "${{ parameters.environment }}" \
-                    --ref "${{ parameters.ref }}" \
-                    --repo "${{ parameters.tasRepo }}" \
-                    --workflow "${{ parameters.workflowFile }}" \
-                    --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
-                    --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
-                    --tags "${{ parameters.tags }}" \
-                    | tee tas_output.txt
+# ── ASYNC ───────────────────────────────────────────────────────
+# Fire-and-forget via the orchestrator. Step exits 0 as long as
+# the dispatch succeeds. Exposes CORRELATION_ID.
+- ${{ if eq(parameters.mode, 'async') }}:
+  - script: |
+      set -euo pipefail
+      python tas_orchestrator.py \
+        --type "${{ parameters.testType }}" \
+        --suite "${{ parameters.suite }}" \
+        --env "${{ parameters.environment }}" \
+        --ref "${{ parameters.ref }}" \
+        --repo "${{ parameters.tasRepo }}" \
+        --workflow "${{ parameters.workflowFile }}" \
+        --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
+        --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+        --tags "${{ parameters.tags }}" \
+        | tee tas_output.txt
 
-                  CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
-                  if [ -z "$CID" ]; then
-                    echo "##[error]CORRELATION_ID not found in orchestrator output"
-                    exit 1
-                  fi
-                  echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
-                  echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
-                  echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
-                  echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]"
-                  echo "Correlation ID : ${CID}"
-                  echo "Monitor at     : https://github.com/${{ parameters.tasRepo }}/actions"
-                displayName: "Dispatch tests (async)"
-                name: tas
-                env:
-                  TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
+      CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
+      if [ -z "$CID" ]; then
+        echo "##[error]CORRELATION_ID not found in orchestrator output"
+        exit 1
+      fi
+      echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+      echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
+      echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
+      echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]"
+      echo "Correlation ID : ${CID}"
+      echo "Monitor at     : https://github.com/${{ parameters.tasRepo }}/actions"
+    displayName: "Dispatch tests (async)"
+    name: tas
+    env:
+      TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
 
-          # ── RAW ─────────────────────────────────────────────────────────
-          # Direct workflow_dispatch via curl, no Python on the agent.
-          # Exposes CORRELATION_ID (RUN_ID/RUN_URL are not knowable here).
-          - ${{ if eq(parameters.mode, 'raw') }}:
-              - script: |
-                  set -euo pipefail
-                  CID="$(Build.BuildId)-$(System.JobAttempt)"
+# ── RAW ─────────────────────────────────────────────────────────
+# Direct workflow_dispatch via curl, no Python on the agent.
+# Exposes CORRELATION_ID (RUN_ID/RUN_URL are not knowable here).
+- ${{ if eq(parameters.mode, 'raw') }}:
+  - script: |
+      set -euo pipefail
+      CID="$(Build.BuildId)-$(System.JobAttempt)"
 
-                  # The token is read from the shell env ($INTEGRATION_TEST_PAT),
-                  # populated from the 'githubToken' parameter via the step
-                  # 'env' block below, so it is not interpolated into the
-                  # rendered script body.
+      # The token is read from the shell env ($INTEGRATION_TEST_PAT),
+      # populated from the 'githubToken' parameter via the step
+      # 'env' block below, so it is not interpolated into the
+      # rendered script body.
 
-                  # Include the 'tags' input only when set, so the payload
-                  # stays compatible with older workflow refs lacking it.
-                  TAGS_JSON=""
-                  if [ -n "${{ parameters.tags }}" ]; then
-                    TAGS_JSON=", \"tags\": \"${{ parameters.tags }}\""
-                  fi
+      # Include the 'tags' input only when set, so the payload
+      # stays compatible with older workflow refs lacking it.
+      TAGS_JSON=""
+      if [ -n "${{ parameters.tags }}" ]; then
+        TAGS_JSON=", \"tags\": \"${{ parameters.tags }}\""
+      fi
 
-                  HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
-                    -X POST \
-                    -H "Accept: application/vnd.github+json" \
-                    -H "Authorization: Bearer $INTEGRATION_TEST_PAT" \
-                    -H "X-GitHub-Api-Version: 2022-11-28" \
-                    "https://api.github.com/repos/${{ parameters.tasRepo }}/actions/workflows/${{ parameters.workflowFile }}/dispatches" \
-                    -d "{
-                      \"ref\": \"${{ parameters.ref }}\",
-                      \"inputs\": {
-                        \"test_type\": \"${{ parameters.testType }}\",
-                        \"test_suite\": \"${{ parameters.suite }}\",
-                        \"environment\": \"${{ parameters.environment }}\",
-                        \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
-                        \"correlation_id\": \"${CID}\"${TAGS_JSON}
-                      }
-                    }")
+      HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $INTEGRATION_TEST_PAT" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "https://api.github.com/repos/${{ parameters.tasRepo }}/actions/workflows/${{ parameters.workflowFile }}/dispatches" \
+        -d "{
+          \"ref\": \"${{ parameters.ref }}\",
+          \"inputs\": {
+            \"test_type\": \"${{ parameters.testType }}\",
+            \"test_suite\": \"${{ parameters.suite }}\",
+            \"environment\": \"${{ parameters.environment }}\",
+            \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
+            \"correlation_id\": \"${CID}\"${TAGS_JSON}
+          }
+        }")
 
-                  if [ "$HTTP" != "204" ]; then
-                    echo "##vso[task.logissue type=error]Dispatch failed with HTTP $HTTP"
-                    exit 1
-                  fi
+      if [ "$HTTP" != "204" ]; then
+        echo "##vso[task.logissue type=error]Dispatch failed with HTTP $HTTP"
+        exit 1
+      fi
 
-                  echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
-                  echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
-                  echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
-                  echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]"
-                  echo "Tests dispatched (raw API). Run name: tas-${CID}"
-                  echo "Monitor at: https://github.com/${{ parameters.tasRepo }}/actions"
-                displayName: "Dispatch tests (raw API)"
-                name: tas
-                env:
-                  INTEGRATION_TEST_PAT: ${{ parameters.githubToken }}
+      echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+      echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
+      echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
+      echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]"
+      echo "Tests dispatched (raw API). Run name: tas-${CID}"
+      echo "Monitor at: https://github.com/${{ parameters.tasRepo }}/actions"
+    displayName: "Dispatch tests (raw API)"
+    name: tas
+    env:
+      INTEGRATION_TEST_PAT: ${{ parameters.githubToken }}
 
