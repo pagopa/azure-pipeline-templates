@@ -1,0 +1,379 @@
+##############################################################################
+# tas-integration-tests.yml
+#
+# Official Azure DevOps template for the Test Automation Service (TAS).
+#
+# Encapsulates all three supported invocation modes (sync, async, raw)
+# behind a single, parameterised entry point. Consumers reference this
+# template from their own pipeline via a remote `resources.repositories`
+# pointer; see docs/tas/tas-developer-guide.md for the full integration
+# guide and docs/tas/examples/tas-example-ado-using-template.yml for a
+# ready-to-copy example.
+#
+# ── PUBLIC CONTRACT ─────────────────────────────────────────────────────────
+# This is a STEPS template: the caller injects it into a job it owns, so the
+# stage and job that wrap it — including their names, `dependsOn` and
+# `condition` — are chosen by the caller. This lets the tests be gated on
+# upstream stages (e.g. a DEV deploy) and lets the same template be invoked
+# multiple times in one pipeline (e.g. one job for e2e, one for integration).
+# The only identifier owned by the template is the publishing step name,
+# configurable via `stepName` (default: tas).
+#
+# Output variables (substitute your own stage/job names).
+# From a downstream stage:
+#   $[ stageDependencies.<callerStage>.<callerJob>.outputs['<stepName>.<NAME>'] ]
+# From another job in the same stage:
+#   $[ dependencies.<callerJob>.outputs['<stepName>.<NAME>'] ]
+#
+#   Variable         | sync | async | raw  | Description
+#   ─────────────────┼──────┼───────┼──────┼────────────────────────────────
+#   CORRELATION_ID   |  ✅  |  ✅   |  ✅  | Identifier used to locate the run
+#   RUN_ID           |  ✅  |   —   |   —  | GHA workflow run numeric ID
+#   RUN_URL          |  ✅  |   —   |   —  | Direct URL to the GHA run
+#   ARTIFACT_DIR     |  ✅  |   —   |   —  | On-agent path where the TAS artifact
+#                    |      |       |      | (test-summary.json, behave-results.json,
+#                    |      |       |      | junit/*.xml) is extracted
+#
+# In modes where a variable is not produced, the value is an empty string.
+#
+# In sync mode, the JUnit XML files are also published to the ADO "Tests"
+# tab via PublishTestResults@2 (toggle with `publishTests`).
+#
+# ── REQUIRED CALLER CONFIGURATION ───────────────────────────────────────────
+# - A GitHub PAT (scopes: public_repo + actions:read) supplied to the
+#   'githubToken' parameter. The caller is responsible for sourcing it
+#   securely (e.g. a secret pipeline variable or an Azure Key Vault–linked
+#   variable group) and passing it in as a secret; the template forwards it
+#   to the orchestrator via the TAS_GITHUB_TOKEN environment variable (a
+#   TAS-scoped name chosen to avoid clashing with a generic GITHUB_TOKEN
+#   that may already exist in the caller's environment).
+# - A service connection of type 'GitHub' pointing to github.com, used to
+#   resolve the 'tas' repository alias declared in resources.repositories.
+##############################################################################
+
+parameters:
+  - name: testType
+    displayName: "Test category"
+    type: string
+    default: integration
+    values: [integration, e2e, api]
+
+  - name: suite
+    displayName: "Test suite"
+    type: string
+
+  - name: environment
+    displayName: "Target environment"
+    type: string
+    default: uat
+    values: [dev, uat]
+
+  - name: mode
+    displayName: "Invocation mode"
+    type: string
+    default: sync
+    values: [sync, async, raw]
+
+  - name: ref
+    displayName: "TAS repo branch/tag to run the tests from"
+    type: string
+    default: main
+
+  - name: tags
+    displayName: "Behave tag expression (e.g. @runnable, @e2e); empty = workflow default"
+    type: string
+    default: ""
+
+  - name: allure
+    displayName: "Also produce an Allure results directory (allure-results/) in the artifact"
+    type: boolean
+    default: false
+
+  - name: githubToken
+    displayName: "GitHub PAT (scopes: public_repo + actions:read)"
+    type: string
+
+  - name: pythonVersion
+    type: string
+    default: "3.11"
+
+  - name: tasRepo
+    type: string
+    default: "pagopa/pagopa-platform-integration-test"
+
+  - name: workflowFile
+    type: string
+    default: "test-automation-service.yml"
+
+  - name: stepName
+    displayName: "Output step name"
+    type: string
+    default: "tas"
+
+  # ── Supply-chain integrity (orchestrator-based modes only) ──────────────
+  # The orchestrator script is downloaded over HTTPS from raw.githubusercontent.com
+  # at job time. The template offers two complementary verification options:
+  #
+  #   1. Sidecar mode (default, verifyOrchestrator=true, orchestratorSha256 empty)
+  #      Downloads scripts/tas_orchestrator.py.sha256 from the same `ref` and
+  #      runs `sha256sum -c`. Guards against partial downloads, MITM proxies
+  #      and accidental tampering of a single file, as long as the ref itself
+  #      is trusted (pin a tag, not a moving branch, for maximum value).
+  #
+  #   2. Pinned mode (orchestratorSha256 set to an explicit hex digest)
+  #      True SRI: the expected digest is supplied by the consumer, baked
+  #      into the pipeline YAML, and the sidecar is ignored. Survives
+  #      tampering of the ref tip. Update the digest whenever the
+  #      orchestrator is intentionally upgraded.
+  #
+  # Set verifyOrchestrator=false to opt out entirely (not recommended).
+  - name: verifyOrchestrator
+    displayName: "Verify tas_orchestrator.py SHA-256 integrity"
+    type: boolean
+    default: true
+
+  - name: orchestratorSha256
+    displayName: "Pinned SHA-256 of tas_orchestrator.py (empty = use sidecar)"
+    type: string
+    default: ""
+
+  # ── Test reporting (sync mode only) ─────────────────────────────────────
+  # When 'publishTests' is true and 'mode' is 'sync', the template:
+  #   1. asks the orchestrator to extract the TAS artifact under
+  #      $(Agent.TempDirectory)/tas-artifact (test-summary.json,
+  #      behave-results.json, junit/*.xml);
+  #   2. invokes PublishTestResults@2 on the JUnit folder, so the run is
+  #      visible under the "Tests" tab of the ADO build summary.
+  # async / raw modes only dispatch the run and cannot produce JUnit
+  # locally, so the publish step is skipped automatically.
+  - name: publishTests
+    displayName: "Publish JUnit results to the ADO 'Tests' tab (sync only)"
+    type: boolean
+    default: true
+
+  - name: testRunTitle
+    displayName: "Title shown for the published test run (empty = auto)"
+    type: string
+    default: ""
+
+
+steps:
+
+# ── Common bootstrap (only for orchestrator-based modes) ─────────
+- ${{ if ne(parameters.mode, 'raw') }}:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "${{ parameters.pythonVersion }}"
+    displayName: "Setup Python ${{ parameters.pythonVersion }}"
+
+  - script: pip install requests
+    displayName: "Install orchestrator dependencies"
+
+  - script: |
+      set -euo pipefail
+      curl -sSfL \
+        "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py" \
+        -o tas_orchestrator.py
+    displayName: "Download tas_orchestrator.py"
+
+  # ── Integrity verification (SHA-256) ─────────────────────────
+  # Pinned mode wins over sidecar mode when both are available.
+  # Skipped entirely when verifyOrchestrator=false.
+  - ${{ if eq(parameters.verifyOrchestrator, true) }}:
+      - script: |
+          set -euo pipefail
+          PINNED="${{ parameters.orchestratorSha256 }}"
+          if [ -n "${PINNED}" ]; then
+            echo "Verifying tas_orchestrator.py against pinned SHA-256..."
+            echo "${PINNED}  tas_orchestrator.py" | sha256sum -c -
+          else
+            echo "Verifying tas_orchestrator.py against published sidecar..."
+            curl -sSfL \
+              "https://raw.githubusercontent.com/${{ parameters.tasRepo }}/${{ parameters.ref }}/scripts/tas_orchestrator.py.sha256" \
+              -o tas_orchestrator.py.sha256
+            sha256sum -c tas_orchestrator.py.sha256
+          fi
+        displayName: "Verify tas_orchestrator.py SHA-256"
+
+# ── SYNC ────────────────────────────────────────────────────────
+# Blocks until the GHA workflow completes. Exits 0 on pass,
+# 1 on test failure, 2 on orchestration error. Exposes
+# CORRELATION_ID, RUN_ID, RUN_URL as output variables.
+- ${{ if eq(parameters.mode, 'sync') }}:
+  - script: |
+      # pipefail (no -e): we want to capture the orchestrator
+      # exit code AND still publish output variables before
+      # propagating the failure to the step.
+      set -o pipefail
+
+      # Directory where the orchestrator extracts the TAS artifact
+      # (test-summary.json, behave-results.json, junit/*.xml). The
+      # next step (PublishTestResults@2) consumes junit/*.xml from
+      # the same path. Falls under $(Agent.TempDirectory) so the
+      # job cleanup discards it automatically.
+      ARTIFACT_DIR="$(Agent.TempDirectory)/tas-artifact"
+      mkdir -p "${ARTIFACT_DIR}"
+
+      # Forward the Allure toggle as a CLI flag only when enabled.
+      ALLURE_ARG=()
+      ALLURE_PARAM="${{ parameters.allure }}"
+      if [ "${ALLURE_PARAM,,}" = "true" ]; then
+        ALLURE_ARG=(--allure)
+      fi
+
+      python tas_orchestrator.py \
+        --type "${{ parameters.testType }}" \
+        --suite "${{ parameters.suite }}" \
+        --env "${{ parameters.environment }}" \
+        --ref "${{ parameters.ref }}" \
+        --repo "${{ parameters.tasRepo }}" \
+        --workflow "${{ parameters.workflowFile }}" \
+        --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
+        --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+        --artifact-dir "${ARTIFACT_DIR}" \
+        --tags "${{ parameters.tags }}" \
+        "${ALLURE_ARG[@]}" \
+        --sync \
+        | tee tas_output.txt
+      EXIT_CODE=${PIPESTATUS[0]}
+
+      # Publish output variables (best-effort) regardless of outcome
+      CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2- || true)
+      RID=$(grep -E '^RUN_ID='         tas_output.txt | cut -d= -f2- || true)
+      RURL=$(grep -E '^RUN_URL='       tas_output.txt | cut -d= -f2- || true)
+      ADIR=$(grep -E '^ARTIFACT_DIR='  tas_output.txt | cut -d= -f2- || true)
+      echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+      echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]${RID}"
+      echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]${RURL}"
+      echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]${ADIR}"
+
+      exit "$EXIT_CODE"
+    displayName: "Run integration tests (sync)"
+    name: ${{ parameters.stepName }}
+    env:
+      TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
+
+  # ── Publish JUnit to the "Tests" tab of the ADO build ────────
+  # condition: always() so the tab gets populated even when the
+  # previous step exits 1 (test failure) — that is exactly the
+  # case the consumer wants to inspect from the portal.
+  # The step is compiled out entirely when publishTests=false.
+  - ${{ if eq(parameters.publishTests, true) }}:
+      - task: PublishTestResults@2
+        displayName: "Publish JUnit test results"
+        condition: always()
+        inputs:
+          testResultsFormat: "JUnit"
+          testResultsFiles: "$(Agent.TempDirectory)/tas-artifact/junit/*.xml"
+          mergeTestResults: true
+          # The orchestrator step already failed the job on test
+          # failure (exit 1); failing this task too would only add
+          # a second red box without changing the stage outcome.
+          failTaskOnFailedTests: false
+          ${{ if ne(parameters.testRunTitle, '') }}:
+            testRunTitle: ${{ parameters.testRunTitle }}
+          ${{ if eq(parameters.testRunTitle, '') }}:
+            testRunTitle: "TAS — ${{ parameters.suite }} / ${{ parameters.environment }} (${{ parameters.ref }})"
+
+# ── ASYNC ───────────────────────────────────────────────────────
+# Fire-and-forget via the orchestrator. Step exits 0 as long as
+# the dispatch succeeds. Exposes CORRELATION_ID.
+- ${{ if eq(parameters.mode, 'async') }}:
+  - script: |
+      set -euo pipefail
+
+      # Forward the Allure toggle as a CLI flag only when enabled.
+      ALLURE_ARG=()
+      ALLURE_PARAM="${{ parameters.allure }}"
+      if [ "${ALLURE_PARAM,,}" = "true" ]; then
+        ALLURE_ARG=(--allure)
+      fi
+
+      python tas_orchestrator.py \
+        --type "${{ parameters.testType }}" \
+        --suite "${{ parameters.suite }}" \
+        --env "${{ parameters.environment }}" \
+        --ref "${{ parameters.ref }}" \
+        --repo "${{ parameters.tasRepo }}" \
+        --workflow "${{ parameters.workflowFile }}" \
+        --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
+        --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
+        --tags "${{ parameters.tags }}" \
+        "${ALLURE_ARG[@]}" \
+        | tee tas_output.txt
+
+      CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
+      if [ -z "$CID" ]; then
+        echo "##[error]CORRELATION_ID not found in orchestrator output"
+        exit 1
+      fi
+      echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+      echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
+      echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
+      echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]"
+      echo "Correlation ID : ${CID}"
+      echo "Monitor at     : https://github.com/${{ parameters.tasRepo }}/actions"
+    displayName: "Dispatch tests (async)"
+    name: ${{ parameters.stepName }}
+    env:
+      TAS_GITHUB_TOKEN: ${{ parameters.githubToken }}
+
+# ── RAW ─────────────────────────────────────────────────────────
+# Direct workflow_dispatch via curl, no Python on the agent.
+# Exposes CORRELATION_ID (RUN_ID/RUN_URL are not knowable here).
+- ${{ if eq(parameters.mode, 'raw') }}:
+  - script: |
+      set -euo pipefail
+      CID="$(Build.BuildId)-$(System.JobAttempt)"
+
+      # The token is read from the shell env ($INTEGRATION_TEST_PAT),
+      # populated from the 'githubToken' parameter via the step
+      # 'env' block below, so it is not interpolated into the
+      # rendered script body.
+
+      # Include the 'tags' input only when set, so the payload
+      # stays compatible with older workflow refs lacking it.
+      TAGS_JSON=""
+      if [ -n "${{ parameters.tags }}" ]; then
+        TAGS_JSON=", \"tags\": \"${{ parameters.tags }}\""
+      fi
+
+      # Include the 'allure' input only when enabled, same rationale as tags.
+      ALLURE_JSON=""
+      ALLURE_PARAM="${{ parameters.allure }}"
+      if [ "${ALLURE_PARAM,,}" = "true" ]; then
+        ALLURE_JSON=", \"allure\": \"true\""
+      fi
+
+      HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer $INTEGRATION_TEST_PAT" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "https://api.github.com/repos/${{ parameters.tasRepo }}/actions/workflows/${{ parameters.workflowFile }}/dispatches" \
+        -d "{
+          \"ref\": \"${{ parameters.ref }}\",
+          \"inputs\": {
+            \"test_type\": \"${{ parameters.testType }}\",
+            \"test_suite\": \"${{ parameters.suite }}\",
+            \"environment\": \"${{ parameters.environment }}\",
+            \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
+            \"correlation_id\": \"${CID}\"${TAGS_JSON}${ALLURE_JSON}
+          }
+        }")
+
+      if [ "$HTTP" != "204" ]; then
+        echo "##vso[task.logissue type=error]Dispatch failed with HTTP $HTTP"
+        exit 1
+      fi
+
+      echo "##vso[task.setvariable variable=CORRELATION_ID;isOutput=true]${CID}"
+      echo "##vso[task.setvariable variable=RUN_ID;isOutput=true]"
+      echo "##vso[task.setvariable variable=RUN_URL;isOutput=true]"
+      echo "##vso[task.setvariable variable=ARTIFACT_DIR;isOutput=true]"
+      echo "Tests dispatched (raw API). Run name: tas-${CID}"
+      echo "Monitor at: https://github.com/${{ parameters.tasRepo }}/actions"
+    displayName: "Dispatch tests (raw API)"
+    name: ${{ parameters.stepName }}
+    env:
+      INTEGRATION_TEST_PAT: ${{ parameters.githubToken }}

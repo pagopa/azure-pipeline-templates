@@ -32,6 +32,7 @@ Templates are meant to be included into a project pipeline. Please refer to [thi
 - [Node Job Setup template](templates/node-job-setup)
 - [Terraform Setup](templates/terraform-setup)
 - [Terraform Install Azure RM Custom Provider](templates/terraform-custom-azurerm)
+- [QA Test Automation Service](templates/qa-tas)
 
 ## How load into pipelines
 
