@@ -11,12 +11,19 @@
 # ready-to-copy example.
 #
 # ── PUBLIC CONTRACT ─────────────────────────────────────────────────────────
-# Stage name : TAS_IntegrationTests
-# Job name   : RunTAS
-# Step name  : configurable via `stepName` (default: tas)
+# This is a STEPS template: the caller injects it into a job it owns, so the
+# stage and job that wrap it — including their names, `dependsOn` and
+# `condition` — are chosen by the caller. This lets the tests be gated on
+# upstream stages (e.g. a DEV deploy) and lets the same template be invoked
+# multiple times in one pipeline (e.g. one job for e2e, one for integration).
+# The only identifier owned by the template is the publishing step name,
+# configurable via `stepName` (default: tas).
 #
-# Output variables (read with:
-#   $[ stageDependencies.TAS_IntegrationTests.RunTAS.outputs['<stepName>.<NAME>'] ])
+# Output variables (substitute your own stage/job names).
+# From a downstream stage:
+#   $[ stageDependencies.<callerStage>.<callerJob>.outputs['<stepName>.<NAME>'] ]
+# From another job in the same stage:
+#   $[ dependencies.<callerJob>.outputs['<stepName>.<NAME>'] ]
 #
 #   Variable         | sync | async | raw  | Description
 #   ─────────────────┼──────┼───────┼──────┼────────────────────────────────
@@ -76,6 +83,11 @@ parameters:
     displayName: "Behave tag expression (e.g. @runnable, @e2e); empty = workflow default"
     type: string
     default: ""
+
+  - name: allure
+    displayName: "Also produce an Allure results directory (allure-results/) in the artifact"
+    type: boolean
+    default: false
 
   - name: githubToken
     displayName: "GitHub PAT (scopes: public_repo + actions:read)"
@@ -202,6 +214,13 @@ steps:
       ARTIFACT_DIR="$(Agent.TempDirectory)/tas-artifact"
       mkdir -p "${ARTIFACT_DIR}"
 
+      # Forward the Allure toggle as a CLI flag only when enabled.
+      ALLURE_ARG=()
+      ALLURE_PARAM="${{ parameters.allure }}"
+      if [ "${ALLURE_PARAM,,}" = "true" ]; then
+        ALLURE_ARG=(--allure)
+      fi
+
       python tas_orchestrator.py \
         --type "${{ parameters.testType }}" \
         --suite "${{ parameters.suite }}" \
@@ -213,6 +232,7 @@ steps:
         --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
         --artifact-dir "${ARTIFACT_DIR}" \
         --tags "${{ parameters.tags }}" \
+        "${ALLURE_ARG[@]}" \
         --sync \
         | tee tas_output.txt
       EXIT_CODE=${PIPESTATUS[0]}
@@ -261,6 +281,14 @@ steps:
 - ${{ if eq(parameters.mode, 'async') }}:
   - script: |
       set -euo pipefail
+
+      # Forward the Allure toggle as a CLI flag only when enabled.
+      ALLURE_ARG=()
+      ALLURE_PARAM="${{ parameters.allure }}"
+      if [ "${ALLURE_PARAM,,}" = "true" ]; then
+        ALLURE_ARG=(--allure)
+      fi
+
       python tas_orchestrator.py \
         --type "${{ parameters.testType }}" \
         --suite "${{ parameters.suite }}" \
@@ -271,6 +299,7 @@ steps:
         --caller-id "$(Build.Repository.Name)/$(Build.BuildId)" \
         --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
         --tags "${{ parameters.tags }}" \
+        "${ALLURE_ARG[@]}" \
         | tee tas_output.txt
 
       CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
@@ -309,6 +338,13 @@ steps:
         TAGS_JSON=", \"tags\": \"${{ parameters.tags }}\""
       fi
 
+      # Include the 'allure' input only when enabled, same rationale as tags.
+      ALLURE_JSON=""
+      ALLURE_PARAM="${{ parameters.allure }}"
+      if [ "${ALLURE_PARAM,,}" = "true" ]; then
+        ALLURE_JSON=", \"allure\": \"true\""
+      fi
+
       HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
         -X POST \
         -H "Accept: application/vnd.github+json" \
@@ -322,7 +358,7 @@ steps:
             \"test_suite\": \"${{ parameters.suite }}\",
             \"environment\": \"${{ parameters.environment }}\",
             \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
-            \"correlation_id\": \"${CID}\"${TAGS_JSON}
+            \"correlation_id\": \"${CID}\"${TAGS_JSON}${ALLURE_JSON}
           }
         }")
 
