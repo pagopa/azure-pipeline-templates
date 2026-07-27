@@ -153,6 +153,9 @@ stages:
                   parameters:
                     USE_SOPS: ${{ parameters.USE_SOPS }}
                     VERSION_SOPS: ${{ parameters.VERSION_SOPS }}
+                - script: |
+                    python3 -m pip install --user --upgrade virtualenv
+                  displayName: 'Install virtual ENV'
                 # 2. Run terraform apply
                 - template: ../terraform-apply/template.yaml@terraform
                   parameters:
