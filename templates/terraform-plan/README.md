@@ -44,6 +44,7 @@ stages:
               TF_ENVIRONMENT_FOLDER: "dev"
               WORKINGDIR: ${{ variables.WORKING_DIR_COMMON }}
               AZURE_SERVICE_CONNECTION_NAME: DEVOPSLAB-DEV-PLAN-SERVICE-CONN
+              AZDO_GITHUB_TOKEN: $(AZDO_GITHUB_TOKEN)
       - job: tfplan_diego_app
         timeoutInMinutes: $[variables.TIME_OUT]
         strategy:
