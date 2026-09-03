@@ -9,6 +9,9 @@ parameters:
   - name: 'WORKINGDIR'
     displayName: '(Required) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
+  - name: 'AZDO_GITHUB_TOKEN'
+    displayName: '(Required) GitHub token used to authenticate Terraform module downloads from private GitHub repositories.'
+    type: string
   - name: 'AKS_NAME'
     displayName: '(Optional) AKS Name'
     type: string
@@ -66,6 +69,13 @@ steps:
         AKS_API_SERVER_URL: '${{ parameters.SECOND_AKS_API_SERVER_URL }}'
         AKS_AZURE_DEVOPS_SA_CA_CRT: '${{ parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT }}'
         AKS_AZURE_DEVOPS_SA_TOKEN: '${{ parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN }}'
+
+  - bash: |
+      set -euxo pipefail
+      git config --global url."https://${AZDO_GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+    displayName: "Authenticate GitHub for Terraform modules"
+    env:
+      AZDO_GITHUB_TOKEN: '${{ parameters.AZDO_GITHUB_TOKEN }}'
 
   - task: AzureCLI@2
     displayName: "🔦 Plan Terraform"
