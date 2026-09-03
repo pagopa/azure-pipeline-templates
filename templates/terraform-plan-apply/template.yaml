@@ -23,6 +23,10 @@ parameters:
     displayName: '(Optional) Working direcory containing terraform templates and the terraform.sh helper.'
     type: string
     default: "src"
+  - name: 'AZDO_GITHUB_TOKEN'
+    displayName: '(Optional) GitHub token used to authenticate Terraform module downloads from GitHub repositories.'
+    type: string
+    default: ""
   - name: 'AKS_NAME'
     displayName: '(Optional) AKS Name'
     type: string
@@ -112,6 +116,7 @@ stages:
               SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT}}
               SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
               TF_SUMMARIZE: ${{parameters.TF_SUMMARIZE}}
+              AZDO_GITHUB_TOKEN: ${{parameters.AZDO_GITHUB_TOKEN}}
 
 #
 # APPLY
@@ -171,3 +176,4 @@ stages:
                     SECOND_AKS_API_SERVER_URL: ${{parameters.SECOND_AKS_API_SERVER_URL}}
                     SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_CA_CRT}}
                     SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
+                    AZDO_GITHUB_TOKEN: ${{parameters.AZDO_GITHUB_TOKEN}}
