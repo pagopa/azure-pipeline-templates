@@ -61,6 +61,7 @@ stages:
               TF_SUMMARIZE: true
               WORKINGDIR: ${{ variables.WORKING_DIR_APP }}
               AZURE_SERVICE_CONNECTION_NAME: DEVOPSLAB-DEV-PLAN-SERVICE-CONN
+              TF_VARS: "-var 'xyz=\"abc\"'"
               AKS_NAME: ${{ variables.AKS_DEV_NAME }}
               AKS_API_SERVER_URL: ${{ variables.DEV01_AKS_APISERVER_URL }}
               AKS_AZURE_DEVOPS_SA_CA_CRT: ${{ variables.DEV01_AKS_AZURE_DEVOPS_SA_CACRT }}
