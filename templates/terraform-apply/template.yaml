@@ -48,6 +48,10 @@ parameters:
     displayName: '(Optional) GitHub token used to authenticate Terraform module downloads from GitHub repositories.'
     type: string
     default: ""
+  - name: 'TF_VARS'
+    displayName: '(Optional) Terraform variables passed as CLI arguments, e.g. -var "xyz=\"abc\""'
+    type: string
+    default: ""
 
 steps:
   - checkout: self
@@ -102,10 +106,10 @@ steps:
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" ${{ parameters.TF_VARS }} -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
         else
           echo "[INFO] 🚀 Run terraform plan -> generate state"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} ${{ parameters.TF_VARS }} -out=tfplan-${{ parameters.TF_ENVIRONMENT_FOLDER }} -input=false -lock-timeout=3000s
         fi
 
         echo "✅ State output completed"

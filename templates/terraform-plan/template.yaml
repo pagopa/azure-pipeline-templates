@@ -49,6 +49,10 @@ parameters:
     displayName: '(Optional) Second AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: 'TF_VARS'
+    displayName: '(Optional) Terraform variables passed as CLI arguments, e.g. -var "xyz=\"abc\""'
+    type: string
+    default: ""
 
 steps:
 
@@ -111,10 +115,10 @@ steps:
 
         if [[ "${{ parameters.AKS_NAME }}" != "" ]]; then
           echo "[INFO] 🚀 Run terraform plan + kubernetes"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" -lock-timeout=300s -lock=false ${generate_state_output}
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -var k8s_kube_config_path_prefix="$(pwd)" ${{ parameters.TF_VARS }} -lock-timeout=300s -lock=false  ${generate_state_output}
         else
           echo "[INFO] 🚀 Run terraform plan"
-          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} -lock-timeout=300s -lock=false ${generate_state_output}
+          ./terraform.sh plan ${{ parameters.TF_ENVIRONMENT_FOLDER }} ${{ parameters.TF_VARS }} -lock-timeout=300s -lock=false ${generate_state_output}
         fi
 
   - task: Bash@3
