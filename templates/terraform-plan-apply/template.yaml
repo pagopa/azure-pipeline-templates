@@ -81,6 +81,14 @@ parameters:
     displayName: '(Optional) Terraform variables passed as CLI arguments, e.g. -var "xyz=\"abc\""'
     type: string
     default: ""
+  - name: 'PUBLISH_CREATED_ADDRESSES'
+    displayName: '(Optional) Publish the addresses created or replaced by the apply, see terraform-apply'
+    type: boolean
+    default: false
+  - name: 'PUBLISH_OUTPUT'
+    displayName: '(Optional) Name of a non-sensitive Terraform output to publish after the apply, see terraform-apply'
+    type: string
+    default: ""
 
 stages:
 #
@@ -183,3 +191,5 @@ stages:
                     SECOND_AKS_AZURE_DEVOPS_SA_TOKEN: ${{parameters.SECOND_AKS_AZURE_DEVOPS_SA_TOKEN}}
                     AZDO_GITHUB_TOKEN: ${{parameters.AZDO_GITHUB_TOKEN}}
                     TF_VARS: ${{parameters.TF_VARS}}
+                    PUBLISH_CREATED_ADDRESSES: ${{parameters.PUBLISH_CREATED_ADDRESSES}}
+                    PUBLISH_OUTPUT: ${{parameters.PUBLISH_OUTPUT}}
