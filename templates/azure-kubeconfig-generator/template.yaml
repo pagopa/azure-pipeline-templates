@@ -38,7 +38,7 @@ steps:
       script: |
         set -e
         e=0
-
+        
         if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
            [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
            [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
@@ -81,7 +81,7 @@ steps:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
         echo "##[section] 💈 Start generation of kubeconfig"
-
+        echo "$(pwd)"
         echo "##[group]Kubernetes kubeconfig setup"
         echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > ${{ parameters.OUTPUT_CTX_NAME }}-cacrt
         echo "✅ Created cacrt file"
@@ -112,5 +112,5 @@ steps:
         echo "⚙️ kubectl change context"
 
         echo "✅ kubeconfig ready"
-
+        ls -la  
         echo "##[endgroup]"
