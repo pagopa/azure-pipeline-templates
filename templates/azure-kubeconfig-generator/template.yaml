@@ -23,6 +23,10 @@ parameters:
     displayName: '(Optional) AKS service account token, used by azure devops account'
     type: string
     default: ""
+  - name: 'OUTPUT_CTX_NAME'
+    displayName: '(Optional) output context name'
+    type: string
+    default: "iac"
 
 steps:
   - task: Bash@3
@@ -34,7 +38,7 @@ steps:
       script: |
         set -e
         e=0
-
+        
         if [[ "${{ parameters.AKS_NAME }}" != "" ]] || \
            [[ "${{ parameters.AKS_API_SERVER_URL }}" != "" ]] || \
            [[ "${{ parameters.AKS_AZURE_DEVOPS_SA_TOKEN }}" != "" ]] || \
@@ -77,13 +81,12 @@ steps:
       workingDirectory: '${{ parameters.WORKINGDIR }}'
       inlineScript: |
         echo "##[section] 💈 Start generation of kubeconfig"
-
         echo "##[group]Kubernetes kubeconfig setup"
-        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > cacrt
+        echo "${{ parameters.AKS_AZURE_DEVOPS_SA_CA_CRT }}"| base64 --decode > ${{ parameters.OUTPUT_CTX_NAME }}-cacrt
         echo "✅ Created cacrt file"
 
         kubectl config set-cluster aks-azure-devops \
-          --certificate-authority=cacrt \
+          --certificate-authority=${{ parameters.OUTPUT_CTX_NAME }}-cacrt \
           --embed-certs=true \
           --server=${{ parameters.AKS_API_SERVER_URL }} \
           --kubeconfig="config-${{ parameters.AKS_NAME }}"
@@ -94,7 +97,7 @@ steps:
           --kubeconfig="config-${{ parameters.AKS_NAME }}"
         echo "[INFO] kubectl set-credentials"
 
-        kubectl config set-context iac \
+        kubectl config set-context ${{ parameters.OUTPUT_CTX_NAME }} \
           --cluster=aks-azure-devops \
           --user=azure-devops \
           --kubeconfig="config-${{ parameters.AKS_NAME }}"
@@ -104,9 +107,8 @@ steps:
         kubelogin convert-kubeconfig -l azurecli --kubeconfig "config-${{ parameters.AKS_NAME }}"
         echo "️⚙️ kubelogin applied"
 
-        kubectl config use-context iac --kubeconfig="config-${{ parameters.AKS_NAME }}"
+        kubectl config use-context ${{ parameters.OUTPUT_CTX_NAME }} --kubeconfig="config-${{ parameters.AKS_NAME }}"
         echo "⚙️ kubectl change context"
 
         echo "✅ kubeconfig ready"
-
         echo "##[endgroup]"
