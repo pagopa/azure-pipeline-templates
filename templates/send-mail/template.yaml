@@ -32,55 +32,55 @@ steps:
       scriptSource: 'inline'
       script: |
         import email, smtplib, ssl, re
-        from email import encoders 
+        from email import encoders
         from email.mime.base import MIMEBase
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
         from os import getenv
-        
+
         subject = '${{ parameters.MAIL_SUBJECT }}'
         body = '''
         ${{ parameters.MAIL_BODY }}
         '''
         sender_email = "${{ parameters.SENDER_EMAIL }}"
         receiver_email_param = "${{ parameters.RECEIVER_EMAIL }}"
-        
+
         # Basic email validation regex
         EMAIL_REGEX = r"^[^@]+@[^@]+\.[^@]+$"
-        
+
         def validate_email_address(email, param_name):
             if not isinstance(email, str) or not email.strip():
                 raise ValueError(f"{param_name} parameter is invalid or empty.")
             if not re.match(EMAIL_REGEX, email):
                 raise ValueError(f"{param_name} is not a valid email format: '{email}'")
-        
+
         # Validate sender
         validate_email_address(sender_email, "SENDER_EMAIL")
-        
+
         # If receiver_email can be a comma-separated list:
         receiver_emails = [e.strip() for e in receiver_email_param.split(",") if e.strip()]
         if not receiver_emails:
             raise ValueError(f"RECEIVER_EMAIL: {receiver_email_param} parameter is empty or invalid.")
-        
+
         for email in receiver_emails:
             validate_email_address(email, "RECEIVER_EMAIL")
-        
+
         # For header To/Bcc string needed
         recipient_str = ",".join(receiver_emails)
 
         password = "${{ parameters.APP_PASS }}"
-        
+
         # Create a multipart message and set headers
         message = MIMEMultipart()
         message["From"] = sender_email
         message["To"] = recipient_str
         message["Subject"] = subject
-        
+
         # Add body to email
         message.attach(MIMEText(body, "html"))
-        
-        files = "${{ parameters.ATTACHMENTS_COMMA_SEP }}".split(",")
-        
+
+        files = [f.strip() for f in "${{ parameters.ATTACHMENTS_COMMA_SEP }}".split(",") if f.strip()]
+
         # Add header as key/value pair to attachment part
         for f in files:  # add files to the message
           with open(f, "rb") as attachment:
@@ -88,17 +88,17 @@ steps:
             # Email client can usually download this automatically as attachment
             part = MIMEBase("application", "octet-stream")
             part.set_payload(attachment.read())
-        
-            # Encode file in ASCII characters to send by email    
+
+            # Encode file in ASCII characters to send by email
             encoders.encode_base64(part)
-          
+
             part.add_header('Content-Disposition','attachment', filename=f)
 
-        
+
         # Add attachment to message and convert message to string
         message.attach(part)
         text = message.as_string()
-        
+
         # Log in to server using secure context and send email
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
