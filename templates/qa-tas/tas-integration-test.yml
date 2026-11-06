@@ -89,6 +89,11 @@ parameters:
     type: boolean
     default: false
 
+  - name: isQualityGateRun
+    displayName: "Classify this run as Quality Gate (QG) instead of TAS"
+    type: boolean
+    default: false
+
   - name: githubToken
     displayName: "GitHub PAT (scopes: public_repo + actions:read)"
     type: string
@@ -221,6 +226,12 @@ steps:
         ALLURE_ARG=(--allure)
       fi
 
+      QUALITY_GATE_ARG=()
+      QUALITY_GATE_PARAM="${{ parameters.isQualityGateRun }}"
+      if [ "${QUALITY_GATE_PARAM,,}" = "true" ]; then
+        QUALITY_GATE_ARG=(--is-quality-gate-run)
+      fi
+
       python tas_orchestrator.py \
         --type "${{ parameters.testType }}" \
         --suite "${{ parameters.suite }}" \
@@ -233,6 +244,7 @@ steps:
         --artifact-dir "${ARTIFACT_DIR}" \
         --tags "${{ parameters.tags }}" \
         "${ALLURE_ARG[@]}" \
+        "${QUALITY_GATE_ARG[@]}" \
         --sync \
         | tee tas_output.txt
       EXIT_CODE=${PIPESTATUS[0]}
@@ -289,6 +301,12 @@ steps:
         ALLURE_ARG=(--allure)
       fi
 
+      QUALITY_GATE_ARG=()
+      QUALITY_GATE_PARAM="${{ parameters.isQualityGateRun }}"
+      if [ "${QUALITY_GATE_PARAM,,}" = "true" ]; then
+        QUALITY_GATE_ARG=(--is-quality-gate-run)
+      fi
+
       python tas_orchestrator.py \
         --type "${{ parameters.testType }}" \
         --suite "${{ parameters.suite }}" \
@@ -300,6 +318,7 @@ steps:
         --correlation-id "$(Build.BuildId)-$(System.JobAttempt)" \
         --tags "${{ parameters.tags }}" \
         "${ALLURE_ARG[@]}" \
+        "${QUALITY_GATE_ARG[@]}" \
         | tee tas_output.txt
 
       CID=$(grep -E '^CORRELATION_ID=' tas_output.txt | cut -d= -f2-)
@@ -345,6 +364,12 @@ steps:
         ALLURE_JSON=", \"allure\": \"true\""
       fi
 
+      QUALITY_GATE_JSON=""
+      QUALITY_GATE_PARAM="${{ parameters.isQualityGateRun }}"
+      if [ "${QUALITY_GATE_PARAM,,}" = "true" ]; then
+        QUALITY_GATE_JSON=", \"isQualityGateRun\": \"true\""
+      fi
+
       HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
         -X POST \
         -H "Accept: application/vnd.github+json" \
@@ -358,7 +383,7 @@ steps:
             \"test_suite\": \"${{ parameters.suite }}\",
             \"environment\": \"${{ parameters.environment }}\",
             \"caller_id\": \"$(Build.Repository.Name)/$(Build.BuildId)\",
-            \"correlation_id\": \"${CID}\"${TAGS_JSON}${ALLURE_JSON}
+            \"correlation_id\": \"${CID}\"${TAGS_JSON}${ALLURE_JSON}${QUALITY_GATE_JSON}
           }
         }")
 
